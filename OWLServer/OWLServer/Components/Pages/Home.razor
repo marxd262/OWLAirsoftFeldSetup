@@ -1,0 +1,14 @@
+﻿@page "/"
+@inject Services.GameStateService GSS
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<RadzenFormField Text="Outlined/Default" Style="width: 100%;">
+    <RadzenNumeric @bind-Value="@GSS.PointsTeamGreen" />
+</RadzenFormField>
+
