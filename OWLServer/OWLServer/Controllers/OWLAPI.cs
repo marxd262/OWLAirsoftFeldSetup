@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OWLServer.Models;
 using OWLServer.Services;
 using System.Threading.Tasks;
 
@@ -23,10 +24,9 @@ namespace OWLServer.Controllers
         }
 
         [HttpPost("SetTeam")]
-        public int SetCurrentTeam()
+        public int SetCurrentTeam(enums.TeamColor color)
         {
-            GSS.AddPoints();
-            return GSS.PointsTeamGreen;
+            return GSS.AddPoints(color, 1);
         }
     }
 }
