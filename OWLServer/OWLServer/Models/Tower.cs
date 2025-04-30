@@ -4,7 +4,7 @@
     {
         public int ID { get; set; }
         public string Name { get; set; }
-        public enums.TeamColor CurrentColor {  get; set; }
+        public TeamColor CurrentColor {  get; set; }
 
         public Tower(int id)
         {
@@ -13,7 +13,7 @@
 
         public void Reset()
         {
-            CurrentColor = enums.TeamColor.none;
+            CurrentColor = TeamColor.NONE;
         }
     }
 }

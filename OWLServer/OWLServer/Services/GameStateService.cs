@@ -7,16 +7,16 @@ namespace OWLServer.Services
 
         public event Action EH;
 
-        public Dictionary<enums.TeamColor, Team> Teams { get;set; }
+        public Dictionary<TeamColor, Team> Teams { get; set; }
         public Dictionary<int, Tower> Towers { get; set; }
 
-        public GameStateService() 
+        public GameStateService()
         {
-            Teams = new Dictionary<enums.TeamColor, Team>();
+            Teams = new Dictionary<TeamColor, Team>();
             Towers = new Dictionary<int, Tower>();
 
-            Teams.Add(enums.TeamColor.RED, new Team(enums.TeamColor.RED));
-            Teams.Add(enums.TeamColor.GREEN, new Team(enums.TeamColor.GREEN));
+            Teams.Add(TeamColor.RED, new Team(TeamColor.RED));
+            Teams.Add(TeamColor.GREEN, new Team(TeamColor.GREEN));
         }
 
         public void AddTower()
@@ -25,7 +25,7 @@ namespace OWLServer.Services
             Towers.Add(newID, new Tower(newID));
         }
 
-        public void TowerChangeColor(int TowerID, enums.TeamColor newColor)
+        public void TowerChangeColor(int TowerID, TeamColor newColor)
         {
             if (Towers.ContainsKey(TowerID))
             {
@@ -34,7 +34,7 @@ namespace OWLServer.Services
             }
         }
 
-        public int AddPoints(enums.TeamColor color, int points)
+        public int AddPoints(TeamColor color, int points)
         {
             if (Teams.ContainsKey(color))
             {
@@ -42,9 +42,10 @@ namespace OWLServer.Services
                 EH.Invoke();
                 return Teams[color].Points;
             }
+
             return 0;
         }
-        
+
         public void Reset()
         {
             ResetTeams();
@@ -67,5 +68,4 @@ namespace OWLServer.Services
             }
         }
     }
-
 }

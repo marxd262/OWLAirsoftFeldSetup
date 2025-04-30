@@ -1,15 +1,13 @@
-﻿using OWLServer.Services;
-
-namespace OWLServer.Models
+﻿namespace OWLServer.Models
 {
     public class Team
     {
-        public Team(enums.TeamColor teamColor)
+        public Team(TeamColor teamColor)
         {
             TeamColor = teamColor;
         }
 
-        public enums.TeamColor TeamColor { get; set; }
+        public TeamColor TeamColor { get; set; }
         public int Points { get; set; } = 0;
         public int Deaths { get; set; } = 0;
 

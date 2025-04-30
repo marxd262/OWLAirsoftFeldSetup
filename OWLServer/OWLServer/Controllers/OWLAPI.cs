@@ -24,7 +24,7 @@ namespace OWLServer.Controllers
         }
 
         [HttpPost("SetTeam")]
-        public int SetCurrentTeam(enums.TeamColor color)
+        public int SetCurrentTeam(TeamColor color)
         {
             return GSS.AddPoints(color, 1);
         }
