@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using System.Text.Json;
-@inject Services.GameStateService GSS
+@using OWLServer.Services
+@inject GameStateService GSS
+@inject ExternalTriggerService ExternalTriggerService
 
 
 
@@ -24,7 +26,7 @@ Team Grün:
 @code{
     protected override void OnInitialized()
     {
-        GSS.EH += () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
         base.OnInitialized();
     }
 }

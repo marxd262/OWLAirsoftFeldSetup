@@ -1,20 +1,14 @@
 ﻿namespace OWLServer.Models
 {
-    public class Team
+    public class TeamBase
     {
-        public Team(TeamColor teamColor)
+        public TeamColor TeamColor { get; set; }
+        public string Name { get; set; }
+        
+        public TeamBase(TeamColor teamColor, string name = "")
         {
             TeamColor = teamColor;
-        }
-
-        public TeamColor TeamColor { get; set; }
-        public int Points { get; set; } = 0;
-        public int Deaths { get; set; } = 0;
-
-        public void Reset()
-        {
-            Points = 0;
-            Deaths = 0;
+            Name = string.IsNullOrEmpty(name) ? teamColor.ToString() : name;
         }
     }
 }

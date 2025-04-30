@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<GameStateService>();
+builder.Services.AddSingleton<ExternalTriggerService>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();

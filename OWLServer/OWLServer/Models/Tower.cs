@@ -9,6 +9,7 @@
         public Tower(int id)
         {
             ID = id;
+            Name = string.Empty;
         }
 
         public void Reset()

@@ -1,22 +1,24 @@
-﻿using OWLServer.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Components;
+using OWLServer.Models;
 
 namespace OWLServer.Services
 {
     public class GameStateService
     {
+        [Inject] 
+        public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
-        public event Action EH;
-
-        public Dictionary<TeamColor, Team> Teams { get; set; }
+        public Dictionary<TeamColor, TeamBase> Teams { get; set; }
         public Dictionary<int, Tower> Towers { get; set; }
 
         public GameStateService()
         {
-            Teams = new Dictionary<TeamColor, Team>();
+            Teams = new Dictionary<TeamColor, TeamBase>();
             Towers = new Dictionary<int, Tower>();
 
-            Teams.Add(TeamColor.RED, new Team(TeamColor.RED));
-            Teams.Add(TeamColor.GREEN, new Team(TeamColor.GREEN));
+            Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
+            Teams.Add(TeamColor.GREEN, new TeamBase(TeamColor.GREEN));
         }
 
         public void AddTower()
@@ -30,39 +32,18 @@ namespace OWLServer.Services
             if (Towers.ContainsKey(TowerID))
             {
                 Towers[TowerID].CurrentColor = newColor;
-                EH.Invoke();
+                ExternalTriggerService.StateHasChangedAction.Invoke();
             }
-        }
-
-        public int AddPoints(TeamColor color, int points)
-        {
-            if (Teams.ContainsKey(color))
-            {
-                Teams[color].Points += points;
-                EH.Invoke();
-                return Teams[color].Points;
-            }
-
-            return 0;
         }
 
         public void Reset()
         {
-            ResetTeams();
             ResetTowers();
         }
 
         public void ResetTowers()
         {
             foreach (var item in Towers)
-            {
-                item.Value.Reset();
-            }
-        }
-
-        public void ResetTeams()
-        {
-            foreach (var item in Teams)
             {
                 item.Value.Reset();
             }

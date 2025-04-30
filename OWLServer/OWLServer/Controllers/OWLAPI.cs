@@ -1,21 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Mvc;
 using OWLServer.Models;
 using OWLServer.Services;
-using System.Threading.Tasks;
 
 namespace OWLServer.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Microsoft.AspNetCore.Mvc.Route("api")]
     public class OWLAPI : Controller
     {
+        [Inject]
+        GameStateService GameStateService {get; set;} = null!;
 
-        protected GameStateService GSS {get; set;}
+        [Inject]
+        ExternalTriggerService ExternalTriggerService {get; set;} = null!;
 
-        public OWLAPI(GameStateService gss)
-        {
-            GSS = gss;
-        }
 
         [HttpGet("ping")]
         public string Get()
@@ -23,10 +22,10 @@ namespace OWLServer.Controllers
             return "pong";
         }
 
-        [HttpPost("SetTeam")]
-        public int SetCurrentTeam(TeamColor color)
+        [HttpPost("KlickerClicked")]
+        public void KlickerClicked(TeamColor color)
         {
-            return GSS.AddPoints(color, 1);
+            ExternalTriggerService.InvokeKlickerPressed(color);
         }
     }
 }
