@@ -4,14 +4,15 @@
     {
         NONE = -1,
         RED,
-        GREEN
+        GREEN,
     }
 
     public enum GameMode
     {
+        Timer,
         TeamDeathMatch,
         CaptureTheFlag,
+        Conquest,
         Bomb,
-        Timer
     }
 }
