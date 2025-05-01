@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Runtime.InteropServices.JavaScript;
 using Microsoft.AspNetCore.Components;
 using OWLServer.Services;
 
@@ -8,11 +10,14 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     private ExternalTriggerService ExternalTriggerService { get; set; }
     public string Name { get; set; } = "Deathmatch";
     public int GameDurationInMinutes { get; set; } = 20;
-    public int MaxDeaths = 50;
+    public int MaxDeaths = 15;
+    public bool IsTicket = true;
+    public bool IsRunning { get; set; } = false;
+    public bool IsFinished { get; set; } = false;
     public DateTime? StartTime { get; set; }
 
     private CancellationTokenSource abort = new();
-    
+
     public Dictionary<TeamColor, int> TeamDeaths = new();
 
     public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService)
@@ -26,20 +31,49 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         if (StartTime != null)
         {
             TeamDeaths[args.TeamColor] += 1;
+            ExternalTriggerService.StateHasChangedAction.Invoke();
+        }
+    }
+
+    public TimeSpan? GetTimer 
+    {
+        get
+        {
+            if (StartTime == null)
+                return new TimeSpan(0, GameDurationInMinutes, 0);
+            else
+                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
         }
     }
 
     public void FillTeams(List<TeamBase> teams)
     {
-        foreach (var teamColor in teams)
+        foreach (var teamColor in teams)    
         {
             TeamDeaths[teamColor.TeamColor] = 0;
         }
+    }
+
+    public string GetTeamPoints(TeamColor color)
+    {
+        int retval = 0;
+
+        if (IsTicket)
+        {
+            retval = MaxDeaths - TeamDeaths[color];
+        }
+        else
+        {
+            retval = TeamDeaths[color];
+        }
+        
+        return retval.ToString();
     }
     
     public void RunGame()
     {
         StartTime = DateTime.Now;
+        IsRunning = true;
         Task.Run(Runner, abort.Token);
     }
 
@@ -66,12 +100,16 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 EndGame();
                 break;
             }
+            
+            ExternalTriggerService.StateHasChangedAction.Invoke();
         }
     }
 
     public void EndGame()
     {
-        throw new NotImplementedException();
+        IsRunning = false;
+        IsFinished = true;
+        //throw new NotImplementedException();
         // not implemented
         // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
     }

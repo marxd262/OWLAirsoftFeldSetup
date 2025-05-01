@@ -8,32 +8,43 @@
 
 <PageTitle>Home</PageTitle>
 
-Time:
-@(new TimeSpan(0))
-
-<br />
-<br />
-<RadzenCard Variant="Variant.Outlined">
-    <RadzenStack>
-        <p>Team Rot: <br/>
-            @JsonSerializer.Serialize(GSS.Teams[TeamColor.RED])</p>
-
-        @JsonSerializer.Serialize(((GameModeTeamDeathmatch)GSS.CurrentGame)?.TeamDeaths[TeamColor.RED])
-    </RadzenStack>
+<RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
+    <p>GameMode: @GSS.CurrentGame?.ToString()</p>
+    <p>IsRunning: @GSS.CurrentGame?.IsRunning</p>
+    <p>Timer: @GSS.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
+    <p>Aktueller Sieger: @GSS.CurrentGame?.GetWinner()</p>
 </RadzenCard>
-<RadzenCard Variant="Variant.Outlined">
-    <RadzenStack>
-        <p>Team Rot: <br/>
-            @JsonSerializer.Serialize(GSS.Teams[TeamColor.GREEN])</p>
+<br/>
+<br/>
+<RadzenRow Orientation="Orientation.Horizontal">
+    <RadzenColumn>
+        <RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
+            <RadzenStack>
+                <p>Team Rot: <br/>
+                    @JsonSerializer.Serialize(GSS.Teams[TeamColor.RED])</p>
 
-        @JsonSerializer.Serialize(((GameModeTeamDeathmatch)GSS.CurrentGame)?.TeamDeaths[TeamColor.GREEN])
-    </RadzenStack>
-</RadzenCard>
+                @(((GameModeTeamDeathmatch)GSS.CurrentGame)?.GetTeamPoints(TeamColor.RED))
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenCard Variant="Variant.Outlined" Style="background-color: lightgreen">
+            <RadzenStack>
+                <p>Team Grün: <br/>
+                    @JsonSerializer.Serialize(GSS.Teams[TeamColor.GREEN])</p>
+
+                @(((GameModeTeamDeathmatch)GSS.CurrentGame)?.GetTeamPoints(TeamColor.GREEN))
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code{
+
     protected override void OnInitialized()
     {
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
         base.OnInitialized();
     }
+
 }
