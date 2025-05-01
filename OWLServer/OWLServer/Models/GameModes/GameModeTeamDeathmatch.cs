@@ -28,7 +28,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     private void ClickerPressed(object? sender, KlickerEventArgs args)
     {
-        if (StartTime != null)
+        if (StartTime != null && IsRunning)
         {
             TeamDeaths[args.TeamColor] += 1;
             ExternalTriggerService.StateHasChangedAction.Invoke();
