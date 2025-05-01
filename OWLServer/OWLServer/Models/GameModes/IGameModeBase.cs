@@ -12,6 +12,7 @@ public interface IGameModeBase
     public abstract TeamColor GetWinner();
     public abstract string ToString();
     public TimeSpan? GetTimer { get; }
+    public int GetDisplayPoints(TeamColor color);
 
     public abstract void FillTeams(List<TeamBase> teams);
 }

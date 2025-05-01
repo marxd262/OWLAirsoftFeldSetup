@@ -6,6 +6,8 @@
         public string Name { get; set; }
         public TeamColor CurrentColor {  get; set; }
 
+        public double Multiplier { get; set; } = 1.0;
+
         public Tower(int id)
         {
             ID = id;

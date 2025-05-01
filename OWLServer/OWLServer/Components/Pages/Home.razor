@@ -1,29 +1,28 @@
 ﻿@page "/"
 @using System.Text.Json;
 @using OWLServer.Services
-@inject GameStateService GSS
+@inject GameStateService GameStateService
 @inject ExternalTriggerService ExternalTriggerService
 
 
 
 <PageTitle>Home</PageTitle>
 
-<RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
-    <p>GameMode: @GSS.CurrentGame?.ToString()</p>
-    <p>IsRunning: @GSS.CurrentGame?.IsRunning</p>
-    <p>Timer: @GSS.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
-    <p>Aktueller Sieger: @GSS.CurrentGame?.GetWinner()</p>
+<RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
+    <p>GameMode: @GameStateService.CurrentGame?.ToString()</p>
+    <p>IsRunning: @GameStateService.CurrentGame?.IsRunning</p>
+    <p>Timer: @GameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
+    <p>Aktueller Sieger: @GameStateService.CurrentGame?.GetWinner()</p>
 </RadzenCard>
-<br/>
 <br/>
 <RadzenRow Orientation="Orientation.Horizontal">
     <RadzenColumn>
         <RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
             <RadzenStack>
                 <p>Team Rot: <br/>
-                    @JsonSerializer.Serialize(GSS.Teams[TeamColor.RED])</p>
+                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.RED])</p>
 
-                @(((GameModeTeamDeathmatch)GSS.CurrentGame)?.GetTeamPoints(TeamColor.RED))
+                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED))
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
@@ -31,13 +30,24 @@
         <RadzenCard Variant="Variant.Outlined" Style="background-color: lightgreen">
             <RadzenStack>
                 <p>Team Grün: <br/>
-                    @JsonSerializer.Serialize(GSS.Teams[TeamColor.GREEN])</p>
+                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.GREEN])</p>
 
-                @(((GameModeTeamDeathmatch)GSS.CurrentGame)?.GetTeamPoints(TeamColor.GREEN))
+                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.GREEN))
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
+<br/>
+
+<RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
+    <RadzenStack>
+        <p>Alle Tower:</p> <br/>
+        @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+        {
+            <p>@JsonSerializer.Serialize(tower)</p> <br/>
+        }
+    </RadzenStack>
+</RadzenCard>
 
 @code{
 

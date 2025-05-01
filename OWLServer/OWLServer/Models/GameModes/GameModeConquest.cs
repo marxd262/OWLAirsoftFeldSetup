@@ -5,34 +5,27 @@ using OWLServer.Services;
 
 namespace OWLServer.Models.GameModes;
 
-public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
+public class GameModeConquest : IGameModeBase, IDisposable
 {
     private ExternalTriggerService ExternalTriggerService { get; set; }
-    public string Name { get; set; } = "Deathmatch";
+    private GameStateService GameStateService { get; set; }
+    public string Name { get; set; } = "Conquest";
     public int GameDurationInMinutes { get; set; } = 20;
-    public int MaxDeaths = 15;
+    public int MaxPoints = 15;
     public bool IsTicket = true;
+    public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool IsRunning { get; set; } = false;
     public bool IsFinished { get; set; } = false;
     public DateTime? StartTime { get; set; }
 
     private CancellationTokenSource abort = new();
 
-    public Dictionary<TeamColor, int> TeamDeaths = new();
+    public Dictionary<TeamColor, int> TeamPoints = new();
 
-    public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService)
+    public GameModeConquest(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
-        ExternalTriggerService.KlickerPressedAction += ClickerPressed;
-    }
-
-    private void ClickerPressed(object? sender, KlickerEventArgs args)
-    {
-        if (StartTime != null && IsRunning)
-        {
-            TeamDeaths[args.TeamColor] += 1;
-            ExternalTriggerService.StateHasChangedAction.Invoke();
-        }
+        GameStateService = gameStateService;
     }
 
     public TimeSpan? GetTimer 
@@ -41,6 +34,8 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         {
             if (StartTime == null)
                 return new TimeSpan(0, GameDurationInMinutes, 0);
+            else if (IsFinished)
+                return new TimeSpan(0, 0, 0);
             else
                 return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
         }
@@ -50,7 +45,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     {
         foreach (var teamColor in teams)    
         {
-            TeamDeaths[teamColor.TeamColor] = 0;
+            TeamPoints[teamColor.TeamColor] = 0;
         }
     }
 
@@ -60,11 +55,11 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
         if (IsTicket)
         {
-            points = MaxDeaths - TeamDeaths[color];
+            points = MaxPoints - TeamPoints[color];
         }
         else
         {
-            points = TeamDeaths[color];
+            points = TeamPoints[color];
         }
         
         return points;
@@ -79,6 +74,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     private void Runner()
     {
+        DateTime lastPointDistributed = DateTime.Now;
         while (true)
         {
             Thread.Sleep(500);
@@ -95,13 +91,27 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 break;
             }
 
-            if (TeamDeaths.Any(e => e.Value >= MaxDeaths))
+            if (lastPointDistributed.AddSeconds(PointDistributionFrequencyInSeconds) <= DateTime.Now)
+            {
+                DistributePoints();
+                lastPointDistributed = DateTime.Now;
+            }
+
+            if (TeamPoints.Any(e => e.Value >= MaxPoints))
             {
                 EndGame();
                 break;
             }
             
             ExternalTriggerService.StateHasChangedAction.Invoke();
+        }
+    }
+
+    private void DistributePoints()
+    {
+        foreach (var teamColor in TeamPoints.Keys)
+        {
+            TeamPoints[teamColor] += GameStateService.TowerManagerService.GetPoints(teamColor);
         }
     }
 
@@ -116,17 +126,17 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public TeamColor GetWinner()
     {
-        if (TeamDeaths.Values.Distinct().Count() == 1)
+        if (TeamPoints.Values.Distinct().Count() == 1)
         {
             return TeamColor.NONE;
         }
 
-        return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Min()).Key;
+        return TeamPoints.First(e => e.Value == TeamPoints.Values.Min()).Key;
     }
 
-    public int GetTeamDeaths(TeamColor team)
+    public int GetTeamPoints(TeamColor team)
     {
-        return TeamDeaths[team];
+        return TeamPoints[team];
     }
     
     public override string ToString()
@@ -136,7 +146,6 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public void Dispose()
     {
-        ExternalTriggerService.KlickerPressedAction -= ClickerPressed;
         StartTime = null;
         abort.Dispose();
     }
