@@ -13,15 +13,22 @@ Time:
 
 <br />
 <br />
+<RadzenCard Variant="Variant.Outlined">
+    <RadzenStack>
+        <p>Team Rot: <br/>
+            @JsonSerializer.Serialize(GSS.Teams[TeamColor.RED])</p>
 
-Team Rot:
-@JsonSerializer.Serialize(GSS.Teams[TeamColor.RED])
+        @JsonSerializer.Serialize(((GameModeTeamDeathmatch)GSS.CurrentGame)?.TeamDeaths[TeamColor.RED])
+    </RadzenStack>
+</RadzenCard>
+<RadzenCard Variant="Variant.Outlined">
+    <RadzenStack>
+        <p>Team Rot: <br/>
+            @JsonSerializer.Serialize(GSS.Teams[TeamColor.GREEN])</p>
 
-<br />
-<br />
-
-Team Grün:
-@JsonSerializer.Serialize(GSS.Teams[TeamColor.GREEN])
+        @JsonSerializer.Serialize(((GameModeTeamDeathmatch)GSS.CurrentGame)?.TeamDeaths[TeamColor.GREEN])
+    </RadzenStack>
+</RadzenCard>
 
 @code{
     protected override void OnInitialized()

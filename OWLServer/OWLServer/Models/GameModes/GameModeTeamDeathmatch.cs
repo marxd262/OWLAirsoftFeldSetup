@@ -5,8 +5,7 @@ namespace OWLServer.Models.GameModes;
 
 public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 {
-    [Inject]
-    ExternalTriggerService ExternalTriggerService { get; set; } = null!;
+    private ExternalTriggerService ExternalTriggerService { get; set; }
     public string Name { get; set; } = "Deathmatch";
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxDeaths = 50;
@@ -14,10 +13,11 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     private CancellationTokenSource abort = new();
     
-    Dictionary<TeamColor, int> TeamDeaths = new();
+    public Dictionary<TeamColor, int> TeamDeaths = new();
 
-    public GameModeTeamDeathmatch()
+    public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService)
     {
+        ExternalTriggerService = externalTriggerService;
         ExternalTriggerService.KlickerPressedAction += ClickerPressed;
     }
 

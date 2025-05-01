@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using OWLServer.Models;
+using OWLServer.Models.GameModes;
 
 namespace OWLServer.Services
 {
@@ -9,7 +10,10 @@ namespace OWLServer.Services
         [Inject] 
         public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
+        public IGameModeBase CurrentGame { get; set; } = null!;
         public Dictionary<TeamColor, TeamBase> Teams { get; set; }
+        
+        
         public Dictionary<int, Tower> Towers { get; set; }
 
         public GameStateService()
