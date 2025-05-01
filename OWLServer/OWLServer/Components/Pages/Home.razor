@@ -18,9 +18,8 @@
         <RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
             <RadzenStack>
                 <p>Team Rot: <br/>
-                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.RED])</p>
-
-                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED))
+                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.RED])
+                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED))</p>
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
@@ -28,9 +27,8 @@
         <RadzenCard Variant="Variant.Outlined" Style="background-color: lightgreen">
             <RadzenStack>
                 <p>Team Grün: <br/>
-                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.GREEN])</p>
-
-                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.GREEN))
+                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.GREEN])
+                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.GREEN))</p>
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
@@ -39,10 +37,10 @@
 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <RadzenStack>
-        <p>Alle Tower:</p> <br/>
+        <p>Alle Tower:</p> 
         @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
         {
-            <p>@JsonSerializer.Serialize(tower)</p> <br/>
+            <p>@JsonSerializer.Serialize(tower)</p> 
         }
     </RadzenStack>
 </RadzenCard>

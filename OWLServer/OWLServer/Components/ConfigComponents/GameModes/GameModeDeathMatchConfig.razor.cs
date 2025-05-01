@@ -6,10 +6,5 @@ namespace OWLServer.Components.ConfigComponents.GameModes;
 
 public partial class GameModeDeathMatchConfig : ComponentBase
 {
-    [Parameter]
-    public GameModeTeamDeathmatch CurrentGame { get; set; }
-
-    public void test()
-    {
-    }
+    [Parameter] public GameModeTeamDeathmatch CurrentGame { get; set; } = null!;
 }

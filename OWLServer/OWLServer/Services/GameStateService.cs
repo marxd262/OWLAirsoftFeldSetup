@@ -9,7 +9,7 @@ namespace OWLServer.Services
     {
         public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
-        public IGameModeBase CurrentGame { get; set; } = null!;
+        public IGameModeBase? CurrentGame { get; set; } = null!;
         public TowerManagerService TowerManagerService { get; set; }
         public Dictionary<TeamColor, TeamBase> Teams { get; set; } = new();
         

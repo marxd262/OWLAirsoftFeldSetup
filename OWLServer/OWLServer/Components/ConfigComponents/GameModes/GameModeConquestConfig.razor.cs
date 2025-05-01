@@ -6,5 +6,5 @@ namespace OWLServer.Components.ConfigComponents.GameModes;
 public partial class GameModeConquestConfig : ComponentBase
 {
     [Parameter]
-    public GameModeConquest CurrentGame{get;set;}
+    public GameModeConquest CurrentGame{get;set;} = null!;
 }

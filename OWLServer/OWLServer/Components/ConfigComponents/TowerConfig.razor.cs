@@ -6,5 +6,5 @@ namespace OWLServer.Components.ConfigComponents;
 public partial class TowerConfig : ComponentBase
 {
     [Inject]
-    public GameStateService GameStateService { get; set; }
+    public GameStateService GameStateService { get; set; } = null!;
 }

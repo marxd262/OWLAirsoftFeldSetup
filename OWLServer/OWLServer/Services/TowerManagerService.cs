@@ -41,7 +41,7 @@ public class TowerManagerService
         return (int)double.Round(points);
     }
 
-    private void HandleTowerClicked(object? sender, TowerEventArgs? args)
+    private void HandleTowerClicked(object? sender, TowerEventArgs args)
     {
         if (!Towers.ContainsKey(args.TowerId)) return;
         
