@@ -9,12 +9,15 @@ namespace OWLServer.Controllers
     [Microsoft.AspNetCore.Mvc.Route("api")]
     public class OWLAPI : Controller
     {
-        [Inject]
-        GameStateService GameStateService {get; set;} = null!;
+        GameStateService GameStateService {get; set;}
 
-        [Inject]
-        ExternalTriggerService ExternalTriggerService {get; set;} = null!;
+        ExternalTriggerService ExternalTriggerService {get; set;}
 
+        public OWLAPI(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+        {
+            GameStateService = gameStateService;
+            ExternalTriggerService = externalTriggerService;
+        }
 
         [HttpGet("ping")]
         public string Get()
