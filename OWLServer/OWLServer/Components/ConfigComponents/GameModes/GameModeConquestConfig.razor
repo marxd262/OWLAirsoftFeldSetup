@@ -1,0 +1,22 @@
+
+
+
+<RadzenRow Orientation="Orientation.Horizontal">
+    <RadzenColumn>
+        <h3>GameModeConquestConfig</h3>
+        <RadzenStack>
+            <RadzenFormField Text="Game Duration" Variant="Variant.Flat">
+                <RadzenNumeric @bind-Value="@CurrentGame.GameDurationInMinutes"/>
+            </RadzenFormField>
+            <RadzenFormField Text="Max Deaths" Variant="Variant.Flat">
+                <RadzenNumeric @bind-Value="@CurrentGame.MaxPoints"/>
+            </RadzenFormField>
+            <RadzenFormField Text="Is Ticket" Variant="Variant.Flat">
+                <RadzenCheckBox @bind-Value="@CurrentGame.IsTicket"/>
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenColumn>
+    <RadzenColumn>
+        <TowerConfig/>
+    </RadzenColumn>
+</RadzenRow>

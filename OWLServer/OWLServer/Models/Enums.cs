@@ -9,10 +9,11 @@
 
     public enum GameMode
     {
-        Timer,
+        None,
         TeamDeathMatch,
-        CaptureTheFlag,
         Conquest,
+        Timer,
+        CaptureTheFlag,
         Bomb,
     }
 }

@@ -17,6 +17,9 @@ public partial class AdminPanel : ComponentBase
     {
         switch (mode)
         {
+            case GameMode.None:
+                GameStateService.CurrentGame = null;
+                break;
             case GameMode.TeamDeathMatch:
                 GameStateService.CurrentGame = new GameModeTeamDeathmatch(ExternalTriggerService);
                 GameStateService.CurrentGame.FillTeams(GameStateService.Teams.Values.ToList());

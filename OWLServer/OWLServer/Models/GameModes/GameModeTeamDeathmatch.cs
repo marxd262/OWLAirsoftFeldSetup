@@ -1,6 +1,3 @@
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices.JavaScript;
-using Microsoft.AspNetCore.Components;
 using OWLServer.Services;
 
 namespace OWLServer.Models.GameModes;
@@ -12,11 +9,11 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxDeaths = 15;
     public bool IsTicket = true;
-    public bool IsRunning { get; set; } = false;
-    public bool IsFinished { get; set; } = false;
+    public bool IsRunning { get; set; }
+    public bool IsFinished { get; set; }
     public DateTime? StartTime { get; set; }
 
-    private CancellationTokenSource abort = new();
+    private CancellationTokenSource _abort = new();
 
     public Dictionary<TeamColor, int> TeamDeaths = new();
 
@@ -56,7 +53,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public int GetDisplayPoints(TeamColor color)
     {
-        int points = 0;
+        int points;
 
         if (IsTicket)
         {
@@ -74,7 +71,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     {
         StartTime = DateTime.Now;
         IsRunning = true;
-        Task.Run(Runner, abort.Token);
+        Task.Run(Runner, _abort.Token);
     }
 
     private void Runner()
@@ -83,7 +80,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         {
             Thread.Sleep(500);
 
-            if (abort.IsCancellationRequested)
+            if (_abort.IsCancellationRequested)
             {
                 EndGame();
                 break;
@@ -138,6 +135,6 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     {
         ExternalTriggerService.KlickerPressedAction -= ClickerPressed;
         StartTime = null;
-        abort.Dispose();
+        _abort.Dispose();
     }
 }

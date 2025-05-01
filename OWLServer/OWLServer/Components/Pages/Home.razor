@@ -4,15 +4,13 @@
 @inject GameStateService GameStateService
 @inject ExternalTriggerService ExternalTriggerService
 
-
-
 <PageTitle>Home</PageTitle>
 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <p>GameMode: @GameStateService.CurrentGame?.ToString()</p>
     <p>IsRunning: @GameStateService.CurrentGame?.IsRunning</p>
     <p>Timer: @GameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
-    <p>Aktueller Sieger: @GameStateService.CurrentGame?.GetWinner()</p>
+    <p>Voraussichtlicher Sieger: @GameStateService.CurrentGame?.GetWinner()</p>
 </RadzenCard>
 <br/>
 <RadzenRow Orientation="Orientation.Horizontal">
@@ -50,11 +48,9 @@
 </RadzenCard>
 
 @code{
-
     protected override void OnInitialized()
     {
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
         base.OnInitialized();
     }
-
 }

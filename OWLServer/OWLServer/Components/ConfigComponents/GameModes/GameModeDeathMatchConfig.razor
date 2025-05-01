@@ -1,0 +1,11 @@
+<RadzenStack>
+    <RadzenFormField Text="Game Duration" Variant="Variant.Flat">
+        <RadzenNumeric @bind-Value="@CurrentGame.GameDurationInMinutes" />
+    </RadzenFormField>
+    <RadzenFormField Text="Max Deaths" Variant="Variant.Flat">
+        <RadzenNumeric @bind-Value="@CurrentGame.MaxDeaths" />
+    </RadzenFormField>
+    <RadzenFormField Text="Is Ticket" Variant="Variant.Flat">
+        <RadzenCheckBox @bind-Value="@CurrentGame.IsTicket" />
+    </RadzenFormField>
+</RadzenStack>

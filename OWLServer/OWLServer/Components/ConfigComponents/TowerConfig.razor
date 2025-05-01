@@ -1,0 +1,17 @@
+<h3>TowerConfig</h3>
+<RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem">
+@foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+{
+    <RadzenCard Variant="Variant.Outlined" Style="">
+        <RadzenStack>
+            @tower.ID
+            <RadzenFormField Text="Multiplier" Variant="Variant.Flat">
+                <RadzenNumeric @bind-Value="@tower.Multiplier"/>
+            </RadzenFormField>
+            <RadzenFormField Text="Name" Variant="Variant.Flat">
+                <RadzenTextBox @bind-Value="@tower.Name"/>
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenCard>
+}
+</RadzenStack>
