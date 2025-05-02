@@ -45,5 +45,18 @@ namespace OWLServer.Controllers
             GameStateService.TowerManagerService.TowerChangeColor(id, color);
             return Ok();
         }
+
+        [HttpPost("TowerButtonPressed")]
+        public ActionResult TowerButtonPressed(string id, TeamColor color)
+        {
+            GameStateService.TowerManagerService.HandleTowerButtonPressed(id, color);
+            return Ok();
+        }
+        [HttpPost("TowerButtonReleased")]
+        public ActionResult TowerButtonReleased(string id)
+        {
+            GameStateService.TowerManagerService.HandleTowerButtonReleased(id);
+            return Ok();
+        }
     }
 }

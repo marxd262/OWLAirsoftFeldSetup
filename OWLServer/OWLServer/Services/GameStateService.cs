@@ -18,6 +18,7 @@ namespace OWLServer.Services
             ExternalTriggerService = externalTriggerService;
             
             TowerManagerService = new TowerManagerService(externalTriggerService);
+            TowerManagerService.RunTowerManager();
 
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
             Teams.Add(TeamColor.GREEN, new TeamBase(TeamColor.GREEN));

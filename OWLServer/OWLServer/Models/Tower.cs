@@ -13,8 +13,12 @@
         public bool IsControlled { get; set; }
         public bool IsForControlling { get; set; }
         public string ControllingTowerId { get; set; }
+        public bool IsPressed { get; set; }
+        public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
+        public double CaptureProgress { get; set; } = 0.0;
         
-
+        public DateTime? LastPressed { get; set; } 
+        
         public Tower(string id, string ip)
         {
             ID = id;
