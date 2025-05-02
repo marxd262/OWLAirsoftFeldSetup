@@ -14,7 +14,7 @@ public class ExternalTriggerService
         KlickerPressedAction?.Invoke(this, new KlickerEventArgs(color));
     }
 
-    public void InvokeTowerPressed(int towerId, TeamColor color)
+    public void InvokeTowerPressed(string towerId, TeamColor color)
     {
         TowerPressedAction?.Invoke(this, new TowerEventArgs(towerId, color));
     }
@@ -32,10 +32,10 @@ public class KlickerEventArgs : EventArgs
 
 public class TowerEventArgs :EventArgs
 {
-    public int TowerId { get; set; }
+    public string TowerId { get; set; }
     public TeamColor TeamColor { get; set; }
 
-    public TowerEventArgs(int towerId, TeamColor teamColor)
+    public TowerEventArgs(string towerId, TeamColor teamColor)
     {
         TowerId = towerId;
         TeamColor = teamColor;

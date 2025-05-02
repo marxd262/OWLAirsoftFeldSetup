@@ -33,14 +33,14 @@ namespace OWLServer.Controllers
         }
 
         [HttpPost("RegisterTower")]
-        public ActionResult RegisterTower(int id)
+        public ActionResult RegisterTower(string id, string ip)
         {
-            GameStateService.TowerManagerService.RegisterTower(id);
+            GameStateService.TowerManagerService.RegisterTower(id, ip);
             return Ok();
         }
 
         [HttpPost("CaptureTower")]
-        public ActionResult CaptureTower(int id, TeamColor color)
+        public ActionResult CaptureTower(string id, TeamColor color)
         {
             GameStateService.TowerManagerService.TowerChangeColor(id, color);
             return Ok();

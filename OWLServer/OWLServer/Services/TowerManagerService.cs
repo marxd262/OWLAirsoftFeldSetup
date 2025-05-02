@@ -6,7 +6,7 @@ namespace OWLServer.Services;
 public class TowerManagerService
 {
     private ExternalTriggerService ExternalTriggerService { get; }
-    public Dictionary<int, Tower> Towers { get; } = new();
+    public Dictionary<string, Tower> Towers { get; } = new();
 
     public TowerManagerService(ExternalTriggerService externalTriggerService)
     {
@@ -15,14 +15,14 @@ public class TowerManagerService
         ExternalTriggerService.TowerPressedAction += HandleTowerClicked;
     }
     
-    public void RegisterTower(int id)
+    public void RegisterTower(string id, string ip)
     {
         if (Towers.ContainsKey(id)) return;
-        Towers.Add(id, new Tower(id){CurrentColor = TeamColor.NONE});
+        Towers.Add(id, new Tower(id, ip){CurrentColor = TeamColor.NONE});
         ExternalTriggerService.StateHasChangedAction.Invoke();
     }
 
-    public void TowerChangeColor(int TowerID, TeamColor newColor)
+    public void TowerChangeColor(string TowerID, TeamColor newColor)
     {
         if (Towers.ContainsKey(TowerID))
         {
