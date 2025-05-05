@@ -21,7 +21,7 @@ namespace OWLServer.Services
             TowerManagerService.RunTowerManager();
 
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
-            Teams.Add(TeamColor.GREEN, new TeamBase(TeamColor.GREEN));
+            Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
         }
 
         public void Reset()

@@ -4,7 +4,7 @@
     {
         NONE = -1,
         RED,
-        GREEN,
+        BLUE,
     }
 
     public enum GameMode

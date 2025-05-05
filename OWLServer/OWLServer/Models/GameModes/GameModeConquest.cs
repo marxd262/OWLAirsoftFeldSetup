@@ -55,10 +55,10 @@ public class GameModeConquest : IGameModeBase, IDisposable
 
         if (IsTicket)
         {
-            if(color == TeamColor.GREEN)
+            if(color == TeamColor.BLUE)
                 points = MaxPoints - TeamPoints[TeamColor.RED];
             else if (color == TeamColor.RED)
-                points = MaxPoints - TeamPoints[TeamColor.GREEN];
+                points = MaxPoints - TeamPoints[TeamColor.BLUE];
         }
         else
         {
