@@ -13,24 +13,19 @@
     <p>Voraussichtlicher Sieger: @GameStateService.CurrentGame?.GetWinner()</p>
 </RadzenCard>
 <br/>
+
 <RadzenRow Orientation="Orientation.Horizontal">
     <RadzenColumn>
-        <RadzenCard Variant="Variant.Outlined" Style="background-color: lightcoral">
-            <RadzenStack>
-                <p>Team Rot: <br/>
-                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.RED])
-                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED))</p>
-            </RadzenStack>
-        </RadzenCard>
-    </RadzenColumn>
-    <RadzenColumn>
-        <RadzenCard Variant="Variant.Outlined" Style="background-color: lightgreen">
-            <RadzenStack>
-                <p>Team Grün: <br/>
-                    @JsonSerializer.Serialize(GameStateService.Teams[TeamColor.BLUE])
-                @(GameStateService.CurrentGame?.GetDisplayPoints(TeamColor.BLUE))</p>
-            </RadzenStack>
-        </RadzenCard>
+            @foreach (var team in GameStateService.Teams.Values)
+            {
+                <RadzenCard  Style="@team.ColorBackground"  Variant="Variant.Outlined">
+                    <RadzenStack>
+                        <p>Team @team.Name: <br/>
+                            @JsonSerializer.Serialize(team)
+                            @(GameStateService.CurrentGame?.GetDisplayPoints(team.TeamColor))</p>
+                    </RadzenStack>
+                </RadzenCard>
+            }
     </RadzenColumn>
 </RadzenRow>
 <br/>

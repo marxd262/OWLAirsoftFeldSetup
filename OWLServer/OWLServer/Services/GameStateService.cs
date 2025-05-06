@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Components;
+﻿using System.Drawing;
 using OWLServer.Models;
 using OWLServer.Models.GameModes;
 
@@ -20,8 +19,8 @@ namespace OWLServer.Services
             TowerManagerService = new TowerManagerService(externalTriggerService);
             TowerManagerService.RunTowerManager();
 
-            Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
-            Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
+            Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED, Color.LightCoral));
+            Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE, Color.CornflowerBlue));
         }
 
         public void Reset()
