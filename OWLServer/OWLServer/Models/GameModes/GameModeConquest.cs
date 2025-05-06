@@ -127,14 +127,17 @@ public class GameModeConquest : IGameModeBase, IDisposable
         // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
     }
 
-    public TeamColor GetWinner()
+    public TeamColor GetWinner
     {
-        if (TeamPoints.Values.Distinct().Count() == 1)
+        get
         {
-            return TeamColor.NONE;
-        }
+            if (TeamPoints.Values.Distinct().Count() == 1)
+            {
+                return TeamColor.NONE;
+            }
 
-        return TeamPoints.First(e => e.Value == TeamPoints.Values.Min()).Key;
+            return TeamPoints.First(e => e.Value == TeamPoints.Values.Min()).Key;
+        }
     }
 
     public int GetTeamPoints(TeamColor team)

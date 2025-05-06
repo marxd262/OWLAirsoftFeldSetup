@@ -10,7 +10,7 @@ public interface IGameModeBase
     
     public abstract void RunGame();
     public abstract void EndGame();
-    public abstract TeamColor GetWinner();
+    public abstract TeamColor GetWinner { get; }
     public abstract string ToString();
     public TimeSpan? GetTimer { get; }
     public int GetDisplayPoints(TeamColor color);

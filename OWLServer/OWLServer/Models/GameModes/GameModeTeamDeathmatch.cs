@@ -111,14 +111,17 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
     }
 
-    public TeamColor GetWinner()
+    public TeamColor GetWinner
     {
-        if (TeamDeaths.Values.Distinct().Count() == 1)
+        get
         {
-            return TeamColor.NONE;
-        }
+            if (TeamDeaths.Values.Distinct().Count() == 1)
+            {
+                return TeamColor.NONE;
+            }
 
-        return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Min()).Key;
+            return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Min()).Key;
+        }
     }
 
     public int GetTeamDeaths(TeamColor team)

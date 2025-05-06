@@ -6,11 +6,15 @@
 
 <PageTitle>Home</PageTitle>
 
+<MatchScoreBar/>
+
+<br/>
+
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <p>GameMode: @GameStateService.CurrentGame?.ToString()</p>
     <p>IsRunning: @GameStateService.CurrentGame?.IsRunning</p>
     <p>Timer: @GameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
-    <p>Voraussichtlicher Sieger: @GameStateService.CurrentGame?.GetWinner()</p>
+    <p>Voraussichtlicher Sieger: @GameStateService.CurrentGame?.GetWinner</p>
 </RadzenCard>
 <br/>
 
