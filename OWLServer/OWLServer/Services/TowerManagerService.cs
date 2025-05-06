@@ -57,7 +57,7 @@ public class TowerManagerService
                         tower.CaptureProgress = (double)progress;
                 }
             }
-            ExternalTriggerService.StateHasChangedAction.Invoke();
+            ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
 
