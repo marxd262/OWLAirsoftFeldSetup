@@ -11,7 +11,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
     private GameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Conquest";
     public int GameDurationInMinutes { get; set; } = 20;
-    public int MaxPoints = 15;
+    public int MaxTickets { get; set; } = 15;
     public bool IsTicket = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool IsRunning { get; set; } = false;
@@ -56,9 +56,9 @@ public class GameModeConquest : IGameModeBase, IDisposable
         if (IsTicket)
         {
             if(color == TeamColor.BLUE)
-                points = MaxPoints - TeamPoints[TeamColor.RED];
+                points = MaxTickets - TeamPoints[TeamColor.RED];
             else if (color == TeamColor.RED)
-                points = MaxPoints - TeamPoints[TeamColor.BLUE];
+                points = MaxTickets - TeamPoints[TeamColor.BLUE];
         }
         else
         {
@@ -100,7 +100,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 lastPointDistributed = DateTime.Now;
             }
 
-            if (TeamPoints.Any(e => e.Value >= MaxPoints))
+            if (TeamPoints.Any(e => e.Value >= MaxTickets))
             {
                 EndGame();
                 break;

@@ -7,7 +7,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     private ExternalTriggerService ExternalTriggerService { get; set; }
     public string Name { get; set; } = "Deathmatch";
     public int GameDurationInMinutes { get; set; } = 20;
-    public int MaxDeaths = 15;
+    public int MaxTickets { get; set; } = 15;
     public bool IsTicket = true;
     public bool IsRunning { get; set; }
     public bool IsFinished { get; set; }
@@ -57,7 +57,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
         if (IsTicket)
         {
-            points = MaxDeaths - TeamDeaths[color];
+            points = MaxTickets - TeamDeaths[color];
         }
         else
         {
@@ -92,7 +92,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 break;
             }
 
-            if (TeamDeaths.Any(e => e.Value >= MaxDeaths))
+            if (TeamDeaths.Any(e => e.Value >= MaxTickets))
             {
                 EndGame();
                 break;
