@@ -1,12 +1,14 @@
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using OWLServer.Models;
+using OWLServer.Models.GameModes;
 
 namespace OWLServer.Services;
 
 public class TowerManagerService
 {
     private ExternalTriggerService ExternalTriggerService { get; }
+    private GameStateService GameStateService { get; }
     private CancellationTokenSource abort = new();
     public bool IsRunning { get; private set; }
 
@@ -14,9 +16,10 @@ public class TowerManagerService
 
     public int TimeToCaptureTowerInSeconds { get; set; } = 5;
 
-    public TowerManagerService(ExternalTriggerService externalTriggerService)
+    public TowerManagerService(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
+        GameStateService = gameStateService;
 
         ExternalTriggerService.TowerPressedAction += HandleTowerClicked;
     }
@@ -38,26 +41,34 @@ public class TowerManagerService
                 break;
             }
 
-            foreach (var tower in Towers.Values.Where(t => t.IsPressed))
+            if (GameStateService.CurrentGame is GameModeConquest gameMode && gameMode.IsRunning)
             {
-                if (tower.LastPressed?.AddSeconds(TimeToCaptureTowerInSeconds) < DateTime.Now)
+                foreach (var tower in Towers.Values.Where(t => t.IsPressed))
                 {
-                    tower.CurrentColor = tower.PressedByColor;
-                    var sinc = DateTime.Now - tower.LastPressed;
-                    tower.IsPressed = false;
-                    tower.LastPressed = null;
-                    tower.PressedByColor = TeamColor.NONE;
+                    if (tower.LastPressed?.AddSeconds(TimeToCaptureTowerInSeconds) < DateTime.Now)
+                    {
+                        tower.CurrentColor = tower.PressedByColor;
+                        var sinc = DateTime.Now - tower.LastPressed;
+                        tower.IsPressed = false;
+                        tower.LastPressed = null;
+                        tower.PressedByColor = TeamColor.NONE;
+                    }
+                    else
+                    {
+                        var timeSincePressed = DateTime.Now - tower.LastPressed;
+                        var s = timeSincePressed?.Seconds;
+                        double? progress = s / TimeToCaptureTowerInSeconds;
+                        if (progress != null)
+                            tower.CaptureProgress = (double)progress;
+                    }
                 }
-                else
-                {
-                    var timeSincePressed = DateTime.Now - tower.LastPressed;
-                    var s = timeSincePressed?.Seconds;
-                    double? progress = s / TimeToCaptureTowerInSeconds;
-                    if(progress != null)
-                        tower.CaptureProgress = (double)progress;
-                }
+
+                ExternalTriggerService.StateHasChangedAction?.Invoke();
             }
-            ExternalTriggerService.StateHasChangedAction?.Invoke();
+            else
+            {
+                Thread.Sleep(5000);
+            }
         }
     }
 
