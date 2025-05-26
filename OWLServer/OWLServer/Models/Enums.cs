@@ -16,4 +16,11 @@
         CaptureTheFlag,
         Bomb,
     }
+    
+    public enum Sounds{
+        Start,
+        Stop,
+        Countdown,
+        Freeze
+    }
 }
