@@ -47,7 +47,7 @@ public class TowerManagerService
                 {
                     if (tower.LastPressed?.AddSeconds(TimeToCaptureTowerInSeconds) < DateTime.Now)
                     {
-                        tower.CurrentColor = tower.PressedByColor;
+                        tower.SetTowerColer(tower.PressedByColor); 
                         var sinc = DateTime.Now - tower.LastPressed;
                         tower.IsPressed = false;
                         tower.LastPressed = null;
@@ -83,7 +83,7 @@ public class TowerManagerService
     {
         if (Towers.ContainsKey(TowerID))
         {
-            Towers[TowerID].CurrentColor = newColor;
+            Towers[TowerID].SetTowerColer(newColor);
             ExternalTriggerService.StateHasChangedAction.Invoke();
         }
     }
