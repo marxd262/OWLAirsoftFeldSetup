@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using OWLServer.Models;
 
 namespace OWLServer.Services;
@@ -9,9 +10,9 @@ public class AudioService
         switch (sound)
         {
             case Sounds.Start:
-                return "/wwwroot/sounds/GameStart.mp3";
+                return "./wwwroot/Sounds/GameStart.mp3";
             case Sounds.Stop:
-                return "/wwwroot/sounds/GameOver.mp3";
+                return "./wwwroot/Sounds/GameOver.mp3";
             case Sounds.Countdown:
                 return "";
             case Sounds.Freeze:
@@ -27,7 +28,32 @@ public class AudioService
 
         if (file != "")
         {
-            // Add Play Audio
+            string command = "play -q " + file;
+            string commandRet = RunCommandWithBash(command); //("pwd");//
+            
+            Console.WriteLine(commandRet);
         }
+    }
+    
+    public string RunCommandWithBash(string command)
+    {
+        var arg = "-c \"" + command + "\"";
+        
+        Console.WriteLine("arg: " + arg);
+        
+        var psi = new ProcessStartInfo();
+        psi.FileName = "/bin/bash";
+        psi.Arguments = arg;
+        psi.RedirectStandardOutput = true;
+        psi.UseShellExecute = false;
+        psi.CreateNoWindow = true;
+
+        using var process = Process.Start(psi);
+
+        process.WaitForExit();
+
+        var output = process.StandardOutput.ReadToEnd();
+
+        return "output";
     }
 }
