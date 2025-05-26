@@ -1,0 +1,21 @@
+@page "/SoundTest"
+@using OWLServer.Services
+
+@inject AudioService AudioService
+
+<h3>SoundTest</h3>
+
+<RadzenButton Text="Start" Click="() => PlaySound(Sounds.Start)"/>
+
+<RadzenButton Text="Stop" Click="() => PlaySound(Sounds.Stop)"/>
+
+<RadzenButton Text="CoundDown" Click="() => PlaySound(Sounds.Countdown)"/>
+
+<RadzenButton Text="Freeze" Click="() => PlaySound(Sounds.Freeze)"/>
+@code {
+
+    private void PlaySound(Sounds sound)
+    {
+        AudioService.PlaySound(sound);
+    }
+}
