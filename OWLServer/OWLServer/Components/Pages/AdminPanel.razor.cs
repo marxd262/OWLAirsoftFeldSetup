@@ -67,7 +67,7 @@ public partial class AdminPanel : ComponentBase
     {
         if (GetButtonStyle == ButtonStyle.Success)
         {
-            GameStateService.CurrentGame?.RunGame();
+            GameStateService.StartGame();
         }
     }
 }
