@@ -10,6 +10,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddSingleton<ExternalTriggerService>();
+builder.Services.AddSingleton<AudioService>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();
