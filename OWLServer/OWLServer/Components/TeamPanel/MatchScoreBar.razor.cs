@@ -1,8 +1,10 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using OWLServer.Models;
 using OWLServer.Services;
 using Radzen.Blazor;
+using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 
 namespace OWLServer.Components.TeamPanel;
 
@@ -14,6 +16,9 @@ public partial class MatchScoreBar : ComponentBase
     [Inject]
     private ExternalTriggerService _triggerService { get; set; } = null!;
 
+    [Inject]
+    private IJSRuntime _jsRuntime { get; set; } = null!;
+
     const int MIN = 0;
     const int MAX = 100;
     
@@ -22,15 +27,18 @@ public partial class MatchScoreBar : ComponentBase
         if (firstRender)
         {
             _triggerService.StateHasChangedAction += StateHasChangedAction;
+            StateHasChangedAction();
         }
     }
 
     private void StateHasChangedAction()
     {
+        _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.BLUE, GetTeamScoreForProgressBar(TeamColor.BLUE));
+        _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.RED, GetTeamScoreForProgressBar(TeamColor.RED));
         InvokeAsync(StateHasChanged);
     }
 
-    private int GetTeamScoreForProgressBar(TeamColor color)
+    private string GetTeamScoreForProgressBar(TeamColor color)
     {
         if (_gameStateService.CurrentGame != null)
         {
@@ -39,10 +47,10 @@ public partial class MatchScoreBar : ComponentBase
 
             if (max != 0)
             {
-                return Convert.ToInt32(points / max * 100);
+                return $"{Convert.ToInt32(points / max * 100)}%";
             }
         }
 
-        return 100;
+        return "100%";
     }
 }

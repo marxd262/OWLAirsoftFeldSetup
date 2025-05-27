@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using OWLServer.Models;
 
 namespace OWLServer.Services;
@@ -26,7 +27,7 @@ public class AudioService
     {
         string file = GetFile(sound);
 
-        if (file != "")
+        if (file != "" && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             string command = "play -q " + file;
             string commandRet = RunCommandWithBash(command); //("pwd");//

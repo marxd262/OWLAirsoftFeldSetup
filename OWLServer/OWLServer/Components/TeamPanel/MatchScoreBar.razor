@@ -10,6 +10,7 @@
     .matchScoreProgressBar{
         width: 50%;
         height: 15px;
+        border: solid black 2px;
     }
     
     .morePoints{
@@ -17,41 +18,44 @@
         margin-right: 5px;
     }
 
+    .myprogress {
+        width: 10%;
+        height: 100%;
+    }
 
-    .red *.rz-progressbar-value{
+    .red {
         background-color: @_gameStateService.Teams[TeamColor.RED].ColorCssImportant;
     }
     
-    .blue *.rz-progressbar-value{
-         background-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
+    .blue {
+        background-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
      }
     
 </style>
 
-<RadzenStack Orientation="Orientation.Vertical" class="noGap">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
-            <span>Team @_gameStateService.Teams[TeamColor.BLUE].Name @GetPoints(TeamColor.BLUE)</span>
-            
-            <RadzenStack>
-                @if (_gameStateService.CurrentGame == null)
-                {
-                    <RadzenProgressBarCircular Style="height: 25px" Mode="ProgressBarMode.Indeterminate" ShowValue="false"/>
-                }
-                else
-                {
-                    <span>@_gameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</span>
-                }
-            </RadzenStack>
-            
-            <span>Team @_gameStateService.Teams[TeamColor.RED].Name @GetPoints(TeamColor.RED)</span>
-    </RadzenStack>
-    <RadzenStack class="noGap" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround" AlignItems="AlignItems.Stretch">
-        <RadzenProgressBar Min="@MIN" Max="@MAX" Value="@GetTeamScoreForProgressBar(TeamColor.BLUE)" ShowValue="false" class="matchScoreProgressBar flip blue"/>
-        <span class="morePoints">@DetermineWinner</span>
-        <RadzenProgressBar Min="@MIN" Max="@MAX" Value="@GetTeamScoreForProgressBar(TeamColor.RED)" ShowValue="false" class="matchScoreProgressBar red"/>
-    </RadzenStack>
+<div class="d-flex flex-row">
+    <div class="matchScoreProgressBar">
+        <div class="blue myprogress" />
+    </div>
+    <div class="matchScoreProgressBar flip">
+        <div class="red myprogress"/>
+    </div>
+</div>
 
-</RadzenStack>
+
+<script>
+    function setProgressbar(color, percent){
+        var team;
+        if(color === 0){
+            team = ".red";
+        }
+        else{
+            team = ".blue";
+       }
+       $(team).width(percent);
+    };
+</script>
+
 @code {
 
     private string DetermineWinner
