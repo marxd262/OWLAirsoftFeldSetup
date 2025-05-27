@@ -52,6 +52,7 @@ namespace OWLServer.Controllers
             GameStateService.TowerManagerService.HandleTowerButtonPressed(id, color);
             return Ok();
         }
+        
         [HttpPost("TowerButtonReleased")]
         public ActionResult TowerButtonReleased(string id)
         {
