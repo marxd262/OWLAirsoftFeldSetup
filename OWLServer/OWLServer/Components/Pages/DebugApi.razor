@@ -1,0 +1,82 @@
+@page "/DebugApi"
+@using System.Net.Http.Headers
+@using OWLServer.Controllers
+
+<h3>DebugPage</h3>
+
+<h4>Clicker Pressed</h4>
+<RadzenStack>
+    TowerColor
+    <RadzenDropDown TValue="TeamColor" @bind-Value="@ClickerColor" Data="Enum.GetValues(typeof(TeamColor))"
+                    />
+    <RadzenButton Text="Press" Click="ClickerPressed"/>
+</RadzenStack>
+
+<h4>Tower Pressed</h4>
+<RadzenStack>
+    TowerColor
+    <RadzenDropDown TValue="TeamColor" @bind-Value="@TowerColor" Data="Enum.GetValues(typeof(TeamColor))"/>
+    Tower ID
+    <RadzenTextBox @bind-Value="@TowerID"></RadzenTextBox>
+    <RadzenButton Text="Press" Click="TowerPressed"/>
+</RadzenStack>
+<h4>Tower Released</h4>
+<RadzenStack>
+    TowerID
+    <RadzenTextBox @bind-Value="@TowerID"></RadzenTextBox>
+    <RadzenButton Text="Press" Click="TowerReleased"/>
+</RadzenStack>
+<h4>Tower Register</h4>
+<RadzenStack>
+    TowerID
+    <RadzenTextBox @bind-Value="@TowerID"> Tower ID</RadzenTextBox>
+    TowerIP
+    <RadzenTextBox @bind-Value="@TowerIP"> Tower IP</RadzenTextBox>
+    <RadzenButton Text="Press" Click="TowerRegister"/>
+</RadzenStack>
+
+@code {
+
+    private TeamColor ClickerColor = TeamColor.NONE;
+    private TeamColor TowerColor = TeamColor.NONE;
+    private  string TowerID = "";
+    private  string TowerIP = "";
+    
+    private HttpClient _client = new HttpClient();
+
+    protected override void OnInitialized()
+    {
+        
+        _client.BaseAddress = new Uri("https://localhost:62533");
+        _client.DefaultRequestHeaders.Accept.Clear();
+        _client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        
+        base.OnInitialized();
+    }
+
+
+    private async void ClickerPressed()
+    {
+        string callURL = $"/api/KlickerClicked?color={ClickerColor}";
+        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+    }
+    
+    private async void TowerPressed()
+    {
+        string callURL = $"/api/TowerButtonPressed?id={TowerID}&color={TowerColor}";
+        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+    }
+    
+    private async void TowerReleased()
+    {
+        string callURL = $"/api/TowerButtonReleased?id={TowerID}";
+        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+    }
+    
+    private void TowerRegister()
+    {
+        string callURL = $"/api/RegisterTower?id={TowerID}&ip={TowerIP}";
+        _client.PostAsync(callURL, null);
+    }
+}
