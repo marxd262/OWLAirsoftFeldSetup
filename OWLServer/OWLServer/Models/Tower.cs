@@ -32,7 +32,8 @@ namespace OWLServer.Models
             IP = ip;
             Name = string.Empty;
             
-            _client.BaseAddress = new Uri(ip);
+            var builder = new UriBuilder(ip);
+            _client.BaseAddress = builder.Uri;
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -48,7 +49,6 @@ namespace OWLServer.Models
         
         public async void PingTower()
         {
-
             string callURL = $"/api/ping";
             HttpResponseMessage response = await _client.PostAsync(callURL, null);
 
