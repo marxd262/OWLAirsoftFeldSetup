@@ -21,6 +21,8 @@ public partial class MatchScoreBar : ComponentBase
 
     const int MIN = 0;
     const int MAX = 100;
+
+    private Dictionary<TeamColor, string> _currentScores = new() { { TeamColor.BLUE, "0%" },  { TeamColor.RED, "0%" } };
     
     protected override void OnAfterRender(bool firstRender)
     {
@@ -33,13 +35,22 @@ public partial class MatchScoreBar : ComponentBase
 
     private void StateHasChangedAction()
     {
-        _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.BLUE, GetTeamScoreForProgressBar(TeamColor.BLUE));
-        _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.RED, GetTeamScoreForProgressBar(TeamColor.RED));
+        if (GetTeamScoreForProgressBar(TeamColor.BLUE))
+        {
+            _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.BLUE, _currentScores[TeamColor.BLUE]);
+        }
+
+        if (GetTeamScoreForProgressBar(TeamColor.RED))
+        {
+            _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.RED, _currentScores[TeamColor.RED]);
+        }
+        
         InvokeAsync(StateHasChanged);
     }
 
-    private string GetTeamScoreForProgressBar(TeamColor color)
+    private bool GetTeamScoreForProgressBar(TeamColor color)
     {
+        var newscore = "100%";
         if (_gameStateService.CurrentGame != null)
         {
             var points = _gameStateService.CurrentGame.GetDisplayPoints(color);
@@ -47,10 +58,16 @@ public partial class MatchScoreBar : ComponentBase
 
             if (max != 0)
             {
-                return $"{Convert.ToInt32(points / max * 100)}%";
+                newscore = $"{Convert.ToInt32(points / max * 100)}%";
             }
         }
-
-        return "100%";
+        
+        bool sucess = _currentScores[color] != newscore;
+        if (sucess)
+        {
+            _currentScores[color] = newscore;
+        }
+        
+        return sucess;
     }
 }
