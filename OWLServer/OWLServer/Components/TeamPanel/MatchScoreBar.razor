@@ -9,8 +9,7 @@
 
     .matchScoreProgressBar{
         width: 50%;
-        height: 15px;
-        border: solid black 2px;
+        height: 30px;
     }
     
     .morePoints{
@@ -30,18 +29,78 @@
     .blue {
         background-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
      }
-    
+   
+     .timer{
+         width: 60px;
+         height: 30px;
+         background-color: black;
+         color: white;
+
+         text-align: center;
+     }
+
+     .bar{
+        height: 30px;
+        background-color: black;
+
+        color: white;
+    }
+
+    .topbar {
+        width: 60%;
+        clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+        padding-left: 5%;
+        padding-right: 5%;
+     }
+
+    .bottombar {
+        width: 40%;
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%)
+    }
+
+    .gamemode{
+        font-size: 10px;
+    }
 </style>
 
-<div class="d-flex flex-row">
-    <div class="matchScoreProgressBar">
-        <div class="blue myprogress" />
+<div class="d-flex flex-column align-content-center justify-content-center center">
+    <div class="bar topbar align-self-center d-flex justify-content-between text-center">
+        <span>
+            @_gameStateService.CurrentGame?.GetDisplayPoints(TeamColor.BLUE)
+        </span>
+        <span class="gamemode">
+            @_gameStateService.CurrentGame?.ToString()
+        </span>
+        <span>
+            @_gameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED)
+        </span>
     </div>
-    <div class="matchScoreProgressBar flip">
-        <div class="red myprogress"/>
+
+    <div class="d-flex flex-row align-items-center">
+
+        <div class="matchScoreProgressBar">
+            <div class="blue myprogress" />
+        </div>
+
+        <div class="timer text-center">
+            @if(_gameStateService.CurrentGame != null)
+            {
+                <span>@_gameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</span>
+            }
+            else
+            {
+                <span>PAUSE</span>
+            }
+        </div>
+
+        <div class="matchScoreProgressBar flip">
+            <div class="red myprogress"/>
+        </div>
+    </div>
+
+    <div class="bar bottombar align-self-center">
     </div>
 </div>
-
 
 <script>
     function setProgressbar(color, percent){
