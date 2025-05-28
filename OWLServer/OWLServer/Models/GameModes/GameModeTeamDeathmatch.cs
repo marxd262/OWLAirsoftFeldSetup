@@ -98,7 +98,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 break;
             }
             
-            ExternalTriggerService.StateHasChangedAction.Invoke();
+            ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
 

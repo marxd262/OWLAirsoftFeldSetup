@@ -1,8 +1,4 @@
 <style>
-    .noGap{
-        gap: 0!important;
-    }
-
     .flip{
         transform: scaleX(-1);
     }
@@ -10,7 +6,10 @@
     .matchScoreProgressBar{
         width: 50%;
         height: 30px;
+        clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 105%);
+        background-color: black;
     }
+
     
     .morePoints{
         margin-left: 5px;
@@ -20,7 +19,9 @@
     .myprogress {
         width: 0%;
         height: 100%;
+        clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 105%);
     }
+
 
     .red {
         background-color: @_gameStateService.Teams[TeamColor.RED].ColorCssImportant;
@@ -28,7 +29,9 @@
     
     .blue {
         background-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
-     }
+        border-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
+        border: solid 1px;
+    }
    
      .timer{
          width: 60px;
@@ -38,6 +41,7 @@
 
          text-align: center;
          align-content: center;
+         font-weight: bold;
      }
 
      .bar{
@@ -49,37 +53,39 @@
 
     .topbar {
         width: 60%;
-        clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+        clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 105%);
         padding-left: 5%;
         padding-right: 5%;
      }
 
     .bottombar {
         width: 40%;
-        clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%)
+        clip-path: polygon(0% 0%, 100% -5%, 95% 100%, 5% 100%);
     }
 
     .gamemode{
         font-size: 10px;
+        text-align: center;
+        align-content: center;
     }
 </style>
 
 <div class="d-flex flex-column align-content-center justify-content-center center">
     <div class="bar topbar align-self-center d-flex justify-content-between text-center">
-        <span>
+        <span class="fw-bold">
             @_gameStateService.CurrentGame?.GetDisplayPoints(TeamColor.BLUE)
         </span>
         <span class="gamemode">
             @_gameStateService.CurrentGame?.ToString()
         </span>
-        <span>
+        <span class="fw-bold">
             @_gameStateService.CurrentGame?.GetDisplayPoints(TeamColor.RED)
         </span>
     </div>
 
     <div class="d-flex flex-row align-items-center">
 
-        <div class="matchScoreProgressBar">
+        <div class="matchScoreProgressBar flip">
             <div class="blue myprogress" />
         </div>
 
@@ -94,7 +100,7 @@
             }
         </div>
 
-        <div class="matchScoreProgressBar flip">
+        <div class="matchScoreProgressBar">
             <div class="red myprogress"/>
         </div>
     </div>

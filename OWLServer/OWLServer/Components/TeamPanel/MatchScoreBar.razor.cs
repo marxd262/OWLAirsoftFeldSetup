@@ -19,10 +19,10 @@ public partial class MatchScoreBar : ComponentBase
     [Inject]
     private IJSRuntime _jsRuntime { get; set; } = null!;
 
-    const int MIN = 0;
-    const int MAX = 100;
 
-    private Dictionary<TeamColor, string> _currentScores = new() { { TeamColor.BLUE, "0%" },  { TeamColor.RED, "0%" } };
+    bool isChecking = false;
+
+    private Dictionary<TeamColor, string> _currentScores = new() { { TeamColor.BLUE, "50%" },  { TeamColor.RED, "50%" } };
     
     protected override void OnAfterRender(bool firstRender)
     {
@@ -35,39 +35,40 @@ public partial class MatchScoreBar : ComponentBase
 
     private void StateHasChangedAction()
     {
-        if (GetTeamScoreForProgressBar(TeamColor.BLUE))
-        {
-            _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.BLUE, _currentScores[TeamColor.BLUE]);
-        }
-
-        if (GetTeamScoreForProgressBar(TeamColor.RED))
-        {
-            _jsRuntime.InvokeVoidAsync("setProgressbar", TeamColor.RED, _currentScores[TeamColor.RED]);
-        }
-        
         InvokeAsync(StateHasChanged);
+        if (!isChecking)
+        {
+            isChecking = true;
+
+            InvokeAsync(GetTeamScoreForProgressBar);
+
+            isChecking = false;
+        }
     }
 
-    private bool GetTeamScoreForProgressBar(TeamColor color)
+    private void GetTeamScoreForProgressBar()
     {
-        var newscore = "100%";
-        if (_gameStateService.CurrentGame != null)
+        foreach (TeamColor color in _currentScores.Keys)
         {
-            var points = _gameStateService.CurrentGame.GetDisplayPoints(color);
-            var max = Convert.ToDouble(_gameStateService.CurrentGame.MaxTickets);
-
-            if (max != 0)
+            var newscore = "100%";
+            if (_gameStateService.CurrentGame != null)
             {
-                newscore = $"{Convert.ToInt32(points / max * 100)}%";
+                var points = _gameStateService.CurrentGame.GetDisplayPoints(color);
+                var max = Convert.ToDouble(_gameStateService.CurrentGame.MaxTickets);
+
+                if (max != 0)
+                {
+                    newscore = $"{Convert.ToInt32(points / max * 100)}%";
+                }
+            }
+
+            bool sucess = _currentScores[color] != newscore;
+            if (sucess)
+            {
+                _currentScores[color] = newscore;
+                _jsRuntime.InvokeVoidAsync("setProgressbar", color, _currentScores[color]);
             }
         }
-        
-        bool sucess = _currentScores[color] != newscore;
-        if (sucess)
-        {
-            _currentScores[color] = newscore;
-        }
-        
-        return sucess;
+        Thread.Sleep(123);
     }
 }
