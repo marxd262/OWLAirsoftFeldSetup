@@ -4,9 +4,9 @@
     }
 
     .matchScoreProgressBar{
-        width: 50%;
-        height: 30px;
-        clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 105%);
+        width: 45%;
+        height: 10px;
+        clip-path: polygon(0% 0%, 99% 0%, 100% 50%, 99% 100%, 0% 105%);
         background-color: black;
     }
 
@@ -19,7 +19,7 @@
     .myprogress {
         width: 0%;
         height: 100%;
-        clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 105%);
+        clip-path: polygon(0% 0%, 99% 0%, 100% 50%, 99% 100%, 0% 105%);
     }
 
 
@@ -29,14 +29,11 @@
     
     .blue {
         background-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
-        border-color: @_gameStateService.Teams[TeamColor.BLUE].ColorCssImportant;
-        border: solid 1px;
     }
    
      .timer{
          width: 60px;
          height: 30px;
-         background-color: black;
          color: white;
 
          text-align: center;
@@ -46,14 +43,20 @@
 
      .bar{
         height: 30px;
-        background-color: black;
-
         color: white;
     }
 
+    .matchbar-background{
+        position: absolute;
+        width: 100%;
+        height: 60px;
+        top: 0;
+        z-index: -1;
+        background-color: #092137;
+    }
+
     .topbar {
-        width: 60%;
-        clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 105%);
+        width: 100%;
         padding-left: 5%;
         padding-right: 5%;
      }
@@ -61,6 +64,7 @@
     .bottombar {
         width: 40%;
         clip-path: polygon(0% 0%, 100% -5%, 95% 100%, 5% 100%);
+        background-color: #092137;
     }
 
     .gamemode{
@@ -71,6 +75,7 @@
 </style>
 
 <div class="d-flex flex-column align-content-center justify-content-center center">
+    <div class="matchbar-background"/>
     <div class="bar topbar align-self-center d-flex justify-content-between text-center">
         <span class="fw-bold">
             @_gameStateService.CurrentGame?.GetDisplayPoints(TeamColor.BLUE)
@@ -83,7 +88,7 @@
         </span>
     </div>
 
-    <div class="d-flex flex-row align-items-center">
+    <div class="d-flex flex-row align-items-center justify-content-center">
 
         <div class="matchScoreProgressBar flip">
             <div class="blue myprogress" />
