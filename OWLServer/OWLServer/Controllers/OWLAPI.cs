@@ -28,7 +28,8 @@ namespace OWLServer.Controllers
         [HttpPost("KlickerClicked")]
         public ActionResult KlickerClicked(TeamColor color)
         {
-            ExternalTriggerService.InvokeKlickerPressed(color);
+            Console.WriteLine(color);
+            Task.Run(() => ExternalTriggerService.InvokeKlickerPressed(color));
             return Ok();
         }
 
