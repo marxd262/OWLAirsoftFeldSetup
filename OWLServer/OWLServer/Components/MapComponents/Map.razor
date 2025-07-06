@@ -1,0 +1,47 @@
+﻿@inject IJSRuntime _jsRuntime;
+<style>
+    #map{
+        background-image: url(/map.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<div id="map" @ref="img" @onclick="OnClickEvent"/>
+
+<script>
+        function GetElementLocation(elementId){
+        var element = $(elementId);
+        var position = element.position()
+        var width = element.outerWidth();
+        var height = element.outerHeight();
+        return {
+            Width: width,
+            Height: height,
+            Top: position["top"],
+            Left: position["left"],
+        }
+    }
+</script>
+
+@code {
+
+    ElementReference img;
+
+    private async void OnClickEvent(MouseEventArgs args)
+    {
+        var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
+
+        Console.WriteLine(args.OffsetY);
+    }
+
+    public class ElementLocation
+    {
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double Top { get; set; }
+        public double Left { get; set; }
+    }
+}
