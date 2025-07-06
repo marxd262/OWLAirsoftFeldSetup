@@ -39,12 +39,19 @@ namespace OWLServer.Models
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async void SetTowerColer(TeamColor color)
+        public async void SetTowerColor(TeamColor color)
         {
             CurrentColor = color;
 
             string callURL = $"/api/setcolor?color={color.ToString()}";
-            HttpResponseMessage response = await _client.PostAsync(callURL, null);
+
+            try
+            {
+                HttpResponseMessage response = await _client.PostAsync(callURL, null);
+            }
+            catch (Exception e)
+            {
+            }
         }
         
         public async void PingTower()
@@ -58,7 +65,7 @@ namespace OWLServer.Models
 
         public void Reset()
         {
-            SetTowerColer(TeamColor.NONE);
+            SetTowerColor(TeamColor.NONE);
         }
     }
 }
