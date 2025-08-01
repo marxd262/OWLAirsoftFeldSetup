@@ -1,0 +1,35 @@
+@page "/AdminPanel"
+@using OWLServer.Services
+<RadzenRow Gap="1" Size="12">
+    <RadzenColumn Size="4" Gap="3">
+        <RadzenStack Gap="1fr">
+        <RadzenRow >
+            <RadzenCard Variant="Variant.Flat">
+                <RadzenStack>
+                    <RadzenDropDown TValue="GameMode" ValueChanged="GameModeChanged"
+                                    Data="Enum.GetValues(typeof(GameMode))"
+                                    Value="GameMode.None"/>
+                    <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenRow>
+        <RadzenRow >
+            <RadzenCard Variant="Variant.Flat">
+                @switch (GameStateService.CurrentGame)
+                {
+                    case GameModeTeamDeathmatch:
+                        <GameModeDeathMatchConfig
+                            CurrentGame="@((GameModeTeamDeathmatch)GameStateService.CurrentGame)"/>
+                        break;
+                    case GameModeConquest:
+                        <GameModeConquestConfig
+                            CurrentGame="@((GameModeConquest)GameStateService.CurrentGame)"/>
+                        break;
+                    default:
+                        break;
+                }
+            </RadzenCard>
+        </RadzenRow>
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>

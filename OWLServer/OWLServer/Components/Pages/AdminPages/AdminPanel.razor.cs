@@ -4,7 +4,7 @@ using OWLServer.Models.GameModes;
 using OWLServer.Services;
 using Radzen;
 
-namespace OWLServer.Components.Pages;
+namespace OWLServer.Components.Pages.AdminPages;
 
 public partial class AdminPanel : ComponentBase
 {
@@ -29,7 +29,8 @@ public partial class AdminPanel : ComponentBase
                 GameStateService.CurrentGame.FillTeams(GameStateService.Teams.Values.ToList());
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+                //throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+                break;
         }
     }
 

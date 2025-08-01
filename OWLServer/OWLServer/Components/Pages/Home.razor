@@ -18,21 +18,7 @@
 </RadzenCard>
 <br/>
 
-<RadzenRow Orientation="Orientation.Horizontal">
-            @foreach (var team in GameStateService.Teams.Values)
-            {
-                <RadzenColumn>
-                    <RadzenCard Style="@team.ColorBackground" Variant="Variant.Outlined">
-                        <RadzenStack>
-                            <p>Team @team.Name: <br/>
-                                @JsonSerializer.Serialize(team)
-                                @(GameStateService.CurrentGame?.GetDisplayPoints(team.TeamColor))</p>
-                        </RadzenStack>
-                    </RadzenCard>
-                </RadzenColumn>
-            }
-</RadzenRow>
-<br/>
+
 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <RadzenStack>
