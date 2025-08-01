@@ -1,0 +1,14 @@
+@page "/TeamBlue"
+@using OWLServer.Services
+@inject ExternalTriggerService ExternalTriggerService
+
+<Home/>
+<RadzenButton Text="Respawn"
+              Click="() => { ExternalTriggerService.InvokeKlickerPressed(TeamColor.BLUE); }"
+              Size="ButtonSize.Large"
+              ButtonStyle="ButtonStyle.Danger"
+              style="height: 120px;
+                      width:150px; 
+                      position: Absolute;
+                      right: 1rem;
+                      bottom: 1rem;"/>
