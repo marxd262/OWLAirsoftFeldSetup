@@ -40,7 +40,7 @@ public partial class MatchScoreBar : ComponentBase
         {
             isChecking = true;
 
-            InvokeAsync(GetTeamScoreForProgressBar);
+            GetTeamScoreForProgressBar();
 
             isChecking = false;
         }
@@ -50,7 +50,7 @@ public partial class MatchScoreBar : ComponentBase
     {
         foreach (TeamColor color in _currentScores.Keys)
         {
-            var newscore = "100%";
+            var newScore = "100%";
             if (_gameStateService.CurrentGame != null)
             {
                 var points = _gameStateService.CurrentGame.GetDisplayPoints(color);
@@ -58,17 +58,16 @@ public partial class MatchScoreBar : ComponentBase
 
                 if (max != 0)
                 {
-                    newscore = $"{Convert.ToInt32(points / max * 100)}%";
+                    newScore = $"{Convert.ToInt32(points / max * 100)}%";
                 }
             }
 
-            bool sucess = _currentScores[color] != newscore;
-            if (sucess)
+            bool scoreChanged = _currentScores[color] != newScore;
+            if (scoreChanged)
             {
-                _currentScores[color] = newscore;
+                _currentScores[color] = newScore;
                 _jsRuntime.InvokeVoidAsync("setProgressbar", color, _currentScores[color]);
             }
         }
-        Thread.Sleep(123);
     }
 }
