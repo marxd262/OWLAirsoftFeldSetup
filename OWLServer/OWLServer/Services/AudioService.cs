@@ -51,9 +51,11 @@ public class AudioService
 
         using var process = Process.Start(psi);
 
-        process.WaitForExit();
+        if (process == null) return "";
 
-        var output = process.StandardOutput.ReadToEnd();
+        process?.WaitForExit();
+
+        var output = process?.StandardOutput.ReadToEnd();
 
         return "output";
     }

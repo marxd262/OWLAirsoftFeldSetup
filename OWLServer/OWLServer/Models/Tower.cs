@@ -19,7 +19,7 @@ namespace OWLServer.Models
         public bool IsLocked { get; set; }
         public bool IsControlled { get; set; }
         public bool IsForControlling { get; set; }
-        public string ControllingTowerId { get; set; }
+        public string? ControllingTowerId { get; set; }
         public bool IsPressed { get; set; }
         public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
         public double CaptureProgress { get; set; } = 0.0;
@@ -49,7 +49,7 @@ namespace OWLServer.Models
             {
                 HttpResponseMessage response = await _client.PostAsync(callURL, null);
             }
-            catch (Exception e)
+            catch
             {
             }
         }

@@ -1,35 +1,49 @@
 @page "/AdminPanel"
 @using OWLServer.Services
-<RadzenRow Gap="1" Size="12">
-    <RadzenColumn Size="4" Gap="3">
-        <RadzenStack Gap="1fr">
-        <RadzenRow >
-            <RadzenCard Variant="Variant.Flat">
-                <RadzenStack>
-                    <RadzenDropDown TValue="GameMode" ValueChanged="GameModeChanged"
-                                    Data="Enum.GetValues(typeof(GameMode))"
-                                    Value="GameMode.None"/>
-                    <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
-                </RadzenStack>
-            </RadzenCard>
+<RadzenRow>
+    <RadzenColumn Size="4">
+        <RadzenRow JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenColumn Size="12">
+                <RadzenCard Variant="Variant.Flat" class="rz-my-2">
+                    <RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H6">Spielmodusauswahl</RadzenText>
+                        <RadzenDropDown TValue="GameMode" ValueChanged="GameModeChanged"
+                                        Data="Enum.GetValues(typeof(GameMode))"
+                                        Value="@GameStateService.CurrentGame"/>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
         </RadzenRow>
-        <RadzenRow >
-            <RadzenCard Variant="Variant.Flat">
-                @switch (GameStateService.CurrentGame)
-                {
-                    case GameModeTeamDeathmatch:
-                        <GameModeDeathMatchConfig
-                            CurrentGame="@((GameModeTeamDeathmatch)GameStateService.CurrentGame)"/>
-                        break;
-                    case GameModeConquest:
-                        <GameModeConquestConfig
-                            CurrentGame="@((GameModeConquest)GameStateService.CurrentGame)"/>
-                        break;
-                    default:
-                        break;
-                }
-            </RadzenCard>
+        <RadzenRow JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenColumn Size="12">
+                <RadzenCard Variant="Variant.Flat" class="rz-my-2">
+                    <RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H6"> Spielstart </RadzenText>
+                        <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
         </RadzenRow>
-        </RadzenStack>
+    </RadzenColumn>
+    <RadzenColumn Size="8">
+        <RadzenCard Variant="Variant.Flat" class="rz-my-2">
+            <RadzenText TextStyle="TextStyle.H6">Spielmodus Einstellungen</RadzenText>
+            @switch (GameStateService.CurrentGame)
+            {
+                case GameModeTeamDeathmatch:
+                    <GameModeDeathMatchConfig
+                        CurrentGame="@((GameModeTeamDeathmatch)GameStateService.CurrentGame)"/>
+                    break;
+                case GameModeConquest:
+                    <GameModeConquestConfig
+                        CurrentGame="@((GameModeConquest)GameStateService.CurrentGame)"/>
+                    break;
+                default:
+                    <RadzenText>
+                        Kein unterstützter Spielmodus Ausgewählt
+                    </RadzenText>
+                    break;
+            }
+        </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
