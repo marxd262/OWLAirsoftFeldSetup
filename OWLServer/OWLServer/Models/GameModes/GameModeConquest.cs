@@ -12,6 +12,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public string Name { get; set; } = "Conquest";
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
+    public bool ShowRespawnButton => false;
     public bool IsTicket = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool IsRunning { get; set; } = false;

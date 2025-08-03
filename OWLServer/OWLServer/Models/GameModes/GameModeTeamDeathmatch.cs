@@ -66,7 +66,9 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         
         return points;
     }
-    
+
+    public bool ShowRespawnButton => true;
+
     public void RunGame()
     {
         StartTime = DateTime.Now;

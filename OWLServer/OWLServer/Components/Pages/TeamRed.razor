@@ -1,15 +1,19 @@
 @page "/TeamRed"
 @using OWLServer.Services
 @inject ExternalTriggerService ExternalTriggerService
+@inject GameStateService GameStateService
 
 <Home/>
 
-<RadzenButton Text="Respawn"
-              Click="() => { ExternalTriggerService.InvokeKlickerPressed(TeamColor.RED); }"
-              Size="ButtonSize.Large"
-              ButtonStyle="ButtonStyle.Danger"
-              style="height: 120px;
+@if ((GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.CurrentGame?.ShowRespawnButton ?? false))
+{
+    <RadzenButton Text="Respawn"
+                  Click="() => { ExternalTriggerService.InvokeKlickerPressed(TeamColor.RED); }"
+                  Size="ButtonSize.Large"
+                  ButtonStyle="ButtonStyle.Danger"
+                  style="height: 120px;
                       width:150px; 
                       position: Absolute;
                       right: 1rem;
                       bottom: 1rem;"/>
+}

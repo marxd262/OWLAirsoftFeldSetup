@@ -7,6 +7,7 @@ public interface IGameModeBase
     public DateTime? StartTime { get; set; }
     public bool IsRunning { get; set; }
     public int MaxTickets { get; set; }
+    public bool ShowRespawnButton { get; }
     
     public abstract void RunGame();
     public abstract void EndGame();
