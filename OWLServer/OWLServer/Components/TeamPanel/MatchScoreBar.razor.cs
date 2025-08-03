@@ -35,7 +35,6 @@ public partial class MatchScoreBar : ComponentBase
 
     private void StateHasChangedAction()
     {
-        InvokeAsync(StateHasChanged);
         if (!isChecking)
         {
             isChecking = true;
@@ -44,6 +43,7 @@ public partial class MatchScoreBar : ComponentBase
 
             isChecking = false;
         }
+        InvokeAsync(StateHasChanged);
     }
 
     private void GetTeamScoreForProgressBar()
