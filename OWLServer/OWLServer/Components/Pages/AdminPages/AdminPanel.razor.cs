@@ -39,11 +39,9 @@ public partial class AdminPanel : ComponentBase
         get
         {
             if (GameStateService.CurrentGame == null)
-            {
                 return ButtonStyle.Info;
-            }
             
-            if(GameStateService.CurrentGame.StartTime == null) 
+            if(!GameStateService.CurrentGame.IsRunning) 
                 return ButtonStyle.Success;
             
             return ButtonStyle.Danger;
@@ -52,12 +50,13 @@ public partial class AdminPanel : ComponentBase
     private string GetButtonText
     {
         get
-        {if (GameStateService.CurrentGame == null)
+        {
+            if (GameStateService.CurrentGame == null)
             {
                 return "Select Game";
             }
             
-            if(GameStateService.CurrentGame.StartTime == null) 
+            if(!GameStateService.CurrentGame.IsRunning) 
                 return "Start Game";
             
             return "Stop Game";
@@ -69,6 +68,10 @@ public partial class AdminPanel : ComponentBase
         if (GetButtonStyle == ButtonStyle.Success)
         {
             GameStateService.StartGame();
+        }
+        else
+        {
+            GameStateService.StopGame();
         }
     }
 }
