@@ -32,6 +32,11 @@ namespace OWLServer.Services
             CurrentGame?.RunGame();
         }
 
+        public void StopGame()
+        {
+            CurrentGame?.EndGame();
+        }
+
         public void Reset()
         {
             TowerManagerService.ResetTowers();
