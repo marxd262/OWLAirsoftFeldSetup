@@ -12,6 +12,14 @@ namespace OWLServer.Services
         public IGameModeBase? CurrentGame { get; set; } = null!;
         public TowerManagerService TowerManagerService { get; set; }
         public Dictionary<TeamColor, TeamBase> Teams { get; set; } = new();
+
+        public bool TeamRedReady { get; set; } = false;
+        public bool TeamBlueReady { get; set; } = false;
+        
+        public bool TeamSetReady { get; set; } = false;
+        
+        public bool AutoStartAfterReady { get; set; } = false;
+        public int SecondsTillAutoStartAfterReady { get; set; } = 20;
         
         public GameStateService(ExternalTriggerService externalTriggerService, AudioService audioService)
         {
@@ -23,6 +31,10 @@ namespace OWLServer.Services
 
             Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE, ColorTranslator.FromHtml("#00b4f1")));
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED, ColorTranslator.FromHtml("#fc1911")));
+        }
+
+        public void TriggerStateHasChanged()
+        {
         }
 
         public void StartGame()

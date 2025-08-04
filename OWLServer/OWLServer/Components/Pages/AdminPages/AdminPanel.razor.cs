@@ -13,6 +13,11 @@ public partial class AdminPanel : ComponentBase
     [Inject]
     ExternalTriggerService ExternalTriggerService { get; set; } = null!;
     
+    protected override void OnInitialized()
+    {
+        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        base.OnInitialized();
+    }
     private void GameModeChanged(GameMode mode)
     {
         switch (mode)
@@ -61,6 +66,11 @@ public partial class AdminPanel : ComponentBase
             
             return "Stop Game";
         }
+    }
+
+    private void ToggleButtonClick()
+    {
+        ExternalTriggerService.StateHasChangedAction();
     }
 
     private void ButtonClick()

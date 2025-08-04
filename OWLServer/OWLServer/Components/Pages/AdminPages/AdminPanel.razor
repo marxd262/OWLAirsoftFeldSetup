@@ -20,6 +20,21 @@
                     <RadzenStack>
                         <RadzenText TextStyle="TextStyle.H6"> Spielstart </RadzenText>
                         <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
+                        
+                        <RadzenToggleButton 
+                            @bind-Value="GameStateService.TeamSetReady"
+                            Change="@ToggleButtonClick"
+                            Text="@(GameStateService.TeamSetReady ? "Teams können sich bereitsetzen!" : "Teams können sich nicht bereit setzen")"
+                            ButtonStyle="ButtonStyle.Danger"
+                            ToggleButtonStyle="ButtonStyle.Success"></RadzenToggleButton>
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" >
+                            <RadzenBadge class="rz-w-auto" BadgeStyle="@(GameStateService.TeamBlueReady ? BadgeStyle.Success : BadgeStyle.Danger )" Text="@(GameStateService.TeamBlueReady ? "Blau Ready" : "Blau nicht Ready" )"></RadzenBadge>
+                            <RadzenBadge class="rz-w-auto" BadgeStyle="@(GameStateService.TeamRedReady ? BadgeStyle.Success : BadgeStyle.Danger )" Text="@(GameStateService.TeamRedReady ? "Rot Ready" : "Rot nicht Ready" )"></RadzenBadge>
+                        </RadzenStack>
+                        
+                        <RadzenToggleButton @bind-Value="@GameStateService.AutoStartAfterReady" > AutoStart</RadzenToggleButton>
+                        
                     </RadzenStack>
                 </RadzenCard>
             </RadzenColumn>
