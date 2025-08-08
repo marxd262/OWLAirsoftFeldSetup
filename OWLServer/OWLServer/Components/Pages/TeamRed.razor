@@ -2,13 +2,13 @@
 @using OWLServer.Services
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService GameStateService
-
+<PageTitle>Team Rot</PageTitle>
 <Home/>
 
 @if ((!GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.TeamSetReady))
 {
-    <RadzenToggleButton Text="@(GameStateService.TeamBlueReady ? "BEREIT!" : "Bereit setzen")"
-                        @bind-Value=@GameStateService.TeamBlueReady
+    <RadzenToggleButton Text="@(GameStateService.TeamRedReady ? "BEREIT!" : "Bereit setzen")"
+                        @bind-Value=@GameStateService.TeamRedReady
                         Change="@ToggleButtonClick"
                   
                         Size="ButtonSize.Large"

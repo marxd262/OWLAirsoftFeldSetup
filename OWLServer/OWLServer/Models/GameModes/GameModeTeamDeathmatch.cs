@@ -108,6 +108,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     {
         IsRunning = false;
         IsFinished = true;
+        StartTime = null;
         //throw new NotImplementedException();
         // not implemented
         // hier Trigger triggern: Signalanlage (Spielende), UI Refresh

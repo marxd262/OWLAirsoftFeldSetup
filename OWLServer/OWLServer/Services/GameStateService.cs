@@ -15,8 +15,10 @@ namespace OWLServer.Services
 
         public bool TeamRedReady { get; set; } = false;
         public bool TeamBlueReady { get; set; } = false;
-        
         public bool TeamSetReady { get; set; } = false;
+        
+        public DateTime? AutoStartProcessStarted { get; set; } = null;
+        public CancellationTokenSource AutoStartCancellationTokenSrc { get; set; } = new CancellationTokenSource();
         
         public bool AutoStartAfterReady { get; set; } = false;
         public int SecondsTillAutoStartAfterReady { get; set; } = 20;
@@ -33,10 +35,6 @@ namespace OWLServer.Services
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED, ColorTranslator.FromHtml("#fc1911")));
         }
 
-        public void TriggerStateHasChanged()
-        {
-        }
-
         public void StartGame()
         {
             AudioService.PlaySound(Sounds.Countdown);
@@ -47,6 +45,31 @@ namespace OWLServer.Services
         public void StopGame()
         {
             CurrentGame?.EndGame();
+        }
+
+        public async void AutoStartGame()
+        {
+            while ((!TeamBlueReady || !TeamRedReady))
+            {
+                Thread.Sleep(100);
+
+                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+            }
+            
+            AutoStartProcessStarted = DateTime.Now;
+
+            while ((DateTime.Now - AutoStartProcessStarted).Value.Seconds < SecondsTillAutoStartAfterReady && TeamBlueReady && TeamRedReady)
+            {
+                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                Thread.Sleep(100);
+            }
+
+            if (!TeamBlueReady || !TeamRedReady)
+                return;
+            
+            StartGame();
+            TeamBlueReady = false;
+            TeamRedReady = false;
         }
 
         public void Reset()

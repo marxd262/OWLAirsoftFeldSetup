@@ -68,6 +68,21 @@ public partial class AdminPanel : ComponentBase
         }
     }
 
+    public void ToggleAutoStart(bool newValue)
+    {
+        if (newValue)
+        {
+            GameStateService.AutoStartCancellationTokenSrc.TryReset();
+            Task.Run(GameStateService.AutoStartGame, GameStateService.AutoStartCancellationTokenSrc.Token);
+        }
+        else
+        {
+            GameStateService.AutoStartCancellationTokenSrc.Cancel();
+            GameStateService.TeamBlueReady = false;
+            GameStateService.TeamRedReady = false;
+        }
+    }
+
     private void ToggleButtonClick()
     {
         ExternalTriggerService.StateHasChangedAction();

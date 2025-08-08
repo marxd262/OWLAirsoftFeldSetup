@@ -3,6 +3,8 @@
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService GameStateService
 
+<PageTitle>Team Blau</PageTitle>
+
 <Home/>
 
 @if ((!GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.TeamSetReady))
