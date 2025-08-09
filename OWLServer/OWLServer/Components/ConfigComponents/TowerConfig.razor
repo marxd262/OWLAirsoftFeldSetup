@@ -1,17 +1,34 @@
 <h3>TowerConfig</h3>
 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem">
-@foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
-{
-    <RadzenCard Variant="Variant.Outlined" Style="">
-        <RadzenStack>
-            @tower.ID
-            <RadzenFormField Text="Multiplier" Variant="Variant.Flat">
-                <RadzenNumeric @bind-Value="@tower.Multiplier"/>
-            </RadzenFormField>
-            <RadzenFormField Text="Name" Variant="Variant.Flat">
-                <RadzenTextBox @bind-Value="@tower.Name"/>
-            </RadzenFormField>
-        </RadzenStack>
-    </RadzenCard>
-}
+    @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+    {
+        <RadzenCard Variant="Variant.Outlined" Style="">
+            <RadzenStack>
+                @tower.ID
+                <RadzenFormField Text="Multiplier" Variant="Variant.Flat">
+                    <RadzenNumeric @bind-Value="@tower.Multiplier"/>
+                </RadzenFormField>
+                <RadzenFormField Text="Name" Variant="Variant.Flat">
+                    <RadzenTextBox @bind-Value="@tower.Name"/>
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenCard>
+    }
 </RadzenStack>
+<br/>
+<RadzenDataGrid
+    TItem="Tower"
+    Data="GameStateService.TowerManagerService.Towers.Values">
+    <Columns>
+        <RadzenDataGridColumn Title="ID" Property="@nameof(Tower.ID)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Name" Property="@nameof(Tower.Name)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="IP" Property="@nameof(Tower.IP)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Multiplier" Property="@nameof(Tower.Multiplier)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="IsControlled" Property="@nameof(Tower.IsControlled)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Controlling TowerID" Property="@nameof(Tower.ControllingTowerId)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="IsLocked" Property="@nameof(Tower.IsLocked)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="ResetAction" Property="@nameof(Tower.Reset)"></RadzenDataGridColumn>
+        
+    </Columns>
+
+</RadzenDataGrid>
