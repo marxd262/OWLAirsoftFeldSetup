@@ -19,6 +19,7 @@ public partial class MatchScoreBar : ComponentBase
     [Inject]
     private IJSRuntime _jsRuntime { get; set; } = null!;
 
+    [Parameter] public TeamColor? TeamOnSide { get; set; } = TeamColor.NONE;
 
     bool isChecking = false;
 

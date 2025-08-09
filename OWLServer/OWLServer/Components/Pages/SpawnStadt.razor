@@ -1,22 +1,21 @@
-@page "/TeamBlue"
+@page "/SpawnStadt"
 @using OWLServer.Services
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService GameStateService
+<PageTitle>SpawnStadt</PageTitle>
 
-<PageTitle>Team Blau</PageTitle>
-
-<Home/>
+<Home TeamOnSide="@GameStateService.TeamInStadt"/>
 
 @if ((!GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.TeamSetReady))
 {
-    <RadzenToggleButton Text="@(GameStateService.TeamBlueReady ? "BEREIT!" : "Bereit setzen")"
-                  @bind-Value=@GameStateService.TeamBlueReady
-                  Change="@ToggleButtonClick"
+    <RadzenToggleButton Text="@(GameStateService.WaldSpawnReady ? "BEREIT!" : "Bereit setzen")"
+                        @bind-Value=@GameStateService.WaldSpawnReady
+                        Change="@ToggleButtonClick"
                   
-                  Size="ButtonSize.Large"
-                  ButtonStyle="ButtonStyle.Danger"
-                  ToggleButtonStyle="ButtonStyle.Success"
-                  style="height: 120px;
+                        Size="ButtonSize.Large"
+                        ButtonStyle="ButtonStyle.Danger"
+                        ToggleButtonStyle="ButtonStyle.Success"
+                        style="height: 120px;
                       width:150px; 
                       position: Absolute;
                       right: 1rem;
@@ -26,7 +25,7 @@
 @if ((GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.CurrentGame?.ShowRespawnButton ?? false))
 {
     <RadzenButton Text="Respawn"
-                  Click="() => { ExternalTriggerService.InvokeKlickerPressed(TeamColor.BLUE); }"
+                  Click="() => { ExternalTriggerService.InvokeKlickerPressed(GameStateService.TeamInStadt); }"
                   Size="ButtonSize.Large"
                   ButtonStyle="ButtonStyle.Danger"
                   style="height: 120px;
@@ -35,4 +34,3 @@
                       right: 1rem;
                       bottom: 1rem;"/>
 }
-

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace OWLServer.Components.Pages;
 
-public partial class TeamRed : ComponentBase
+public partial class SpawnStadt : ComponentBase
 {
     protected override void OnInitialized()
     {

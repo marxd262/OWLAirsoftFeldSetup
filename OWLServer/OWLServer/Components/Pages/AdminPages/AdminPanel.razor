@@ -13,47 +13,81 @@
                                         Change="@(ExternalTriggerService.StateHasChangedAction.Invoke)"/>
                     </RadzenStack>
                 </RadzenCard>
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow JustifyContent="JustifyContent.SpaceBetween">
-            <RadzenColumn Size="12">
                 <RadzenCard Variant="Variant.Flat" class="rz-my-2">
                     <RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H6"> Spielstart </RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6"> Spielstart</RadzenText>
                         <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
-                        
-                        <RadzenToggleButton 
+
+                        <RadzenToggleButton
                             @bind-Value="GameStateService.TeamSetReady"
                             Change="@ToggleButtonClick"
                             Text="@(GameStateService.TeamSetReady ? "Teams können sich bereitsetzen!" : "Teams können sich nicht bereit setzen")"
                             ButtonStyle="ButtonStyle.Danger"
                             ToggleButtonStyle="ButtonStyle.Success"></RadzenToggleButton>
-                        
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" >
-                            <RadzenBadge 
-                                class="rz-w-auto" 
-                                Style="flex-grow: 1;" 
-                                BadgeStyle="@(GameStateService.TeamBlueReady ? BadgeStyle.Success : BadgeStyle.Danger )" 
-                                Text="@(GameStateService.TeamBlueReady ? "Blau Ready" : "Blau nicht Ready" )"/>
-                            <RadzenBadge 
-                                class="rz-w-auto" 
-                                Style="flex-grow: 1;" 
-                                BadgeStyle="@(GameStateService.TeamRedReady ? BadgeStyle.Success : BadgeStyle.Danger )" 
-                                Text="@(GameStateService.TeamRedReady ? "Rot Ready" : "Rot nicht Ready" )"/>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                            <RadzenBadge
+                                class="rz-w-auto"
+                                Style="flex-grow: 1;"
+                                BadgeStyle="@(GameStateService.StadtSpawnReady ? BadgeStyle.Success : BadgeStyle.Danger)"
+                                Text="@(GameStateService.StadtSpawnReady ? "Stadt Ready" : "Stadt nicht Ready")"/>
+                            <RadzenBadge
+                                class="rz-w-auto"
+                                Style="flex-grow: 1;"
+                                BadgeStyle="@(GameStateService.WaldSpawnReady ? BadgeStyle.Success : BadgeStyle.Danger)"
+                                Text="@(GameStateService.WaldSpawnReady ? "Wald Ready" : "Wald nicht Ready")"/>
                         </RadzenStack>
-                        
-                        <br/>
-                        <RadzenText TextStyle="TextStyle.H6"> Autostarteinstellungen </RadzenText>
-                        <RadzenToggleButton 
-                            @bind-Value="@GameStateService.AutoStartAfterReady" 
-                            ButtonStyle="ButtonStyle.Danger" 
-                            Change=ToggleAutoStart
-                            ToggleButtonStyle="ButtonStyle.Success"> @(GameStateService.AutoStartAfterReady ? "Autostart" : "kein Autostart")</RadzenToggleButton>
-                        <RadzenNumeric @bind-Value="@GameStateService.SecondsTillAutoStartAfterReady">Zeit bis Autostart</RadzenNumeric>
-                        
                     </RadzenStack>
                 </RadzenCard>
+
+                <RadzenCard Variant="Variant.Flat" class="rz-my-2">
+                    <RadzenStack Orientation="Orientation.Vertical">
+                        <RadzenText TextStyle="TextStyle.H6"> Autostarteinstellungen</RadzenText>
+                        <RadzenToggleButton
+                            @bind-Value="@GameStateService.AutoStartAfterReady"
+                            ButtonStyle="ButtonStyle.Danger"
+                            Change=ToggleAutoStart
+                            ToggleButtonStyle="ButtonStyle.Success"> @(GameStateService.AutoStartAfterReady ? "Autostart" : "kein Autostart")</RadzenToggleButton>
+                        <RadzenNumeric @bind-Value="@GameStateService.SecondsTillAutoStartAfterReady">Zeit bis Autostart
+                        </RadzenNumeric>
+                    </RadzenStack>
+                </RadzenCard>
+                
+                
+                <RadzenCard Variant="Variant.Flat" class="rz-my-2">
+                    <RadzenStack Orientation="Orientation.Vertical">
+                        <RadzenText TextStyle="TextStyle.H6"> Teams in Spawn </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                            <RadzenBadge
+                                class="rz-w-auto"
+                                Style="flex-grow: 1; width: 1fr;"
+                                BadgeStyle="@(GameStateService.TeamInWald == TeamColor.BLUE ? BadgeStyle.Info : BadgeStyle.Danger)"
+                                Text="@(GameStateService.TeamInWald == TeamColor.BLUE ? "Blau in Wald" : "Rot in Wald")"/>
+                            <RadzenBadge
+                                class="rz-w-auto"
+                                Style="flex-grow: 1; width: 1fr;"
+                                BadgeStyle="@(GameStateService.TeamInStadt == TeamColor.BLUE ? BadgeStyle.Info : BadgeStyle.Danger)"
+                                Text="@(GameStateService.TeamInStadt == TeamColor.BLUE ? "Blau in Stadt" : "Rot in Stadt")"/>
+                        </RadzenStack>
+                        <RadzenButton Text="Teams tauschen" 
+                                      Click="@(() => { 
+                                          TeamColor wald = GameStateService.TeamInWald;
+                                          TeamColor stadt = GameStateService.TeamInStadt;
+                                          
+                                          GameStateService.TeamInWald = stadt;
+                                          GameStateService.TeamInStadt = wald;
+                                          
+                                          ExternalTriggerService.StateHasChangedAction.Invoke();
+                        
+                                      })"></RadzenButton>
+                    </RadzenStack>
+                    
+                </RadzenCard>
             </RadzenColumn>
+            
+            
+
+
         </RadzenRow>
     </RadzenColumn>
     <RadzenColumn Size="8">

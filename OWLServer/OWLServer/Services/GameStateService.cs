@@ -12,9 +12,12 @@ namespace OWLServer.Services
         public IGameModeBase? CurrentGame { get; set; } = null!;
         public TowerManagerService TowerManagerService { get; set; }
         public Dictionary<TeamColor, TeamBase> Teams { get; set; } = new();
+        
+        public TeamColor TeamInWald { get; set; } = TeamColor.BLUE;
+        public TeamColor TeamInStadt { get; set; } = TeamColor.RED;
 
-        public bool TeamRedReady { get; set; } = false;
-        public bool TeamBlueReady { get; set; } = false;
+        public bool WaldSpawnReady { get; set; } = false;
+        public bool StadtSpawnReady { get; set; } = false;
         public bool TeamSetReady { get; set; } = false;
         
         public DateTime? AutoStartProcessStarted { get; set; } = null;
@@ -49,7 +52,7 @@ namespace OWLServer.Services
 
         public async void AutoStartGame()
         {
-            while ((!TeamBlueReady || !TeamRedReady))
+            while ((!StadtSpawnReady || !WaldSpawnReady))
             {
                 Thread.Sleep(100);
 
@@ -58,18 +61,18 @@ namespace OWLServer.Services
             
             AutoStartProcessStarted = DateTime.Now;
 
-            while ((DateTime.Now - AutoStartProcessStarted).Value.Seconds < SecondsTillAutoStartAfterReady && TeamBlueReady && TeamRedReady)
+            while ((DateTime.Now - AutoStartProcessStarted).Value.Seconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
             {
                 if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
                 Thread.Sleep(100);
             }
 
-            if (!TeamBlueReady || !TeamRedReady)
+            if (!StadtSpawnReady || !WaldSpawnReady)
                 return;
             
             StartGame();
-            TeamBlueReady = false;
-            TeamRedReady = false;
+            StadtSpawnReady = false;
+            WaldSpawnReady = false;
         }
 
         public void Reset()

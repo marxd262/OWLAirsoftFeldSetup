@@ -78,8 +78,8 @@ public partial class AdminPanel : ComponentBase
         else
         {
             GameStateService.AutoStartCancellationTokenSrc.Cancel();
-            GameStateService.TeamBlueReady = false;
-            GameStateService.TeamRedReady = false;
+            GameStateService.StadtSpawnReady = false;
+            GameStateService.WaldSpawnReady = false;
         }
     }
 

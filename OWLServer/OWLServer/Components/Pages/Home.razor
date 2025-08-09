@@ -4,9 +4,11 @@
 @inject GameStateService GameStateService
 @inject ExternalTriggerService ExternalTriggerService
 
+
+
 <PageTitle>Home</PageTitle>
 
-<MatchScoreBar/>
+<MatchScoreBar TeamOnSide="@TeamOnSide"/>
 
 <br/>
 
@@ -31,6 +33,8 @@
 </RadzenCard>
 
 @code{
+    [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;
+    
     protected override void OnInitialized()
     {
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
