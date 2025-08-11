@@ -1,0 +1,84 @@
+@page "/Spawn-{SpawnPlace}"
+@using OWLServer.Services
+@inject ExternalTriggerService ExternalTriggerService
+@inject GameStateService GameStateService
+<PageTitle>SpawnStadt</PageTitle>
+
+<Home TeamOnSide="@GetSpawnColor()"/>
+
+@if ((!GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.TeamSetReady))
+{
+    <RadzenToggleButton Text="@(GameStateService.WaldSpawnReady ? "BEREIT!" : "Bereit setzen")"
+                        @bind-Value=@SpawnReady
+                        Change="@ToggleButtonClick"
+                  
+                        Size="ButtonSize.Large"
+                        ButtonStyle="ButtonStyle.Danger"
+                        ToggleButtonStyle="ButtonStyle.Success"
+                        style="height: 120px;
+                      width:150px; 
+                      position: Absolute;
+                      right: 1rem;
+                      bottom: 1rem;"/>
+}
+
+@if ((GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.CurrentGame?.ShowRespawnButton ?? false))
+{
+    <RadzenButton Text="Respawn"
+                  Click="() => { ExternalTriggerService.InvokeKlickerPressed(GetSpawnColor()); }"
+                  Size="ButtonSize.Large"
+                  ButtonStyle="ButtonStyle.Danger"
+                  style="height: 120px;
+                      width:150px; 
+                      position: Absolute;
+                      right: 1rem;
+                      bottom: 1rem;"/>
+}
+
+
+@code {
+    [Parameter]
+    public string SpawnPlace { get; set; }
+
+    public bool WaldSpawn => SpawnPlace == "Wald";
+    public bool StadtSpawn => SpawnPlace == "Stadt";
+
+    public bool SpawnReady
+    {
+        get
+        {
+            if (WaldSpawn)
+                return GameStateService.WaldSpawnReady;
+            if (StadtSpawn)
+                return GameStateService.StadtSpawnReady;
+            return false;
+        }
+        set
+        {
+            if (WaldSpawn)
+                GameStateService.WaldSpawnReady = value;
+            else if (StadtSpawn)
+                GameStateService.StadtSpawnReady = value;
+        }
+    }
+    
+    public TeamColor GetSpawnColor() 
+    {
+        if (WaldSpawn)
+            return GameStateService.TeamInWald;
+        if(StadtSpawn)
+            return GameStateService.TeamInStadt;
+        return TeamColor.NONE;
+    }
+    
+    protected override void OnInitialized()
+    {
+        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        base.OnInitialized();
+    }
+    
+    private void ToggleButtonClick()
+    {
+        ExternalTriggerService.StateHasChangedAction();
+    }
+}
