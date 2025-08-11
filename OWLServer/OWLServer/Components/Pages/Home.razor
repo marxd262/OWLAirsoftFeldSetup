@@ -20,8 +20,14 @@
 </RadzenCard>
 <br/>
 
+@{
+    Tower x = new Tower("0", "0");
+    x.DisplayLetter = "A";
+    x.CaptureProgress = .9;
+}
+<TowerComponent Tower="@x"></TowerComponent>
 
-
+<br/> 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <RadzenStack>
         <p>Alle Tower:</p> 
