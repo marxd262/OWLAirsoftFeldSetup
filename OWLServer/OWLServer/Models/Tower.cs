@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Drawing;
+using System.Net.Http.Headers;
 
 namespace OWLServer.Models
 {
@@ -43,11 +44,21 @@ namespace OWLServer.Models
         public async void SetTowerColor(TeamColor color)
         {
             CurrentColor = color;
+            
+            if(color == TeamColor.BLUE)
+                SendColorToTower(Color.Blue);
+            else if(color == TeamColor.RED)
+                SendColorToTower(Color.Red);
+            else if (color == TeamColor.NONE)
+                SendColorToTower(Color.Yellow);
+        }
 
-            string callURL = $"/api/setcolor?color={color.ToString()}";
-
+        public async void SendColorToTower(Color color)
+        {
             try
             {
+                string c = $"{color.R.ToString()}/{color.G.ToString()}/{color.B.ToString()}";
+                string callURL = $"/api/setcolor/{c}";
                 HttpResponseMessage response = await _client.PostAsync(callURL, null);
             }
             catch
