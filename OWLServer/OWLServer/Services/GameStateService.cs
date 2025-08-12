@@ -75,6 +75,7 @@ namespace OWLServer.Services
             WaldSpawnReady = false;
         }
 
+
         public void Reset()
         {
             TowerManagerService.ResetTowers();

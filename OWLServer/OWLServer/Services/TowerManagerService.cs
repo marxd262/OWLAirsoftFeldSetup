@@ -137,15 +137,23 @@ public class TowerManagerService
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
-    public void OffTowers()
+    public async void PingAll()
     {
         foreach (var tower in Towers)
         {
-            tower.Value.SendColorToTower(Color.Black);
+            tower.Value.PingTower();
+            ExternalTriggerService.StateHasChangedAction?.Invoke();
+        }
+    }
+    public async void OffTowers()
+    {
+        foreach (var tower in Towers)
+        {
+            tower.Value.SetTowerColor(TeamColor.OFF);
         }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
-    public void ResetTowers()
+    public async void ResetTowers()
     {
         foreach (var tower in Towers)
         {

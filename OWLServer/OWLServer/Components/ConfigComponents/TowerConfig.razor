@@ -21,6 +21,7 @@
 <RadzenStack Orientation="Orientation.Horizontal">
     <RadzenButton Text="Alle ausschalten" Click="@GameStateService.TowerManagerService.OffTowers"></RadzenButton>
     <RadzenButton Text="Alle zurücksetzen" Click="@GameStateService.TowerManagerService.ResetTowers"></RadzenButton>
+    <RadzenButton Text="Ping All" Click="@GameStateService.TowerManagerService.PingAll"></RadzenButton>
     
 </RadzenStack>
 <br/>
@@ -36,6 +37,7 @@
         <RadzenDataGridColumn Title="Controlling TowerID" Property="@nameof(Tower.ControllingTowerId)"></RadzenDataGridColumn>
         <RadzenDataGridColumn Title="IsLocked" Property="@nameof(Tower.IsLocked)"></RadzenDataGridColumn>
         <RadzenDataGridColumn Title="ResetAction" Property="@nameof(Tower.Reset)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="LastPing" Property="@nameof(Tower.LastPing)"></RadzenDataGridColumn>
         
     </Columns>
 
