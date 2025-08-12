@@ -71,6 +71,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
     
     public void RunGame()
     {
+        GameStateService.TowerManagerService.SetColorForAllTowers(TeamColor.NONE);
         StartTime = DateTime.Now;
         IsRunning = true;
         Task.Run(Runner, abort.Token);

@@ -76,6 +76,7 @@ namespace OWLServer.Models
             TowerOnline = response.IsSuccessStatusCode;
             LastPing = DateTime.Now;
         }
+        
 
         public void Reset()
         {

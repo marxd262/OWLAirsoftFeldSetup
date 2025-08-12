@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using OWLServer.Models;
@@ -127,11 +128,29 @@ public class TowerManagerService
         Towers[towerID].PressedByColor = TeamColor.NONE;
     }
 
+    public void SetColorForAllTowers(TeamColor teamColor)
+    {
+        foreach (var tower in Towers)
+        {
+            tower.Value.SetTowerColor(teamColor);
+        }
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
+    }
+
+    public void OffTowers()
+    {
+        foreach (var tower in Towers)
+        {
+            tower.Value.SendColorToTower(Color.Black);
+        }
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
+    }
     public void ResetTowers()
     {
         foreach (var tower in Towers)
         {
             tower.Value.Reset();
         }
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 }

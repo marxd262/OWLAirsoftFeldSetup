@@ -1,3 +1,5 @@
+@using OWLServer.Services
+
 <h3>TowerConfig</h3>
 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem">
     @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
@@ -14,6 +16,12 @@
             </RadzenStack>
         </RadzenCard>
     }
+</RadzenStack>
+<br/>
+<RadzenStack Orientation="Orientation.Horizontal">
+    <RadzenButton Text="Alle ausschalten" Click="@GameStateService.TowerManagerService.OffTowers"></RadzenButton>
+    <RadzenButton Text="Alle zurücksetzen" Click="@GameStateService.TowerManagerService.ResetTowers"></RadzenButton>
+    
 </RadzenStack>
 <br/>
 <RadzenDataGrid
