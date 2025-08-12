@@ -5,6 +5,7 @@
         NONE = -1,
         RED,
         BLUE,
+        OFF
     }
 
     public enum GameMode

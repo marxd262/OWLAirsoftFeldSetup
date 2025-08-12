@@ -51,6 +51,8 @@ namespace OWLServer.Models
                 SendColorToTower(Color.Red);
             else if (color == TeamColor.NONE)
                 SendColorToTower(Color.Yellow);
+            else if(color == TeamColor.OFF)
+                SendColorToTower(Color.Black);
         }
 
         public async void SendColorToTower(Color color)
