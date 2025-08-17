@@ -1,4 +1,7 @@
-﻿@inject IJSRuntime _jsRuntime;
+﻿@using OWLServer.Services
+@inject IJSRuntime _jsRuntime;
+@inject ExternalTriggerService ExternalTriggerService
+
 <style>
     #map{
         background-image: url(/map.png);
@@ -32,10 +35,18 @@
 
     private async void OnClickEvent(MouseEventArgs args)
     {
-        var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
+        //var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
 
         Console.WriteLine(args.OffsetY);
     }
+    
+    protected override void OnInitialized()
+    {
+        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        base.OnInitialized();
+    }
+}
+    
 
     public class ElementLocation
     {

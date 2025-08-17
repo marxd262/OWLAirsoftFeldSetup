@@ -54,6 +54,7 @@ public class TowerManagerService
                         tower.IsPressed = false;
                         tower.LastPressed = null;
                         tower.PressedByColor = TeamColor.NONE;
+                        tower.CaptureProgress = 1;
                     }
                     else
                     {
