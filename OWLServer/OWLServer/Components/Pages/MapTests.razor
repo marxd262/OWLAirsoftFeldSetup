@@ -1,7 +1,47 @@
-﻿@page "/maptests"
-<Map></Map>
+﻿@using static OWLServer.Components.MapComponents.Map
 
+
+<Map Clicked="MapClicked" />
+
+@foreach(var loc in locations)
+{
+    <style>
+        .myLoc{
+            background-color: red;
+            width: 10px;
+            height: 10px;
+            position: absolute;
+            z-index: 999;
+        }
+    </style>
+    <div class="myLoc" style="@loc.ToLocationString()" ></div>
+}
+
+<RadzenButton Icon="Add" Text="Neuen Punkt hinzufügen" Click="BtnNewPointClick" />
+<RadzenStack>
+    @foreach(var location in locations)
+    {
+        <span>@location.Top ||| @location.Left</span>
+    }
+</RadzenStack>
 
 @code {
+    List<ElementLocation> locations = [];
 
+
+    bool addNewPoint = false;
+    private void BtnNewPointClick()
+    {
+        addNewPoint = true;
+    }
+
+    private void MapClicked(ElementLocation? location)
+    {
+        if(addNewPoint && location != null && !locations.Any(l => l.Top == location.Left && l.Top == location.Left))
+        {
+            locations.Add(location);
+            addNewPoint = false;
+            StateHasChanged();
+        }
+    }
 }
