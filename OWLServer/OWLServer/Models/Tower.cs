@@ -13,6 +13,8 @@ namespace OWLServer.Models
         
         private HttpClient _client = new HttpClient();
 
+        public int TimeToCaptureInSeconds { get; set; } = 5;
+
         public double Multiplier { get; set; } = 1.0;
 
         public bool TowerOnline = false;

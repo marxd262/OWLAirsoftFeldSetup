@@ -16,8 +16,6 @@ public class TowerManagerService
 
     public Dictionary<string, Tower> Towers { get; } = new();
 
-    public int TimeToCaptureTowerInSeconds { get; set; } = 5;
-
     public TowerManagerService(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
@@ -47,10 +45,9 @@ public class TowerManagerService
             {
                 foreach (var tower in Towers.Values.Where(t => t.IsPressed))
                 {
-                    if (tower.LastPressed?.AddSeconds(TimeToCaptureTowerInSeconds) < DateTime.Now)
+                    if (tower.LastPressed?.AddSeconds(tower.TimeToCaptureInSeconds) < DateTime.Now)
                     {
                         tower.SetTowerColor(tower.PressedByColor); 
-                        var sinc = DateTime.Now - tower.LastPressed;
                         tower.IsPressed = false;
                         tower.LastPressed = null;
                         tower.PressedByColor = TeamColor.NONE;
@@ -60,7 +57,7 @@ public class TowerManagerService
                     {
                         var timeSincePressed = DateTime.Now - tower.LastPressed;
                         var s = timeSincePressed?.Seconds;
-                        double? progress = s / TimeToCaptureTowerInSeconds;
+                        double? progress = s / tower.TimeToCaptureInSeconds;
                         if (progress != null)
                             tower.CaptureProgress = (double)progress;
                     }
