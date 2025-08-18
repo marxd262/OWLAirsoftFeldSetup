@@ -50,9 +50,31 @@ namespace OWLServer.Models
             else if(color == TeamColor.RED)
                 SendColorToTower(Color.Red);
             else if (color == TeamColor.NONE)
-                SendColorToTower(Color.Yellow);
+                SendColorToTower(Color.White);
             else if(color == TeamColor.OFF)
                 SendColorToTower(Color.Black);
+            else if(color == TeamColor.LOCKED)
+                SendColorToTower(Color.Yellow);
+        }
+
+        public void SetToStartColor()
+        {
+            if (IsControlled)
+            {
+                SetTowerColor(TeamColor.LOCKED);
+            }
+            else
+            {
+                SetTowerColor(TeamColor.NONE);
+            }
+        }
+
+        public Color MapColor()
+        {
+            if(CaptureProgress >= .99)
+                return ColorTranslator.FromHtml(CurrentColor.ToString());
+
+            return ColorTranslator.FromHtml(CurrentColor.ToString());
         }
 
         public async void SendColorToTower(Color color)

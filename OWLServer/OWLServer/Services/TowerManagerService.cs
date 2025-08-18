@@ -138,6 +138,15 @@ public class TowerManagerService
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
+    public void SetAllTowerToStartColor()
+    {
+        foreach (var tower in Towers)
+        {
+            tower.Value.SetToStartColor();
+        }
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
+    }
+
     public async void PingAll()
     {
         foreach (var tower in Towers)

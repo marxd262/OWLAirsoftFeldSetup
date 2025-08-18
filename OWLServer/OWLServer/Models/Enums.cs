@@ -5,7 +5,8 @@
         NONE = -1,
         RED,
         BLUE,
-        OFF
+        OFF,
+        LOCKED
     }
 
     public enum GameMode
