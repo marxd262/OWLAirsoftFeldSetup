@@ -57,8 +57,8 @@
         var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
         if(result != null)
         {
-            result.Top = args.ClientX + args.OffsetX;
-            result.Left = args.PageY;
+            result.Top = args.PageY - 50;
+            result.Left = args.PageX;
 
             Clicked?.Invoke(result);            
         }
