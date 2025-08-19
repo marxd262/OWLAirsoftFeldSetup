@@ -10,7 +10,7 @@
 
 <MatchScoreBar TeamOnSide="@TeamOnSide"/>
 <Map/>
-@* <br/>
+ <br/>
 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
     <p>GameMode: @GameStateService.CurrentGame?.ToString()</p>
@@ -37,7 +37,7 @@
         }
     </RadzenStack>
 </RadzenCard>
- *@
+ 
 @code{
     [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;
     

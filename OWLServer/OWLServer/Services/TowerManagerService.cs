@@ -48,16 +48,22 @@ public class TowerManagerService
                              t.IsForControlling 
                              && t.CurrentColor != TeamColor.NONE 
                              && t.CapturedAt != null 
-                             && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) > DateTime.Now))
+                             && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) < DateTime.Now))
                 {
                     tower.CurrentColor = TeamColor.NONE;
-                    Towers[tower.ControllsTowerID].CurrentColor = TeamColor.LOCKED;
+                    
+                    foreach (string towerid in tower.ControllsTowerID)
+                    {
+                        if(Towers[towerid].CurrentColor == TeamColor.NONE)
+                            Towers[towerid].CurrentColor = TeamColor.LOCKED;
+                    }
+
                     tower.CapturedAt = null;
                 }
                 
                 foreach (var tower in Towers.Values.Where(t => t.IsPressed))
                 {
-                    if (tower.IsControlled && Towers[tower.ControllingTowerId].CurrentColor != tower.PressedByColor)
+                    if (tower.IsControlled && Towers[tower.IsControlledByID].CurrentColor != tower.PressedByColor)
                     {
                         tower.IsPressed = false;
                         break;
@@ -74,7 +80,10 @@ public class TowerManagerService
 
                         if (tower.IsForControlling)
                         {
-                            Towers[tower.ControllsTowerID].CurrentColor = TeamColor.NONE;
+                            foreach (string towerid in tower.ControllsTowerID)
+                            {
+                                Towers[towerid].CurrentColor = TeamColor.NONE;
+                            }
                         }
                     }
                     else

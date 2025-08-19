@@ -22,9 +22,9 @@ namespace OWLServer.Models
         
         public bool IsLocked { get; set; }
         public bool IsControlled { get; set; }
-        public bool IsForControlling { get; set; }
-        public string? ControllingTowerId { get; set; }
-        public string? ControllsTowerID { get; set; }
+        public string? IsControlledByID { get; set; }
+        public bool IsForControlling => ControllsTowerID.Any();
+        public List<string> ControllsTowerID { get; set; } = new();
         public int ResetsAfterInSeconds { get; set; } = 60;
         public DateTime? CapturedAt { get; set; }
         public bool IsPressed { get; set; }

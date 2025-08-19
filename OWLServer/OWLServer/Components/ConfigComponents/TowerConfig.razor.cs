@@ -14,6 +14,16 @@ public partial class TowerConfig : ComponentBase
 
     private RadzenDataGrid<Tower> rdGrid;
     
+    async Task EditRow(Tower tower)
+    {
+        if (!rdGrid.IsValid) return;
+        await rdGrid.EditRow(tower);
+    }
+    
+    void CancelEdit(Tower order)
+    {
+        rdGrid.CancelEditRow(order);
+    }
     
     protected override void OnInitialized()
     {
