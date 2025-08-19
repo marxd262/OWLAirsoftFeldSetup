@@ -24,6 +24,9 @@ namespace OWLServer.Models
         public bool IsControlled { get; set; }
         public bool IsForControlling { get; set; }
         public string? ControllingTowerId { get; set; }
+        public string? ControllsTowerID { get; set; }
+        public int ResetsAfterInSeconds { get; set; } = 60;
+        public DateTime? CapturedAt { get; set; }
         public bool IsPressed { get; set; }
         public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
         public double CaptureProgress { get; set; } = 0.0;

@@ -43,15 +43,39 @@ public class TowerManagerService
 
             if (GameStateService.CurrentGame is GameModeConquest gameMode && gameMode.IsRunning)
             {
+                
+                foreach (var tower in Towers.Values.Where(t => 
+                             t.IsForControlling 
+                             && t.CurrentColor != TeamColor.NONE 
+                             && t.CapturedAt != null 
+                             && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) > DateTime.Now))
+                {
+                    tower.CurrentColor = TeamColor.NONE;
+                    Towers[tower.ControllsTowerID].CurrentColor = TeamColor.LOCKED;
+                    tower.CapturedAt = null;
+                }
+                
                 foreach (var tower in Towers.Values.Where(t => t.IsPressed))
                 {
+                    if (tower.IsControlled && Towers[tower.ControllingTowerId].CurrentColor != tower.PressedByColor)
+                    {
+                        tower.IsPressed = false;
+                        break;
+                    }
+                    
                     if (tower.LastPressed?.AddSeconds(tower.TimeToCaptureInSeconds) < DateTime.Now)
                     {
                         tower.SetTowerColor(tower.PressedByColor); 
+                        tower.CapturedAt = DateTime.Now;
                         tower.IsPressed = false;
                         tower.LastPressed = null;
                         tower.PressedByColor = TeamColor.NONE;
                         tower.CaptureProgress = 1;
+
+                        if (tower.IsForControlling)
+                        {
+                            Towers[tower.ControllsTowerID].CurrentColor = TeamColor.NONE;
+                        }
                     }
                     else
                     {
@@ -62,6 +86,7 @@ public class TowerManagerService
                             tower.CaptureProgress = (double)progress;
                     }
                 }
+                
 
                 ExternalTriggerService.StateHasChangedAction?.Invoke();
             }
