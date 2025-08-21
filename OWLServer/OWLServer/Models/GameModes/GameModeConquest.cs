@@ -10,6 +10,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
     private ExternalTriggerService ExternalTriggerService { get; set; }
     private GameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Conquest";
+    public GameMode GameMode => GameMode.Conquest;
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
     public bool ShowRespawnButton => false;

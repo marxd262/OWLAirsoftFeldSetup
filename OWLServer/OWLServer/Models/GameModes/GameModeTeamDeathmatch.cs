@@ -5,7 +5,8 @@ namespace OWLServer.Models.GameModes;
 public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 {
     private ExternalTriggerService ExternalTriggerService { get; set; }
-    public string Name { get; set; } = "Deathmatch";
+    public string Name { get; set; } = "Teamdeathmatch";
+    public GameMode GameMode => GameMode.TeamDeathMatch;
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
     public bool IsTicket = true;

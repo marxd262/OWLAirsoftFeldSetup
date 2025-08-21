@@ -7,9 +7,9 @@
                 <RadzenCard Variant="Variant.Flat" class="rz-my-2">
                     <RadzenStack>
                         <RadzenText TextStyle="TextStyle.H6">Spielmodusauswahl</RadzenText>
-                        <RadzenDropDown TValue="GameMode" ValueChanged="GameModeChanged"
+                        <RadzenDropDown TValue="GameMode?" ValueChanged="GameModeChanged"
                                         Data="Enum.GetValues(typeof(GameMode))"
-                                        Value="@GameStateService.CurrentGame"
+                                        Value="@GameStateService.CurrentGame?.GameMode"
                                         Change="@(ExternalTriggerService.StateHasChangedAction.Invoke)"/>
                     </RadzenStack>
                 </RadzenCard>

@@ -8,6 +8,7 @@ public interface IGameModeBase
     public bool IsRunning { get; set; }
     public int MaxTickets { get; set; }
     public bool ShowRespawnButton { get; }
+    public GameMode GameMode { get;  }
     
     public abstract void RunGame();
     public abstract void EndGame();

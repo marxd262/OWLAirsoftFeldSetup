@@ -18,8 +18,10 @@ public partial class AdminPanel : ComponentBase
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
         base.OnInitialized();
     }
-    private void GameModeChanged(GameMode mode)
+    private void GameModeChanged(GameMode? mode)
     {
+        if (mode == null) return;
+        
         switch (mode)
         {
             case GameMode.None:
