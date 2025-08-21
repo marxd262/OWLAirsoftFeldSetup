@@ -8,7 +8,7 @@
 
 @if ((!GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.TeamSetReady))
 {
-    <RadzenToggleButton Text="@(GameStateService.WaldSpawnReady ? "BEREIT!" : "Bereit setzen")"
+    <RadzenToggleButton Text="@(SpawnReady ? "BEREIT!" : "Bereit setzen")"
                         @bind-Value=@SpawnReady
                         Change="@ToggleButtonClick"
                   
