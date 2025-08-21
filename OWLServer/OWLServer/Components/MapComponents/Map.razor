@@ -9,10 +9,23 @@
         object-fit:fill;
         margin-top: -40px;
     }
+
+    .myLoc {
+        background-color: red;
+        width: 10px;
+        height: 10px;
+        position: fixed;
+        z-index: 999;
+    }
 </style>
 
-<img id="map" src="../../map.png" @onclick="OnClickEvent"/>
-
+<div style="height: 800px">
+    <img id="map" src="../../map.png" @onclick="OnClickEvent"/>
+    @foreach(var loco in LocoListe)
+    {
+        <div class="myLoc" style="@loco.ToLocationString()"/>
+    }
+</div>
 <script>
         function GetParentSpace(elementId){
             var element = $(elementId);
@@ -41,13 +54,19 @@
         return {
             Width: width,
             Height: height,
-            Top: position["top"],
-            Left: position["left"],
+            Top: position.top,
+            Left: position.left,
         }
     }
 </script>
 
 @code {
+    [Parameter]
+    public List<Tower> TowerListe { get; set; } = [];
+
+    [Parameter]
+    public List<ElementLocation> LocoListe { get; set; } = [];
+
     [Parameter]
     public Action<ElementLocation> Clicked { get; set; }
 
@@ -56,13 +75,20 @@
         var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
         if(result != null)
         {
-            result.Top = args.PageY - 50;
+            result.Top = args.PageY;
             result.Left = args.PageX;
 
+            var topPercent = result.Top / result.Height * 100;
+            result.Top = topPercent;
+
+            var leftPercent = result.Left / result.Width * 100;
+            result.Left = leftPercent;
+
+            LocoListe.Add(result);
             Clicked?.Invoke(result);            
         }
     }
-    
+
     protected override void OnInitialized()
     {
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
@@ -78,7 +104,7 @@
 
         public string ToLocationString()
         {
-            return $"top:{Top}px;left:{Left}px";
+            return $"margin-top:-calc(100% - {Top.ToString().Replace(',', '.')}%);margin-left:{Left.ToString().Replace(',', '.')}%";
         }
     }
 }
