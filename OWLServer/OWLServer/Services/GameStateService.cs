@@ -73,6 +73,7 @@ namespace OWLServer.Services
             StartGame();
             StadtSpawnReady = false;
             WaldSpawnReady = false;
+            AutoStartAfterReady = false;
         }
 
 
