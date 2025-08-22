@@ -15,8 +15,10 @@
                 <RadzenCard Variant="Variant.Flat" class="rz-my-2">
                     <RadzenStack>
                         <RadzenText TextStyle="TextStyle.H6"> Spielstart</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
-
+                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Text="Reset" Click="ResetClick"/>
+                        </RadzenStack>
                         <RadzenToggleButton
                             @bind-Value="GameStateService.TeamSetReady"
                             Change="@ToggleButtonClick"

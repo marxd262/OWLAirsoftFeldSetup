@@ -20,7 +20,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public bool IsFinished { get; set; } = false;
     public DateTime? StartTime { get; set; }
 
-    private CancellationTokenSource abort = new();
+    private CancellationTokenSource _abort = new();
 
     public Dictionary<TeamColor, int> TeamPoints = new();
 
@@ -75,7 +75,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         GameStateService.TowerManagerService.SetColorForAllTowers(TeamColor.NONE);
         StartTime = DateTime.Now;
         IsRunning = true;
-        Task.Run(Runner, abort.Token);
+        Task.Run(Runner, _abort.Token);
     }
 
     private void Runner()
@@ -85,7 +85,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         {
             Thread.Sleep(500);
 
-            if (abort.IsCancellationRequested)
+            if (_abort.IsCancellationRequested)
             {
                 EndGame();
                 break;
@@ -123,6 +123,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
 
     public void EndGame()
     {
+        
+        _abort.Cancel();
         IsRunning = false;
         IsFinished = true;
         StartTime = null;
@@ -158,6 +160,6 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public void Dispose()
     {
         StartTime = null;
-        abort.Dispose();
+        _abort.Dispose();
     }
 }

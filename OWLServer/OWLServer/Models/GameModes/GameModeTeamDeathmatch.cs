@@ -107,6 +107,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public void EndGame()
     {
+        _abort.Cancel();
         IsRunning = false;
         IsFinished = true;
         StartTime = null;

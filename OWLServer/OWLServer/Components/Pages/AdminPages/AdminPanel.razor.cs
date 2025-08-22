@@ -90,6 +90,16 @@ public partial class AdminPanel : ComponentBase
         ExternalTriggerService.StateHasChangedAction();
     }
 
+    public void ResetClick()
+    {
+        var gm = GameStateService.CurrentGame.GameMode;
+        
+        if(GameStateService.CurrentGame.IsRunning)
+            GameStateService.StopGame();
+        
+        GameModeChanged(GameMode.None);
+        GameModeChanged(gm);
+    }
     private void ButtonClick()
     {
         if (GetButtonStyle == ButtonStyle.Success)
