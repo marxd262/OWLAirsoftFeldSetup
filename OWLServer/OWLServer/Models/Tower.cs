@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Net.Http.Headers;
+using OWLServer.Services;
 
 namespace OWLServer.Models
 {
@@ -9,8 +10,8 @@ namespace OWLServer.Models
         public string IP { get; set; }
         public string Name { get; set; }
         public string DisplayLetter { get; set; }
-        public TeamColor CurrentColor {  get; set; }
-        
+        public TeamColor CurrentColor { get; set; }
+
         private HttpClient _client = new HttpClient();
 
         public int TimeToCaptureInSeconds { get; set; } = 5;
@@ -19,7 +20,7 @@ namespace OWLServer.Models
 
         public bool TowerOnline = false;
         public DateTime LastPing { get; set; }
-        
+
         public bool IsLocked { get; set; }
         public bool IsControlled { get; set; }
         public string? IsControlledByID { get; set; }
@@ -30,15 +31,17 @@ namespace OWLServer.Models
         public bool IsPressed { get; set; }
         public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
         public double CaptureProgress { get; set; } = 0.0;
-        
-        public DateTime? LastPressed { get; set; } 
-        
+
+        public DateTime? LastPressed { get; set; }
+
+        public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
+
         public Tower(string id, string ip)
         {
             ID = id;
             IP = ip;
             Name = string.Empty;
-            
+
             var builder = new UriBuilder(ip);
             _client.BaseAddress = builder.Uri;
             _client.DefaultRequestHeaders.Accept.Clear();
@@ -49,17 +52,7 @@ namespace OWLServer.Models
         public async void SetTowerColor(TeamColor color)
         {
             CurrentColor = color;
-            
-            if(color == TeamColor.BLUE)
-                SendColorToTower(Color.Blue);
-            else if(color == TeamColor.RED)
-                SendColorToTower(Color.Red);
-            else if (color == TeamColor.NONE)
-                SendColorToTower(Color.White);
-            else if(color == TeamColor.OFF)
-                SendColorToTower(Color.Black);
-            else if(color == TeamColor.LOCKED)
-                SendColorToTower(Color.Yellow);
+            SendColorToTower(Util.TeamColorToColorTranslator(color));
         }
 
         public void SetToStartColor()
@@ -76,7 +69,7 @@ namespace OWLServer.Models
 
         public Color MapColor()
         {
-            if(CaptureProgress >= .99)
+            if (CaptureProgress >= .99)
                 return ColorTranslator.FromHtml(CurrentColor.ToString());
 
             return ColorTranslator.FromHtml(CurrentColor.ToString());
@@ -94,7 +87,7 @@ namespace OWLServer.Models
             {
             }
         }
-        
+
         public async void PingTower()
         {
             string callURL = $"/api/ping";
@@ -103,7 +96,7 @@ namespace OWLServer.Models
             TowerOnline = response.IsSuccessStatusCode;
             LastPing = DateTime.Now;
         }
-        
+
 
         public void Reset()
         {

@@ -1,17 +1,20 @@
+<style>
+    .tower_@Tower.ID {
+        .rz-progressbar-circular-value {
+            stroke: @Tower.GetHTMLColor !important;
+        }
+    }
+</style>
 
-<RadzenArcGauge Style="width: 100%; height: 250px;">
-    <RadzenArcGaugeScale Step="100" MinorStep="2" Radius=".3" Y="0.2" StartAngle="-160" EndAngle="160"  Margin="0" StrokeWidth="2">
-        <RadzenArcGaugeScaleValue Value=@(Tower.CaptureProgress * 100) ShowValue=true >
-            <Template Context="pointer">
-                <RadzenStack AlignItems="AlignItems.Center" Gap="0" Style="margin-top: -50%;">
-                    <RadzenText TextStyle="TextStyle.H5" class="rz-m-0"><strong>@Tower.DisplayLetter</strong></RadzenText>
-                </RadzenStack>
-            </Template>
-        </RadzenArcGaugeScaleValue>
-    </RadzenArcGaugeScale>
-</RadzenArcGauge>
+<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" Value="@(Tower.CaptureProgress * 100)"
+                           Size="ProgressBarCircularSize.Medium" Style="@("stroke:" + @Tower.GetHTMLColor + ";")">
+    <Template>
+        <RadzenText TextStyle="TextStyle.DisplayH4">@Tower.DisplayLetter</RadzenText>
+    </Template>
+</RadzenProgressBarCircular>
+
 
 @code {
-    [Parameter]
-    public required Tower Tower { get; set; }
+    [Parameter] public required Tower Tower { get; set; }
+
 }
