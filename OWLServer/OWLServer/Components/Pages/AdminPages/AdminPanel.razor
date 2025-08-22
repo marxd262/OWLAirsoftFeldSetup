@@ -103,6 +103,10 @@
                     <GameModeConquestConfig
                         CurrentGame="@((GameModeConquest)GameStateService.CurrentGame)"/>
                     break;
+                case GameModeTimer:
+                    <GameModeTimerConfig
+                        CurrentGame="@((GameModeTimer)GameStateService.CurrentGame)"></GameModeTimerConfig>
+                    break;
                 default:
                     <RadzenText>
                         Kein unterstützter Spielmodus Ausgewählt

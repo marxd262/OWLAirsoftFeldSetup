@@ -35,6 +35,9 @@ public partial class AdminPanel : ComponentBase
                 GameStateService.CurrentGame = new GameModeConquest(ExternalTriggerService,GameStateService);
                 GameStateService.CurrentGame.FillTeams(GameStateService.Teams.Values.ToList());
                 break;
+            case GameMode.Timer:
+                GameStateService.CurrentGame = new GameModeTimer(ExternalTriggerService,GameStateService);
+                break;
             default:
                 //throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
                 break;

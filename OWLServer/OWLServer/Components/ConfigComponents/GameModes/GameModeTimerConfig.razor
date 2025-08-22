@@ -1,0 +1,10 @@
+
+<RadzenStack>
+    <RadzenFormField Text="Game Duration" Variant="Variant.Flat">
+        <RadzenNumeric @bind-Value="@CurrentGame.GameDurationInMinutes" />
+    </RadzenFormField>
+</RadzenStack>
+@code
+{
+    [Parameter] public GameModeTimer CurrentGame { get; set; } = null!;
+}
