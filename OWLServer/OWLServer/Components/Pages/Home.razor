@@ -12,27 +12,6 @@
 <div style="margin-top:-40px">
 <Map />
 </div>
- <br/>
-
-<RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
-    <p>GameMode: @GameStateService.CurrentGame?.ToString()</p>
-    <p>IsRunning: @GameStateService.CurrentGame?.IsRunning</p>
-    <p>Timer: @GameStateService.CurrentGame?.GetTimer?.ToString(@"mm\:ss")</p>
-    <p>Voraussichtlicher Sieger: @GameStateService.CurrentGame?.GetWinner</p>
-</RadzenCard>
-<br/>
-
-
-<br/> 
-<RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
-    <RadzenStack>
-        <p>Alle Tower:</p> 
-        @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
-        {
-            <p>@JsonSerializer.Serialize(tower)</p> 
-        }
-    </RadzenStack>
-</RadzenCard>
  
 @code{
     [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;

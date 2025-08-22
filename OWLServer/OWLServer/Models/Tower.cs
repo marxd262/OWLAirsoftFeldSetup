@@ -120,7 +120,7 @@ namespace OWLServer.Models
 
         public void Reset()
         {
-            SetTowerColor(TeamColor.NONE);
+            SetToStartColor();
         }
     }
 }
