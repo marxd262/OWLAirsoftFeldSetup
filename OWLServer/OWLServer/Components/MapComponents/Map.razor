@@ -26,24 +26,6 @@
     }
 </div>
 <script>
-        function GetParentSpace(elementId){
-            var element = $(elementId);
-            var parent = element.parent();
-
-            console.log("hai");
-
-            var position = parent.position();
-            var width = parent.outerWidth();
-            var height = parent.Height();
-
-                return {
-                Width: width,
-                Height: height,
-                Top: position["top"],
-                Left: position["left"],
-            }
-        }
-
         function GetElementLocation(elementId){
         var element = $(elementId);
         var position = element.position();
@@ -82,7 +64,6 @@
             var leftPercent = (args.PageX - 16) / result.Width;
             result.Left = leftPercent;
 
-            LocoListe.Add(result);
             Clicked?.Invoke(result);            
         }
     }
@@ -91,20 +72,5 @@
     {
         ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
         base.OnInitialized();
-    }
-
-    public class ElementLocation
-    {
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public double Top { get; set; }
-        public double Left { get; set; }
-
-        public string ToLocationString()
-        {
-            return $"" +
-                   $"top:calc(100% * {Top.ToString().Replace(',', '.')});" +
-                   $"left:calc(100% *{Left.ToString().Replace(',', '.')});";
-        }
     }
 }

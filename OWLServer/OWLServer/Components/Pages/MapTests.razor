@@ -1,9 +1,9 @@
 ﻿@using static OWLServer.Components.MapComponents.Map
-
+@inject GameStateService _GameStateService
 <div>
     <Map Clicked="MapClicked" />
 
-@foreach(var loc in locations)
+    @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
 {
     <style>
         .myLoc{
@@ -14,33 +14,40 @@
             z-index: 999;
         }
     </style>
-    <div class="myLoc" style="@loc.ToLocationString()" ></div>
+        <div class="myLoc" style="@tower.Location?.ToLocationString()"></div>
 }
 </div>
-<RadzenButton Icon="Add" Text="Neuen Punkt hinzufügen" Click="BtnNewPointClick" />
 <RadzenStack>
-    @foreach(var location in locations)
-    {
-        <span>@location.Top ||| @location.Left</span>
-    }
+    <RadzenDropDown TValue="Tower" Data="_GameStateService.TowerManagerService.Towers.Values" Placeholder="Tower auswählen" @bind-Value="@selectedTower" />
+    <RadzenButton Icon="Delete" Text="Tower neu platzieren" Click="BtnDeleteLocationClick" Visible="@(selectedTower != null)" />
 </RadzenStack>
 
 @code {
-    List<ElementLocation> locations = [];
+    Tower? selectedTower { get; set; }
 
-    bool addNewPoint = false;
-    private void BtnNewPointClick()
+    private void UpdateTower(ElementLocation? location)
     {
-        addNewPoint = true;
+        if(selectedTower != null)
+        {
+            _GameStateService.TowerManagerService.Towers.ContainsKey(selectedTower.ID);
+            selectedTower.Location = location;
+        }
+    }
+
+    private void BtnDeleteLocationClick()
+    {
+        UpdateTower(null);
+
+        StateHasChanged();
     }
 
     private void MapClicked(ElementLocation? location)
     {
-        if(addNewPoint && location != null && !locations.Any(l => l.Top == location.Left && l.Top == location.Left))
+        if (selectedTower?.Location == null && location != null)
         {
-            //locations.Add(location);
-            addNewPoint = false;
-            StateHasChanged();
+            UpdateTower(location);
         }
+
+        StateHasChanged();
     }
 }

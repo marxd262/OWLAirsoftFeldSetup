@@ -33,6 +33,7 @@ namespace OWLServer.Models
         public double CaptureProgress { get; set; } = 0.0;
 
         public DateTime? LastPressed { get; set; }
+        public ElementLocation? Location { get; set; }
 
         public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
 
@@ -121,6 +122,15 @@ namespace OWLServer.Models
         public void Reset()
         {
             SetToStartColor();
+        }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(DisplayLetter))
+            {
+                return $"Tower: {DisplayLetter}";
+            }
+            return $"Tower: {ID}";
         }
     }
 }
