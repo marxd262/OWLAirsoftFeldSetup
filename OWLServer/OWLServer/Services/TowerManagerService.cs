@@ -106,8 +106,18 @@ public class TowerManagerService
     public void RegisterTower(string id, string ip)
     {
         if (Towers.ContainsKey(id)) return;
-        Towers.Add(id, new Tower(id, ip) { CurrentColor = TeamColor.NONE });
-        ExternalTriggerService.StateHasChangedAction.Invoke();
+
+        var maxChar = Towers.Max(e => e.Value.DisplayLetter);
+        if (maxChar != null) {
+            maxChar = ((char)(maxChar[0] + 1)).ToString();
+        }
+        else
+        {
+            maxChar = "A";
+        }
+
+        Towers.Add(id, new Tower(id, ip) { CurrentColor = TeamColor.NONE, DisplayLetter=maxChar });
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
     public void TowerChangeColor(string TowerID, TeamColor newColor)
@@ -115,7 +125,7 @@ public class TowerManagerService
         if (Towers.ContainsKey(TowerID))
         {
             Towers[TowerID].SetTowerColor(newColor);
-            ExternalTriggerService.StateHasChangedAction.Invoke();
+            ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
 
