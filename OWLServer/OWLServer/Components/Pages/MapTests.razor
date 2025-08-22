@@ -1,7 +1,7 @@
 ﻿@using static OWLServer.Components.MapComponents.Map
 @inject GameStateService _GameStateService
     <Map Clicked="MapClicked" />
-<RadzenStack>
+<RadzenStack Orientation="Orientation.Horizontal" >
     <RadzenDropDown TValue="Tower" Data="_GameStateService.TowerManagerService.Towers.Values" Placeholder="Tower auswählen" @bind-Value="@selectedTower" />
     <RadzenButton Icon="Delete" Text="Tower neu platzieren" Click="BtnDeleteLocationClick" Visible="@(selectedTower != null)" />
 </RadzenStack>

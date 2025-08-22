@@ -23,13 +23,15 @@
         function GetElementLocation(elementId){
         var element = $(elementId);
         var position = element.position();
+        var offset = element.offset();
         var width = element.outerWidth();
         var height = element.outerHeight();
-        
         
         return {
             Width: width,
             Height: height,
+            offsetTop: offset.top,
+            offsetLeft: offset.left,
             Top: position.top,
             Left: position.left,
         }
@@ -52,10 +54,10 @@
         if(result != null)
         {
             // (Pos - BildOffset) / Höhe
-            var topPercent = (args.PageY - 117) / (result.Height);
+            var topPercent = (args.PageY - result.offsetTop) / (result.Height);
             result.Top = topPercent;
 
-            var leftPercent = (args.PageX - 16) / result.Width;
+            var leftPercent = (args.PageX - result.offsetLeft) / result.Width;
             result.Left = leftPercent;
 
             Clicked?.Invoke(result);            

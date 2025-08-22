@@ -3,6 +3,9 @@
         .rz-progressbar-circular-value {
             stroke: @Tower.DisplaycolorAsHTML() !important;
         }
+        @(Smaller ?
+        "":
+        ".rz-progressbar-circular-background{fill: rgba(255,255,255,0.5);}")
     }
 
     .absoluteTower{
@@ -12,7 +15,7 @@
 
 <RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" style="@(Smaller ? "" : Tower.Location?.ToLocationString())" Value="@(Tower.GetDisplayProgress())"
                            Size="@( Smaller ? ProgressBarCircularSize.Small :ProgressBarCircularSize.Medium)" 
-                           >
+>
     <Template>
         <RadzenText 
             TextAlign="TextAlign.Center"
