@@ -130,7 +130,16 @@
         </div>
     </div>
 
-    <div class="bar bottombar align-self-center">
+    <div class="bar bottombar align-self-center" >
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="color: white">
+            @foreach (Tower t in _gameStateService.TowerManagerService.Towers.Values)
+            {
+                <TowerComponent
+                    Smaller="true"
+                    FontColor="Color.White"
+                    Tower="t"/>
+            }
+        </RadzenStack>
     </div>
 </div>
 

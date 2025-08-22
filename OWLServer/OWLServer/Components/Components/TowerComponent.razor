@@ -1,15 +1,20 @@
 <style>
     .tower_@Tower.ID {
         .rz-progressbar-circular-value {
-            stroke: @Tower.GetHTMLColor !important;
+            stroke: @Tower.DisplaycolorAsHTML() !important;
         }
     }
 </style>
 
-<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" Value="@(Tower.CaptureProgress * 100)"
-                           Size="ProgressBarCircularSize.Medium" Style="@("stroke:" + @Tower.GetHTMLColor + ";")">
+<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" Value="@(Tower.GetDisplayProgress())"
+                           Size="@( Smaller ? ProgressBarCircularSize.Small :ProgressBarCircularSize.Medium)" 
+                           >
     <Template>
-        <RadzenText TextStyle="TextStyle.DisplayH4">@Tower.DisplayLetter</RadzenText>
+        <RadzenText 
+            TextAlign="TextAlign.Center"
+            TextStyle="@(Smaller ? TextStyle.DisplayH6: TextStyle.DisplayH4)" 
+            Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")"
+            >@Tower.DisplayLetter</RadzenText>
     </Template>
 </RadzenProgressBarCircular>
 
@@ -17,4 +22,9 @@
 @code {
     [Parameter] public required Tower Tower { get; set; }
 
+    [Parameter] public bool Smaller { get; set; }
+
+    [Parameter] public Color FontColor { get; set; } = Color.Black;
+    
+    
 }

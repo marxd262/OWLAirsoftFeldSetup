@@ -89,8 +89,8 @@ public class TowerManagerService
                     else
                     {
                         var timeSincePressed = DateTime.Now - tower.LastPressed;
-                        var s = timeSincePressed?.Seconds;
-                        double? progress = s / tower.TimeToCaptureInSeconds;
+                        var s = 1.0 * timeSincePressed?.Seconds;
+                        double? progress = s / (1.0 * tower.TimeToCaptureInSeconds);
                         if (progress != null)
                             tower.CaptureProgress = (double)progress;
                     }

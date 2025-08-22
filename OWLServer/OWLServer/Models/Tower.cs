@@ -36,6 +36,24 @@ namespace OWLServer.Models
 
         public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
 
+        public string DisplaycolorAsHTML()
+        {
+            TeamColor c;
+
+            if (IsPressed) c = PressedByColor;
+            else c = CurrentColor;
+            
+            return ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(c));
+        }
+
+        public int GetDisplayProgress()
+        {
+            if (IsPressed)
+                return (int)(CaptureProgress * 100);
+            else
+                return 100;
+        }
+
         public Tower(string id, string ip)
         {
             ID = id;

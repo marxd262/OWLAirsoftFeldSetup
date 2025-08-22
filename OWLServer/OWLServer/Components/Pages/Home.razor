@@ -22,29 +22,6 @@
 </RadzenCard>
 <br/>
 
-@{
-    Tower x = new Tower("0", "0");
-    x.DisplayLetter = "B";
-    x.CurrentColor = TeamColor.BLUE;
-    x.CaptureProgress = .3;
-    Tower y = new Tower("1", "0");
-    y.DisplayLetter = "A";
-    y.CurrentColor = TeamColor.NONE;
-    y.CaptureProgress = .2;
-    Tower z = new Tower("2", "0");
-    z.DisplayLetter = "C";
-    z.CaptureProgress = .5;
-    z.CurrentColor = TeamColor.LOCKED;
-    
-    Tower a = new Tower("3", "0");
-    a.DisplayLetter = "d";
-    a.CaptureProgress = .9;
-    a.CurrentColor = TeamColor.RED;
-}
-<TowerComponent Tower="@a"></TowerComponent>
-<TowerComponent Tower="@x"></TowerComponent>
-<TowerComponent Tower="@y"></TowerComponent>
-<TowerComponent Tower="@z"></TowerComponent>
 
 <br/> 
 <RadzenCard Variant="Variant.Outlined" Style="background-color: yellow">
