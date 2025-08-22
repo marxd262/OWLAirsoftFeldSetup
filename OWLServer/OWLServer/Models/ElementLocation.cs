@@ -9,7 +9,7 @@
 
         public string ToLocationString()
         {
-            return $"" +
+            return $"position:absolute;" +
                    $"top:calc(100% * {Top.ToString().Replace(',', '.')});" +
                    $"left:calc(100% * {Left.ToString().Replace(',', '.')});";
         }

@@ -1,22 +1,6 @@
 ﻿@using static OWLServer.Components.MapComponents.Map
 @inject GameStateService _GameStateService
-<div style="position: relative;">
     <Map Clicked="MapClicked" />
-
-    @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
-{
-    <style>
-        .myLoc{
-            background-color: red;
-            width: 10px;
-            height: 10px;
-            position: absolute;
-            z-index: 999;
-        }
-    </style>
-        <div class="myLoc" style="@tower.Location?.ToLocationString()"></div>
-}
-</div>
 <RadzenStack>
     <RadzenDropDown TValue="Tower" Data="_GameStateService.TowerManagerService.Towers.Values" Placeholder="Tower auswählen" @bind-Value="@selectedTower" />
     <RadzenButton Icon="Delete" Text="Tower neu platzieren" Click="BtnDeleteLocationClick" Visible="@(selectedTower != null)" />

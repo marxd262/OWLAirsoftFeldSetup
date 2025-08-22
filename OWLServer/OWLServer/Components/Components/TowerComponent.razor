@@ -4,9 +4,13 @@
             stroke: @Tower.DisplaycolorAsHTML() !important;
         }
     }
+
+    .absoluteTower{
+        position: absolute
+    }
 </style>
 
-<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" Value="@(Tower.GetDisplayProgress())"
+<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" style="@(Smaller ? "" : Tower.Location?.ToLocationString())" Value="@(Tower.GetDisplayProgress())"
                            Size="@( Smaller ? ProgressBarCircularSize.Small :ProgressBarCircularSize.Medium)" 
                            >
     <Template>
