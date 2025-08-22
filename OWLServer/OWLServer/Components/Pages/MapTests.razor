@@ -1,6 +1,6 @@
 ﻿@using static OWLServer.Components.MapComponents.Map
 @inject GameStateService _GameStateService
-<div>
+<div style="position: relative;">
     <Map Clicked="MapClicked" />
 
     @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
@@ -10,7 +10,7 @@
             background-color: red;
             width: 10px;
             height: 10px;
-            position: fixed;
+            position: absolute;
             z-index: 999;
         }
     </style>

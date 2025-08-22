@@ -11,7 +11,7 @@
         {
             return $"" +
                    $"top:calc(100% * {Top.ToString().Replace(',', '.')});" +
-                   $"left:calc(100% *{Left.ToString().Replace(',', '.')});";
+                   $"left:calc(100% * {Left.ToString().Replace(',', '.')});";
         }
     }
 }

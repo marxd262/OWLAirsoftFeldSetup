@@ -8,22 +8,10 @@
         height: calc(100% - 90px);
         object-fit:fill;
     }
-
-    .myLoc {
-        background-color: red;
-        width: 10px;
-        height: 10px;
-        position: absolute;
-        z-index: 999;
-    }
 </style>
 
 <div style="position: relative">
     <img id="map" src="../../map.png" @onclick="OnClickEvent"/>
-    @foreach(var loco in LocoListe)
-    {
-        <div class="myLoc" style="@loco.ToLocationString()"/>
-    }
 </div>
 <script>
         function GetElementLocation(elementId){
