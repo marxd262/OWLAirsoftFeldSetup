@@ -14,12 +14,12 @@
         background-color: red;
         width: 10px;
         height: 10px;
-        position: fixed;
+        position: absolute;
         z-index: 999;
     }
 </style>
 
-<div style="height: 800px">
+<div style="position: relative">
     <img id="map" src="../../map.png" @onclick="OnClickEvent"/>
     @foreach(var loco in LocoListe)
     {
@@ -104,7 +104,7 @@
 
         public string ToLocationString()
         {
-            return $"margin-top:-calc(100% - {Top.ToString().Replace(',', '.')}%);margin-left:{Left.ToString().Replace(',', '.')}%";
+            return $"top:{Top.ToString().Replace(',', '.')}%;left:{Left.ToString().Replace(',', '.')}%";
         }
     }
 }
