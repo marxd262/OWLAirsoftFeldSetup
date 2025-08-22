@@ -34,8 +34,8 @@ namespace OWLServer.Services
             TowerManagerService = new TowerManagerService(externalTriggerService, this);
             TowerManagerService.RunTowerManager();
 
-            Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE, ColorTranslator.FromHtml("#00b4f1")));
-            Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED, ColorTranslator.FromHtml("#fc1911")));
+            Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
+            Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
         }
 
         public void StartGame()

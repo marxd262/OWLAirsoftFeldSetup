@@ -42,7 +42,9 @@ namespace OWLServer.Models
 
             if (IsPressed) c = PressedByColor;
             else c = CurrentColor;
-            
+
+            if (c == TeamColor.BLUE || c == TeamColor.RED)
+                return Util.HTMLColorForTeam(c);
             return ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(c));
         }
 

@@ -18,4 +18,18 @@ public static class Util
 
         return Color.White;
     }
+
+    public static string HTMLColorForTeam(TeamColor color)
+    {
+        if (color == TeamColor.BLUE)
+        {
+            return "#00b4f1";
+        }
+        else if (color == TeamColor.RED)
+        {
+            return "#fc1911";
+        }
+
+        return "#ffffff";
+    }
 }
