@@ -7,14 +7,14 @@
         {
             tower.IsControlled = false;
             tower.IsControlledByID = null;
-            GameStateService.TowerManagerService.Towers[tower.IsControlledByID].ControllsTowerID.Remove(tower.ID);
+            GameStateService.TowerManagerService.Towers[tower.IsControlledByID].ControllsTowerID.Remove(tower.MacAddress);
         }
 
         if (!String.IsNullOrEmpty(newControllingTowerID))
         {
             tower.IsControlled = true;
             tower.IsControlledByID = newControllingTowerID;
-            GameStateService.TowerManagerService.Towers[newControllingTowerID].ControllsTowerID.Add(tower.ID);
+            GameStateService.TowerManagerService.Towers[newControllingTowerID].ControllsTowerID.Add(tower.MacAddress);
         }
     }
 }
@@ -32,7 +32,7 @@
     Data="GameStateService.TowerManagerService.Towers.Values"
     EditMode="DataGridEditMode.Single">
     <Columns>
-        <RadzenDataGridColumn Title="ID" Property="@nameof(Tower.ID)"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="ID" Property="@nameof(Tower.MacAddress)"></RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Name" Property="@nameof(Tower.Name)">
             <EditTemplate Context="tower">
                 <RadzenTextBox @bind-Value="tower.Name"></RadzenTextBox>
@@ -67,7 +67,7 @@
 
             <EditTemplate Context="tower">
                 <RadzenDropDown TValue="string?" Value="@tower.IsControlledByID"
-                                Data="GameStateService.TowerManagerService.Towers.Values.Where(t => t.ID != tower.ID).Select(t => t.ID)"
+                                Data="GameStateService.TowerManagerService.Towers.Values.Where(t => t.MacAddress != tower.MacAddress).Select(t => t.MacAddress)"
                                 Name="DropDownBindValue"
                                 AllowClear="true"
                                 Change="@(args => ControllingTowerChanged(tower, $"{args}"))">

@@ -13,7 +13,7 @@
     {
         if(selectedTower != null)
         {
-            _GameStateService.TowerManagerService.Towers.ContainsKey(selectedTower.ID);
+            _GameStateService.TowerManagerService.Towers.ContainsKey(selectedTower.MacAddress);
             selectedTower.Location = location;
         }
     }

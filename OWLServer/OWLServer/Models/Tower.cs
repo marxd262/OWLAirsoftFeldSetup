@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Drawing;
 using System.Net.Http.Headers;
 using OWLServer.Services;
 
@@ -6,36 +7,83 @@ namespace OWLServer.Models
 {
     public class Tower
     {
-        public string ID { get; set; }
+        public int Id { get; set; }
+        
+        public string MacAddress { get; set; }
+        
         public string IP { get; set; }
+        
         public string Name { get; set; }
+       
         public string DisplayLetter { get; set; }
-        public TeamColor CurrentColor { get; set; }
-
-        private HttpClient _client = new HttpClient();
 
         public int TimeToCaptureInSeconds { get; set; } = 5;
 
         public double Multiplier { get; set; } = 1.0;
-
-        public bool TowerOnline = false;
-        public DateTime LastPing { get; set; }
-
-        public bool IsLocked { get; set; }
-        public bool IsControlled { get; set; }
-        public string? IsControlledByID { get; set; }
-        public bool IsForControlling => ControllsTowerID.Any();
-        public List<string> ControllsTowerID { get; set; } = new();
+        
         public int ResetsAfterInSeconds { get; set; } = 60;
-        public DateTime? CapturedAt { get; set; }
-        public bool IsPressed { get; set; }
-        public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
-        public double CaptureProgress { get; set; } = 0.0;
-
-        public DateTime? LastPressed { get; set; }
+        
         public ElementLocation? Location { get; set; }
 
+        [NotMapped]
+        public bool TowerOnline = false;
+
+        [NotMapped]
+        public DateTime LastPing { get; set; }
+
+        [NotMapped]
+        public bool IsLocked { get; set; }
+
+        [NotMapped]
+        public bool IsControlled { get; set; }
+
+        [NotMapped]
+        public string? IsControlledByID { get; set; }
+
+        [NotMapped]
+        public bool IsForControlling => ControllsTowerID.Any();
+
+        [NotMapped]
+        public List<string> ControllsTowerID { get; set; } = new();
+
+        [NotMapped]
+        public DateTime? CapturedAt { get; set; }
+
+        [NotMapped]
+        public bool IsPressed { get; set; }
+
+        [NotMapped]
+        public TeamColor PressedByColor { get; set; } = TeamColor.NONE;
+
+        [NotMapped]
+        public double CaptureProgress { get; set; } = 0.0;
+
+        [NotMapped]
+        public DateTime? LastPressed { get; set; }
+
+        [NotMapped]
+        public TeamColor CurrentColor { get; set; }
+
+        [NotMapped]
         public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
+
+        private HttpClient _client = new HttpClient();
+
+
+        public Tower() { } // Braucht man für DB
+
+        public Tower(string id, string ip)
+        {
+            MacAddress = id;
+            IP = ip;
+            Name = string.Empty;
+
+            var builder = new UriBuilder(ip);
+            _client.BaseAddress = builder.Uri;
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+        }
 
         public string DisplaycolorAsHTML()
         {
@@ -57,18 +105,6 @@ namespace OWLServer.Models
                 return 100;
         }
 
-        public Tower(string id, string ip)
-        {
-            ID = id;
-            IP = ip;
-            Name = string.Empty;
-
-            var builder = new UriBuilder(ip);
-            _client.BaseAddress = builder.Uri;
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-        }
 
         public async void SetTowerColor(TeamColor color)
         {
@@ -130,7 +166,7 @@ namespace OWLServer.Models
             {
                 return $"Tower: {DisplayLetter}";
             }
-            return $"Tower: {ID}";
+            return $"Tower: {MacAddress}";
         }
     }
 }

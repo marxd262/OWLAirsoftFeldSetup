@@ -1,5 +1,5 @@
 <style>
-    .tower_@Tower.ID {
+    .tower_@Tower.MacAddress {
         .rz-progressbar-circular-value {
             stroke: @Tower.DisplaycolorAsHTML() !important;
         }
@@ -13,7 +13,7 @@
     }
 </style>
 
-<RadzenProgressBarCircular class="@($"tower_{@Tower.ID}")" style="@(Smaller ? "" : Tower.Location?.ToLocationString())" Value="@(Tower.GetDisplayProgress())"
+<RadzenProgressBarCircular class="@($"tower_{@Tower.MacAddress}")" style="@(Smaller ? "" : Tower.Location?.ToLocationString())" Value="@(Tower.GetDisplayProgress())"
                            Size="@( Smaller ? ProgressBarCircularSize.Small :ProgressBarCircularSize.Medium)" 
 >
     <Template>

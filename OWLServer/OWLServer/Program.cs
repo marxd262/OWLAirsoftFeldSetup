@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using OWLServer.Components;
+using OWLServer.Context;
 using OWLServer.Services;
 using Radzen;
 
@@ -8,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite($"Data Source=OWLAirsoft.db"));
 
 builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddSingleton<ExternalTriggerService>();

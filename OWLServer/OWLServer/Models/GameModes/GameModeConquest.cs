@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices.JavaScript;
 using Microsoft.AspNetCore.Components;
@@ -30,6 +31,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         GameStateService = gameStateService;
     }
 
+    [NotMapped]
     public TimeSpan? GetTimer 
     {
         get
@@ -134,6 +136,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
     }
 
+    [NotMapped]
     public TeamColor GetWinner
     {
         get

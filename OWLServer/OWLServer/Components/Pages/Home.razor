@@ -1,9 +1,10 @@
 ﻿@page "/"
 @using System.Text.Json;
+@using OWLServer.Context
 @using OWLServer.Services
 @inject GameStateService GameStateService
 @inject ExternalTriggerService ExternalTriggerService
-
+@inject DatabaseContext ctx
 
 
 <PageTitle>Home</PageTitle>
