@@ -125,7 +125,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 return TeamColor.NONE;
             }
 
-            return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Min()).Key;
+            return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Max()).Key;
         }
     }
 
