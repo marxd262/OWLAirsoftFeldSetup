@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace OWLServer.Components.TeamPanel;
 
-public partial class MatchScoreBar : ComponentBase
+public partial class MatchScoreBar : ComponentBase, IDisposable
 {
     [Inject]
     private GameStateService _gameStateService { get; set; } = null!;
@@ -32,6 +32,11 @@ public partial class MatchScoreBar : ComponentBase
             _triggerService.StateHasChangedAction += StateHasChangedAction;
             StateHasChangedAction();
         }
+    }
+
+    public void Dispose()
+    {
+        _triggerService.StateHasChangedAction -= StateHasChangedAction;
     }
 
     private void StateHasChangedAction()

@@ -6,17 +6,25 @@ using Radzen;
 
 namespace OWLServer.Components.Pages.AdminPages;
 
-public partial class AdminPanel : ComponentBase
+public partial class AdminPanel : ComponentBase, IDisposable
 {
     [Inject]
     GameStateService GameStateService { get; set; } = null!;
     [Inject]
     ExternalTriggerService ExternalTriggerService { get; set; } = null!;
-    
+
+    private Action _stateChangedHandler = null!;
+
     protected override void OnInitialized()
     {
-        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
         base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
     }
     private void GameModeChanged(GameMode? mode)
     {

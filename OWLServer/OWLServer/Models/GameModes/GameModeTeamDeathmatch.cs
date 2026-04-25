@@ -29,7 +29,8 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         if (StartTime != null && IsRunning)
         {
             TeamDeaths[args.TeamColor] += 1;
-            ExternalTriggerService.StateHasChangedAction.Invoke();
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
         }
     }
 
@@ -101,7 +102,8 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 break;
             }
             
-            ExternalTriggerService.StateHasChangedAction?.Invoke();
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
         }
     }
 
