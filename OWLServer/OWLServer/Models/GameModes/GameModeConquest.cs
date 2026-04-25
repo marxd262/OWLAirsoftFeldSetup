@@ -15,6 +15,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
     public bool ShowRespawnButton => false;
+
+    // Zwei Mögliche Spielmode sind implementiert. Ticket basiert (zählt runter) oder Punkte basiert (Zählt hoch)
     public bool IsTicket = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool IsRunning { get; set; } = false;
@@ -53,6 +55,12 @@ public class GameModeConquest : IGameModeBase, IDisposable
         }
     }
 
+
+    /// <summary>
+    /// Returns the number of Points or Tickets based on <see cref="IsTicket"/>
+    /// </summary>
+    /// <param name="color"></param>
+    /// <returns></returns>
     public int GetDisplayPoints(TeamColor color)
     {
         int points = 0;
@@ -146,7 +154,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 return TeamColor.NONE;
             }
 
-            return TeamPoints.First(e => e.Value == TeamPoints.Values.Min()).Key;
+            return TeamPoints.First(e => e.Value == TeamPoints.Values.Max()).Key;
         }
     }
 
