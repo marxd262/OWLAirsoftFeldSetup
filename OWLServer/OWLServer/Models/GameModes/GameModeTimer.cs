@@ -39,7 +39,7 @@ public class GameModeTimer : IGameModeBase
                 break;
             }
 
-            if (StartTime?.AddMinutes(GameDurationInMinutes) == DateTime.Now)
+            if (StartTime?.AddMinutes(GameDurationInMinutes) >= DateTime.Now)
             {
                 EndGame();
                 break;
