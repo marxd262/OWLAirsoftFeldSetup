@@ -57,6 +57,6 @@ public class AudioService
 
         var output = process?.StandardOutput.ReadToEnd();
 
-        return "output";
+        return output ?? "output";
     }
 }

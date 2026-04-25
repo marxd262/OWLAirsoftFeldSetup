@@ -54,17 +54,17 @@ namespace OWLServer.Services
         {
             while ((!StadtSpawnReady || !WaldSpawnReady))
             {
-                Thread.Sleep(100);
+                await Task.Delay(100);
 
                 if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
             }
             
             AutoStartProcessStarted = DateTime.Now;
 
-            while ((DateTime.Now - AutoStartProcessStarted).Value.Seconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
+            while ((DateTime.Now - AutoStartProcessStarted).Value.TotalSeconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
             {
                 if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
-                Thread.Sleep(100);
+                await Task.Delay(100);
             }
 
             if (!StadtSpawnReady || !WaldSpawnReady)
