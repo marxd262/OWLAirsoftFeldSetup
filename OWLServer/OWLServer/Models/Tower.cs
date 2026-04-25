@@ -147,11 +147,15 @@ namespace OWLServer.Models
 
         public async void PingTower()
         {
-            string callURL = $"/api/ping";
-            HttpResponseMessage response = await _client.PostAsync(callURL, null);
+            try
+            {
+                string callURL = $"/api/ping";
+                HttpResponseMessage response = await _client.PostAsync(callURL, null);
 
-            TowerOnline = response.IsSuccessStatusCode;
-            LastPing = DateTime.Now;
+                TowerOnline = response.IsSuccessStatusCode;
+                LastPing = DateTime.Now;
+            }
+            catch { }
         }
 
 
@@ -162,7 +166,7 @@ namespace OWLServer.Models
 
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(DisplayLetter))
+            if (!string.IsNullOrEmpty(DisplayLetter))
             {
                 return $"Tower: {DisplayLetter}";
             }
