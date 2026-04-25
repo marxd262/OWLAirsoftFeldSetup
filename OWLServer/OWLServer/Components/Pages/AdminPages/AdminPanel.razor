@@ -92,7 +92,7 @@
     </RadzenColumn>
     <RadzenColumn Size="8">
         <RadzenCard Variant="Variant.Flat" class="rz-my-2">
-            <RadzenText TextStyle="TextStyle.H6">Spielmodus Einstellungen</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">Spielmodus Einstellungen für @GameStateService?.CurrentGame?.Name</RadzenText>
             @switch (GameStateService.CurrentGame)
             {
                 case GameModeTeamDeathmatch:
