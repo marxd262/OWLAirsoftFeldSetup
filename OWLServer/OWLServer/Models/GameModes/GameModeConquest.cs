@@ -101,7 +101,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 break;
             }
 
-            if (StartTime?.AddMinutes(GameDurationInMinutes) >= DateTime.Now)
+            if (StartTime?.AddMinutes(GameDurationInMinutes) <= DateTime.Now)
             {
                 EndGame();
                 break;
