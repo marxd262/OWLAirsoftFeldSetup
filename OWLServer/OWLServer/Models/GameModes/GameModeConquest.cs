@@ -119,7 +119,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 break;
             }
             
-            ExternalTriggerService.StateHasChangedAction.Invoke();
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
         }
     }
 

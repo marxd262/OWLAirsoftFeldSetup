@@ -5,7 +5,7 @@ using Radzen.Blazor;
 
 namespace OWLServer.Components.ConfigComponents;
 
-public partial class TowerConfig : ComponentBase
+public partial class TowerConfig : ComponentBase, IDisposable
 {
     [Inject]
     public GameStateService GameStateService { get; set; } = null!;
@@ -25,11 +25,17 @@ public partial class TowerConfig : ComponentBase
         rdGrid.CancelEditRow(order);
     }
     
+    private Action _stateChangedHandler = null!;
+
     protected override void OnInitialized()
     {
-        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
         base.OnInitialized();
     }
-    
-    
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
 }

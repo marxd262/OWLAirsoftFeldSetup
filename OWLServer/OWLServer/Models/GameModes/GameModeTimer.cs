@@ -45,7 +45,8 @@ public class GameModeTimer : IGameModeBase
                 break;
             }
             
-            ExternalTriggerService.StateHasChangedAction?.Invoke();
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
         }
     }
 
