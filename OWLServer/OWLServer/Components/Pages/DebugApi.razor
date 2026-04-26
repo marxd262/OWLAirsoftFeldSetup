@@ -1,82 +1,343 @@
 @page "/DebugApi"
-@using System.Net.Http.Headers
-@using OWLServer.Controllers
+@using OWLServer.Services
+@using OWLServer.Models
+@inject GameStateService GameStateService
+@inject ExternalTriggerService ExternalTriggerService
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
-<h3>DebugPage</h3>
+<PageTitle>Debug API</PageTitle>
 
-<h4>Clicker Pressed</h4>
-<RadzenStack>
-    TowerColor
-    <RadzenDropDown TValue="TeamColor" @bind-Value="@ClickerColor" Data="Enum.GetValues(typeof(TeamColor))"
-                    />
-    <RadzenButton Text="Press" Click="ClickerPressed"/>
+<RadzenStack Gap="1rem" class="rz-p-4">
+
+    <RadzenText TextStyle="TextStyle.H4">Debug API</RadzenText>
+
+    <RadzenRow Gap="1rem">
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-mb-2">Klicker</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Text="Blue"
+                                  Click="@(() => KlickerPressed(TeamColor.BLUE))"/>
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Red"
+                                  Click="@(() => KlickerPressed(TeamColor.RED))"/>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="5">
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-mb-2">Tower registrieren</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" AlignItems="AlignItems.End">
+                    <RadzenFormField Text="ID (MAC)">
+                        <RadzenTextBox @bind-Value="_regId" Placeholder="AA:BB:CC:DD:EE:FF"/>
+                    </RadzenFormField>
+                    <RadzenFormField Text="IP">
+                        <RadzenTextBox @bind-Value="_regIp" Placeholder="192.168.1.x"/>
+                    </RadzenFormField>
+                    <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Success" Text="Add"
+                                  Click="RegisterTower"/>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-mb-2">Bulk Actions</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Ping All" Click="BulkPingAll"/>
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Text="Cap All → Blue"
+                                  Click="@(() => BulkCapture(TeamColor.BLUE))"/>
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Cap All → Red"
+                                  Click="@(() => BulkCapture(TeamColor.RED))"/>
+                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Text="Reset All" Click="BulkReset"/>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenText TextStyle="TextStyle.H5">
+        Towers (@GameStateService.TowerManagerService.Towers.Count)
+    </RadzenText>
+
+    @if (!GameStateService.TowerManagerService.Towers.Any())
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" AllowClose="false">
+            Keine Tower registriert. Nutze das Formular oben um Tower hinzuzufügen.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenRow Gap="1rem">
+            @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+            {
+                <RadzenColumn Size="12" SizeMD="6" SizeLG="4">
+                    <RadzenCard Variant="Variant.Outlined"
+                                Style="@($"border-left: 4px solid {tower.DisplaycolorAsHTML()}")">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center">
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center" Gap=".5rem">
+                                <RadzenText TextStyle="TextStyle.H5" Style="margin:0">
+                                    @tower.DisplayLetter
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"
+                                            Style="margin:0;color:var(--rz-text-secondary-color)">
+                                    @tower.Name
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center" Gap=".5rem">
+                                <RadzenBadge
+                                    BadgeStyle="@(tower.TowerOnline ? BadgeStyle.Success : BadgeStyle.Secondary)"
+                                    Text="@(tower.TowerOnline ? "● Online" : "○ Offline")"/>
+                                <RadzenButton Icon="info" Size="ButtonSize.ExtraSmall"
+                                             ButtonStyle="ButtonStyle.Light"
+                                             Click="@(() => _selectedTower = tower)"/>
+                            </RadzenStack>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" class="rz-mt-2"
+                                     AlignItems="AlignItems.Center">
+                            <RadzenText TextStyle="TextStyle.Caption"
+                                        Style="color:var(--rz-text-secondary-color)">
+                                @tower.IP
+                            </RadzenText>
+                            <RadzenBadge BadgeStyle="@GetColorBadgeStyle(tower.CurrentColor)"
+                                         Text="@tower.CurrentColor.ToString()"/>
+                            @if (tower.IsPressed)
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Warning"
+                                             Text="@($"Pressing: {tower.PressedByColor}")"/>
+                            }
+                        </RadzenStack>
+
+                        <RadzenProgressBar Value="@((double)tower.GetDisplayProgress())" Max="100"
+                                           ShowValue="false"
+                                           Style="@($"height:8px;margin:8px 0;--rz-progressbar-fill-background:{tower.DisplaycolorAsHTML()}")"/>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".4rem"
+                                     Wrap="FlexWrap.Wrap" class="rz-mt-1">
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info"
+                                          Text="Press Blue"
+                                          Click="@(() => TowerButtonPressed(tower, TeamColor.BLUE))"/>
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                          Text="Press Red"
+                                          Click="@(() => TowerButtonPressed(tower, TeamColor.RED))"/>
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                                          Text="Release"
+                                          Click="@(() => TowerButtonReleased(tower))"/>
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info"
+                                          Variant="Variant.Outlined" Text="Cap Blue"
+                                          Click="@(() => CaptureTower(tower, TeamColor.BLUE))"/>
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                          Variant="Variant.Outlined" Text="Cap Red"
+                                          Click="@(() => CaptureTower(tower, TeamColor.RED))"/>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    }
+
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     AlignItems="AlignItems.Center" class="rz-mb-2">
+            <RadzenText TextStyle="TextStyle.H6">Event Log</RadzenText>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Text="Clear"
+                          Click="@(() => { _log.Clear(); StateHasChanged(); })"/>
+        </RadzenStack>
+        <div style="max-height:200px;overflow-y:auto;font-family:monospace;font-size:0.8rem;line-height:1.6">
+            @if (!_log.Any())
+            {
+                <span style="color:var(--rz-text-secondary-color)">Keine Events bisher...</span>
+            }
+            @foreach (var entry in _log)
+            {
+                <div>
+                    <span style="color:var(--rz-text-secondary-color)">@entry.Time.ToString("HH:mm:ss")</span>
+                    &nbsp;@entry.Message
+                </div>
+            }
+        </div>
+    </RadzenCard>
+
 </RadzenStack>
 
-<h4>Tower Pressed</h4>
-<RadzenStack>
-    TowerColor
-    <RadzenDropDown TValue="TeamColor" @bind-Value="@TowerColor" Data="Enum.GetValues(typeof(TeamColor))"/>
-    Tower ID
-    <RadzenTextBox @bind-Value="@TowerID"></RadzenTextBox>
-    <RadzenButton Text="Press" Click="TowerPressed"/>
-</RadzenStack>
-<h4>Tower Released</h4>
-<RadzenStack>
-    TowerID
-    <RadzenTextBox @bind-Value="@TowerID"></RadzenTextBox>
-    <RadzenButton Text="Press" Click="TowerReleased"/>
-</RadzenStack>
-<h4>Tower Register</h4>
-<RadzenStack>
-    TowerID
-    <RadzenTextBox @bind-Value="@TowerID"> Tower ID</RadzenTextBox>
-    TowerIP
-    <RadzenTextBox @bind-Value="@TowerIP"> Tower IP</RadzenTextBox>
-    <RadzenButton Text="Press" Click="TowerRegister"/>
-</RadzenStack>
+@if (_selectedTower != null)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center"
+         @onclick="@(() => _selectedTower = null)">
+        <div style="background:var(--rz-base-background-color);border-radius:8px;padding:1.5rem;min-width:380px;max-width:560px;max-height:80vh;overflow-y:auto"
+             @onclick:stopPropagation>
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.SpaceBetween"
+                         AlignItems="AlignItems.Center" class="rz-mb-3">
+                <RadzenText TextStyle="TextStyle.H5">
+                    Tower @_selectedTower.DisplayLetter — @_selectedTower.Name
+                </RadzenText>
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                              Click="@(() => _selectedTower = null)"/>
+            </RadzenStack>
+            <RadzenStack Gap=".4rem" Style="font-family:monospace;font-size:.85rem">
+                <div><strong>ID (MAC):</strong> @_selectedTower.MacAddress</div>
+                <div><strong>IP:</strong> @_selectedTower.IP</div>
+                <div><strong>DB Id:</strong> @_selectedTower.Id</div>
+                <div><strong>DisplayLetter:</strong> @_selectedTower.DisplayLetter</div>
+                <div><strong>TimeToCaptureInSeconds:</strong> @_selectedTower.TimeToCaptureInSeconds</div>
+                <div><strong>Multiplier:</strong> @_selectedTower.Multiplier</div>
+                <div><strong>ResetsAfterInSeconds:</strong> @_selectedTower.ResetsAfterInSeconds</div>
+                <hr style="border-color:var(--rz-border-color);margin:.5rem 0"/>
+                <div><strong>TowerOnline:</strong> @_selectedTower.TowerOnline</div>
+                <div><strong>LastPing:</strong> @_selectedTower.LastPing.ToString("HH:mm:ss")</div>
+                <div><strong>CurrentColor:</strong> @_selectedTower.CurrentColor</div>
+                <div><strong>IsPressed:</strong> @_selectedTower.IsPressed</div>
+                <div><strong>PressedByColor:</strong> @_selectedTower.PressedByColor</div>
+                <div><strong>CaptureProgress:</strong> @_selectedTower.CaptureProgress.ToString("P0")</div>
+                <div><strong>LastPressed:</strong> @_selectedTower.LastPressed?.ToString("HH:mm:ss") ?? "—"</div>
+                <div><strong>CapturedAt:</strong> @(_selectedTower.CapturedAt?.ToString("HH:mm:ss") ?? "—")</div>
+                <div><strong>IsLocked:</strong> @_selectedTower.IsLocked</div>
+                <div><strong>IsControlled:</strong> @_selectedTower.IsControlled</div>
+                <div><strong>IsControlledByID:</strong> @(_selectedTower.IsControlledByID ?? "—")</div>
+                <div><strong>IsForControlling:</strong> @_selectedTower.IsForControlling</div>
+                <div><strong>ControllsTowerID:</strong>
+                    @(_selectedTower.ControllsTowerID?.Count > 0
+                        ? string.Join(", ", _selectedTower.ControllsTowerID)
+                        : "—")
+                </div>
+            </RadzenStack>
+        </div>
+    </div>
+}
 
 @code {
+    private Action _stateHandler = null!;
+    private EventHandler<KlickerEventArgs> _klickerHandler = null!;
+    private EventHandler<TowerEventArgs> _towerHandler = null!;
 
-    private TeamColor ClickerColor = TeamColor.NONE;
-    private TeamColor TowerColor = TeamColor.NONE;
-    private  string TowerID = "";
-    private  string TowerIP = "";
-    
-    private HttpClient _client = new HttpClient();
+    private readonly List<(DateTime Time, string Message)> _log = new();
+    private Tower? _selectedTower;
+    private string _regId = "";
+    private string _regIp = "";
+    private HttpClient _client = null!;
 
     protected override void OnInitialized()
     {
-        
-        _client.BaseAddress = new Uri("https://localhost:7014");
-        _client.DefaultRequestHeaders.Accept.Clear();
-        _client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-        
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        _client = new HttpClient(handler) { BaseAddress = new Uri(NavigationManager.BaseUri) };
+
+        _stateHandler = () => InvokeAsync(StateHasChanged);
+
+        _klickerHandler = (_, e) =>
+        {
+            AddLog($"Klicker – {e.TeamColor}");
+            InvokeAsync(StateHasChanged);
+        };
+
+        _towerHandler = (_, e) =>
+        {
+            var letter = GameStateService.TowerManagerService.Towers.TryGetValue(e.TowerId, out var t)
+                ? t.DisplayLetter : e.TowerId;
+            AddLog($"Tower {letter} – ButtonPressed ({e.TeamColor})");
+            InvokeAsync(StateHasChanged);
+        };
+
+        ExternalTriggerService.StateHasChangedAction += _stateHandler;
+        ExternalTriggerService.KlickerPressedAction += _klickerHandler;
+        ExternalTriggerService.TowerPressedAction += _towerHandler;
+
         base.OnInitialized();
     }
 
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateHandler;
+        ExternalTriggerService.KlickerPressedAction -= _klickerHandler;
+        ExternalTriggerService.TowerPressedAction -= _towerHandler;
+        _client.Dispose();
+    }
 
-    private async void ClickerPressed()
+    private void AddLog(string message)
     {
-        string callURL = $"/api/KlickerClicked?color={ClickerColor}";
-        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+        _log.Insert(0, (DateTime.Now, message));
+        if (_log.Count > 50) _log.RemoveAt(50);
     }
-    
-    private async void TowerPressed()
+
+    private async Task ApiPost(string url)
     {
-        string callURL = $"/api/TowerButtonPressed?id={TowerID}&color={TowerColor}";
-        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+        try
+        {
+            var response = await _client.PostAsync(url, null);
+            AddLog($"  ✓ {(int)response.StatusCode} {response.ReasonPhrase}");
+        }
+        catch (Exception ex)
+        {
+            AddLog($"  ✗ {ex.Message}");
+        }
+        await InvokeAsync(StateHasChanged);
     }
-    
-    private async void TowerReleased()
+
+    private BadgeStyle GetColorBadgeStyle(TeamColor color) => color switch
     {
-        string callURL = $"/api/TowerButtonReleased?id={TowerID}";
-        HttpResponseMessage response = await _client.PostAsync(callURL, null);
+        TeamColor.BLUE   => BadgeStyle.Info,
+        TeamColor.RED    => BadgeStyle.Danger,
+        TeamColor.LOCKED => BadgeStyle.Warning,
+        TeamColor.OFF    => BadgeStyle.Dark,
+        _                => BadgeStyle.Secondary
+    };
+
+    private async void KlickerPressed(TeamColor color)
+    {
+        AddLog($"→ POST /api/KlickerClicked ({color})");
+        await ApiPost($"/api/KlickerClicked?color={color}");
     }
-    
-    private void TowerRegister()
+
+    private async void TowerButtonPressed(Tower tower, TeamColor color)
     {
-        string callURL = $"/api/RegisterTower?id={TowerID}&ip={TowerIP}";
-        _client.PostAsync(callURL, null);
+        AddLog($"→ POST /api/TowerButtonPressed Tower {tower.DisplayLetter} ({color})");
+        await ApiPost($"/api/TowerButtonPressed?id={tower.MacAddress}&color={color}");
+    }
+
+    private async void TowerButtonReleased(Tower tower)
+    {
+        AddLog($"→ POST /api/TowerButtonReleased Tower {tower.DisplayLetter}");
+        await ApiPost($"/api/TowerButtonReleased?id={tower.MacAddress}");
+    }
+
+    private async void CaptureTower(Tower tower, TeamColor color)
+    {
+        AddLog($"→ POST /api/CaptureTower Tower {tower.DisplayLetter} ({color})");
+        await ApiPost($"/api/CaptureTower?id={tower.MacAddress}&color={color}");
+    }
+
+    private async void RegisterTower()
+    {
+        if (string.IsNullOrWhiteSpace(_regId) || string.IsNullOrWhiteSpace(_regIp)) return;
+        AddLog($"→ POST /api/RegisterTower id={_regId} ip={_regIp}");
+        await ApiPost($"/api/RegisterTower?id={_regId}&ip={_regIp}");
+        _regId = "";
+    }
+
+    private void BulkPingAll()
+    {
+        AddLog("→ Bulk: Ping All");
+        GameStateService.TowerManagerService.PingAll();
+    }
+
+    private void BulkCapture(TeamColor color)
+    {
+        AddLog($"→ Bulk: Capture All ({color})");
+        GameStateService.TowerManagerService.SetColorForAllTowers(color);
+    }
+
+    private void BulkReset()
+    {
+        AddLog("→ Bulk: Reset All");
+        GameStateService.TowerManagerService.ResetTowers();
     }
 }
