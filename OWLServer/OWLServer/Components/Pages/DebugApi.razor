@@ -220,7 +220,7 @@
     private readonly List<(DateTime Time, string Message)> _log = new();
     private Tower? _selectedTower;
     private string _regId = "";
-    private string _regIp = "";
+    private string _regIp = "1.1.1.1";
     private HttpClient _client = null!;
 
     protected override void OnInitialized()

@@ -103,13 +103,14 @@ public partial class AdminPanel : ComponentBase, IDisposable
 
     public void ResetClick()
     {
-        var gm = GameStateService.CurrentGame.GameMode;
+        //var gm = GameStateService.CurrentGame.GameMode;
+        //
+        //if(GameStateService.CurrentGame.IsRunning)
+        //    GameStateService.StopGame();
+        //GameModeChanged(GameMode.None);
+        //ameModeChanged(gm);
         
-        if(GameStateService.CurrentGame.IsRunning)
-            GameStateService.StopGame();
-        
-        GameModeChanged(GameMode.None);
-        GameModeChanged(gm);
+        GameStateService.Reset();
 
         Task.Run(() => {
             try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }

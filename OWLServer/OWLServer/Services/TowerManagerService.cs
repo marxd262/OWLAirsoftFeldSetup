@@ -1,5 +1,4 @@
 using OWLServer.Models;
-using OWLServer.Models.GameModes;
 using Radzen;
 
 namespace OWLServer.Services;
@@ -7,100 +6,70 @@ namespace OWLServer.Services;
 public class TowerManagerService
 {
     private ExternalTriggerService ExternalTriggerService { get; }
-    private GameStateService GameStateService { get; }
-    private CancellationTokenSource abort = new();
-    public bool IsRunning { get; private set; }
 
     public Dictionary<string, Tower> Towers { get; } = new();
 
-    public TowerManagerService(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+    public TowerManagerService(ExternalTriggerService externalTriggerService)
     {
         ExternalTriggerService = externalTriggerService;
-        GameStateService = gameStateService;
 
         ExternalTriggerService.TowerPressedAction += HandleTowerClicked;
     }
 
-    public void RunTowerManager()
+    public void ProcessTowerStateMachine()
     {
-        IsRunning = true;
-        Task.Run(Runner, abort.Token);
-    }
-
-    private void Runner()
-    {
-        while (true)
+        foreach (var tower in Towers.Values.Where(t =>
+                     t.IsForControlling
+                     && t.CurrentColor != TeamColor.NONE
+                     && t.CapturedAt != null
+                     && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) < DateTime.Now))
         {
-            Thread.Sleep(200);
+            tower.CurrentColor = TeamColor.NONE;
 
-            if (abort.IsCancellationRequested)
+            foreach (string towerid in tower.ControllsTowerID)
             {
+                if(Towers[towerid].CurrentColor == TeamColor.NONE)
+                    Towers[towerid].CurrentColor = TeamColor.LOCKED;
+            }
+
+            tower.CapturedAt = null;
+        }
+
+        foreach (var tower in Towers.Values.Where(t => t.IsPressed))
+        {
+            if (tower.IsControlled && Towers[tower.IsControlledByID].CurrentColor != tower.PressedByColor)
+            {
+                tower.IsPressed = false;
                 break;
             }
 
-            if (GameStateService.CurrentGame is GameModeConquest gameMode && gameMode.IsRunning)
+            if (tower.LastPressed?.AddSeconds(tower.TimeToCaptureInSeconds) < DateTime.Now)
             {
-                
-                foreach (var tower in Towers.Values.Where(t => 
-                             t.IsForControlling 
-                             && t.CurrentColor != TeamColor.NONE 
-                             && t.CapturedAt != null 
-                             && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) < DateTime.Now))
+                tower.SetTowerColor(tower.PressedByColor);
+                tower.CapturedAt = DateTime.Now;
+                tower.IsPressed = false;
+                tower.LastPressed = null;
+                tower.PressedByColor = TeamColor.NONE;
+                tower.CaptureProgress = 1;
+
+                if (tower.IsForControlling)
                 {
-                    tower.CurrentColor = TeamColor.NONE;
-                    
                     foreach (string towerid in tower.ControllsTowerID)
                     {
-                        if(Towers[towerid].CurrentColor == TeamColor.NONE)
-                            Towers[towerid].CurrentColor = TeamColor.LOCKED;
-                    }
-
-                    tower.CapturedAt = null;
-                }
-                
-                foreach (var tower in Towers.Values.Where(t => t.IsPressed))
-                {
-                    if (tower.IsControlled && Towers[tower.IsControlledByID].CurrentColor != tower.PressedByColor)
-                    {
-                        tower.IsPressed = false;
-                        break;
-                    }
-                    
-                    if (tower.LastPressed?.AddSeconds(tower.TimeToCaptureInSeconds) < DateTime.Now)
-                    {
-                        tower.SetTowerColor(tower.PressedByColor); 
-                        tower.CapturedAt = DateTime.Now;
-                        tower.IsPressed = false;
-                        tower.LastPressed = null;
-                        tower.PressedByColor = TeamColor.NONE;
-                        tower.CaptureProgress = 1;
-
-                        if (tower.IsForControlling)
-                        {
-                            foreach (string towerid in tower.ControllsTowerID)
-                            {
-                                Towers[towerid].CurrentColor = TeamColor.NONE;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var timeSincePressed = DateTime.Now - tower.LastPressed;
-                        var s = 1.0 * timeSincePressed?.TotalSeconds;
-                        double? progress = s / (1.0 * tower.TimeToCaptureInSeconds);
-                        if (progress != null)
-                            tower.CaptureProgress = (double)progress;
+                        Towers[towerid].CurrentColor = TeamColor.NONE;
                     }
                 }
-                
-
-                ExternalTriggerService.StateHasChangedAction?.Invoke();
             }
             else
             {
-                Thread.Sleep(5000);
+                var timeSincePressed = DateTime.Now - tower.LastPressed;
+                var s = 1.0 * timeSincePressed?.TotalSeconds;
+                double? progress = s / (1.0 * tower.TimeToCaptureInSeconds);
+                if (progress != null)
+                    tower.CaptureProgress = (double)progress;
             }
         }
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
     public void RegisterTower(string id, string ip)

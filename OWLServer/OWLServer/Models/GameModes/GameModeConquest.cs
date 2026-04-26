@@ -82,7 +82,6 @@ public class GameModeConquest : IGameModeBase, IDisposable
     
     public void RunGame()
     {
-        GameStateService.TowerManagerService.SetColorForAllTowers(TeamColor.NONE);
         StartTime = DateTime.Now;
         IsRunning = true;
         Task.Run(Runner, _abort.Token);
@@ -93,7 +92,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         DateTime lastPointDistributed = DateTime.Now;
         while (true)
         {
-            Thread.Sleep(500);
+            Thread.Sleep(200);
 
             if (_abort.IsCancellationRequested)
             {
@@ -107,6 +106,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 break;
             }
 
+            GameStateService.TowerManagerService.ProcessTowerStateMachine();
+
             if (lastPointDistributed.AddSeconds(PointDistributionFrequencyInSeconds) <= DateTime.Now)
             {
                 DistributePoints();
@@ -118,9 +119,6 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 EndGame();
                 break;
             }
-            
-            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
-            catch { }
         }
     }
 
@@ -140,6 +138,16 @@ public class GameModeConquest : IGameModeBase, IDisposable
         IsFinished = true;
         StartTime = null;
         GameStateService.HandleGameEnd();
+    }
+
+    public void ResetGame()
+    {
+        if (IsRunning) EndGame();
+        IsFinished = false;
+        StartTime = null;
+        foreach (var key in TeamPoints.Keys.ToList())
+            TeamPoints[key] = 0;
+        _abort = new CancellationTokenSource();
     }
 
     [NotMapped]

@@ -161,6 +161,11 @@ namespace OWLServer.Models
 
         public void Reset()
         {
+            CapturedAt = null;
+            IsPressed = false;
+            PressedByColor = TeamColor.NONE;
+            CaptureProgress = 0;
+            LastPressed = null;
             SetToStartColor();
         }
 

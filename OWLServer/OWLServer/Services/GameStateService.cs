@@ -31,8 +31,7 @@ namespace OWLServer.Services
             ExternalTriggerService = externalTriggerService;
             AudioService = audioService;
             
-            TowerManagerService = new TowerManagerService(externalTriggerService, this);
-            TowerManagerService.RunTowerManager();
+            TowerManagerService = new TowerManagerService(externalTriggerService);
 
             Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
@@ -86,7 +85,11 @@ namespace OWLServer.Services
 
         public void Reset()
         {
+            CurrentGame?.ResetGame();
             TowerManagerService.ResetTowers();
+            WaldSpawnReady = false;
+            StadtSpawnReady = false;
+            ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
 }

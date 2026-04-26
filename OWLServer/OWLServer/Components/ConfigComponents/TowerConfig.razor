@@ -1,99 +1,104 @@
 @using OWLServer.Services
+@using OWLServer.Models
 
-@code {
-    private void ControllingTowerChanged(Tower tower, string newControllingTowerID)
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+
+    <RadzenCard Variant="Variant.Flat">
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Alle Tower</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
+            <RadzenButton Text="Alle ausschalten" Icon="power_off" ButtonStyle="ButtonStyle.Secondary"
+                          Click="@GameStateService.TowerManagerService.OffTowers"/>
+            <RadzenButton Text="Alle zurücksetzen" Icon="restart_alt" ButtonStyle="ButtonStyle.Warning"
+                          Click="@GameStateService.TowerManagerService.ResetTowers"/>
+            <RadzenButton Text="Ping All" Icon="network_ping" ButtonStyle="ButtonStyle.Info"
+                          Click="@GameStateService.TowerManagerService.PingAll"/>
+        </RadzenStack>
+    </RadzenCard>
+
+    @if (!GameStateService.TowerManagerService.Towers.Any())
     {
-        if (tower.IsControlled)
-        {
-            tower.IsControlled = false;
-            tower.IsControlledByID = null;
-            GameStateService.TowerManagerService.Towers[tower.IsControlledByID].ControllsTowerID.Remove(tower.MacAddress);
-        }
-
-        if (!String.IsNullOrEmpty(newControllingTowerID))
-        {
-            tower.IsControlled = true;
-            tower.IsControlledByID = newControllingTowerID;
-            GameStateService.TowerManagerService.Towers[newControllingTowerID].ControllsTowerID.Add(tower.MacAddress);
-        }
+        <RadzenAlert AlertStyle="AlertStyle.Warning" AllowClose="false">
+            Keine Tower registriert.
+        </RadzenAlert>
     }
-}
-<RadzenStack Orientation="Orientation.Horizontal">
-    <RadzenButton Text="Alle ausschalten" Click="@GameStateService.TowerManagerService.OffTowers"></RadzenButton>
-    <RadzenButton Text="Alle zurücksetzen" Click="@GameStateService.TowerManagerService.ResetTowers"></RadzenButton>
-    <RadzenButton Text="Ping All" Click="@GameStateService.TowerManagerService.PingAll"></RadzenButton>
-    <RadzenButton Text="Refresh" Click="@rdGrid.RefreshDataAsync"></RadzenButton>
+    else
+    {
+        <RadzenRow Gap="1rem">
+            @foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+            {
+                <RadzenColumn Size="12" SizeMD="6" SizeLG="4">
+                    <RadzenCard Variant="Variant.Outlined"
+                                Style="@($"border-left: 4px solid {tower.DisplaycolorAsHTML()}")">
+
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     class="rz-mb-2">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap=".5rem">
+                                <RadzenText TextStyle="TextStyle.H5" Style="margin:0">@tower.DisplayLetter</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;color:var(--rz-text-secondary-color)">@tower.Name</RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap=".5rem">
+                                <RadzenBadge BadgeStyle="@(tower.TowerOnline ? BadgeStyle.Success : BadgeStyle.Secondary)"
+                                             Text="@(tower.TowerOnline ? "● Online" : "○ Offline")"/>
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@tower.CurrentColor.ToString()"/>
+                            </RadzenStack>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mb-3">
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
+                                MAC: @tower.MacAddress
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
+                                IP: @tower.IP
+                            </RadzenText>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Vertical" Gap=".5rem" class="rz-mb-3">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
+                                <RadzenFormField Text="Name" Style="flex:2;min-width:120px">
+                                    <RadzenTextBox @bind-Value="tower.Name"/>
+                                </RadzenFormField>
+                                <RadzenFormField Text="Map-Buchstabe" Style="flex:1;min-width:60px">
+                                    <RadzenTextBox @bind-Value="tower.DisplayLetter" MaxLength="2"/>
+                                </RadzenFormField>
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
+                                <RadzenFormField Text="Zeit zum Einnehmen (s)" Style="flex:1;min-width:120px">
+                                    <RadzenNumeric @bind-Value="tower.TimeToCaptureInSeconds" Min="1"/>
+                                </RadzenFormField>
+                                <RadzenFormField Text="Setzt zurück nach (s)" Style="flex:1;min-width:120px">
+                                    <RadzenNumeric @bind-Value="tower.ResetsAfterInSeconds" Min="1"/>
+                                </RadzenFormField>
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
+                                <RadzenFormField Text="Multiplier" Style="flex:1;min-width:100px">
+                                    <RadzenNumeric @bind-Value="tower.Multiplier"/>
+                                </RadzenFormField>
+                                <RadzenFormField Text="Wird kontrolliert von" Style="flex:2;min-width:140px">
+                                    <RadzenDropDown TValue="string?"
+                                                    Value="@tower.IsControlledByID"
+                                                    Data="GameStateService.TowerManagerService.Towers.Values
+                                                              .Where(t => t.MacAddress != tower.MacAddress)
+                                                              .Select(t => t.MacAddress)"
+                                                    AllowClear="true"
+                                                    Placeholder="(keine)"
+                                                    Change="@(args => ControllingTowerChanged(tower, $"{args}"))"/>
+                                </RadzenFormField>
+                            </RadzenStack>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                            <RadzenButton Text="Reset" Icon="restart_alt" ButtonStyle="ButtonStyle.Warning"
+                                          Size="ButtonSize.Small" Click="@tower.Reset"/>
+                            <RadzenButton Text="Ping" Icon="network_ping" ButtonStyle="ButtonStyle.Info"
+                                          Size="ButtonSize.Small" Click="@tower.PingTower"/>
+                        </RadzenStack>
+
+                    </RadzenCard>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    }
 
 </RadzenStack>
-<br/>
-<RadzenDataGrid
-    @ref="rdGrid"
-    TItem="Tower"
-    Data="GameStateService.TowerManagerService.Towers.Values"
-    EditMode="DataGridEditMode.Single">
-    <Columns>
-        <RadzenDataGridColumn Title="ID" Property="@nameof(Tower.MacAddress)"></RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Name" Property="@nameof(Tower.Name)">
-            <EditTemplate Context="tower">
-                <RadzenTextBox @bind-Value="tower.Name"></RadzenTextBox>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="MapBuchstabe" Property="@nameof(Tower.DisplayLetter)">
-            <EditTemplate Context="tower">
-                <RadzenTextBox @bind-Value="tower.DisplayLetter"></RadzenTextBox>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="IP" Property="@nameof(Tower.IP)"></RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Zeit zum Einnehmen" Property="@nameof(Tower.TimeToCaptureInSeconds)">
-            <EditTemplate Context="tower">
-                <RadzenNumeric @bind-Value="tower.TimeToCaptureInSeconds"></RadzenNumeric>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Multiplier" Property="@nameof(Tower.Multiplier)">
-            <EditTemplate Context="tower">
-                <RadzenNumeric @bind-Value="tower.Multiplier"></RadzenNumeric>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="IsControlled" Property="@nameof(Tower.IsControlled)">
-            <Template Context="tower">
-                <RadzenCheckBox @bind-Value="tower.IsControlled" ReadOnly="true"/>
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Controlling TowerID"
-                              Property="@nameof(Tower.IsControlledByID)">
-            <Template Context="tower">
-                @tower.IsControlledByID
-            </Template>
-
-            <EditTemplate Context="tower">
-                <RadzenDropDown TValue="string?" Value="@tower.IsControlledByID"
-                                Data="GameStateService.TowerManagerService.Towers.Values.Where(t => t.MacAddress != tower.MacAddress).Select(t => t.MacAddress)"
-                                Name="DropDownBindValue"
-                                AllowClear="true"
-                                Change="@(args => ControllingTowerChanged(tower, $"{args}"))">
-                </RadzenDropDown>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-        
-        <RadzenDataGridColumn Title="ResetAction">
-            <Template Context="tower">
-                <RadzenButton Click="tower.Reset" Icon="reset_focus"></RadzenButton>
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="LastPing" Property="@nameof(Tower.LastPing)"></RadzenDataGridColumn>
-
-        <RadzenDataGridColumn Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Right"
-                              Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
-            <Template Context="order">
-                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
-                              Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => EditRow(order))"
-                              @onclick:stopPropagation="true"/>
-            </Template>
-            <EditTemplate Context="order">
-                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat"
-                              Size="ButtonSize.Medium" Click="@((args) => CancelEdit(order))" aria-label="Save"/>
-            </EditTemplate>
-        </RadzenDataGridColumn>
-    </Columns>
-
-</RadzenDataGrid>

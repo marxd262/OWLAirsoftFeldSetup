@@ -118,6 +118,16 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         GameStateService.HandleGameEnd();
     }
 
+    public void ResetGame()
+    {
+        if (IsRunning) EndGame();
+        IsFinished = false;
+        StartTime = null;
+        foreach (var key in TeamDeaths.Keys.ToList())
+            TeamDeaths[key] = 0;
+        _abort = new CancellationTokenSource();
+    }
+
     public TeamColor GetWinner
     {
         get

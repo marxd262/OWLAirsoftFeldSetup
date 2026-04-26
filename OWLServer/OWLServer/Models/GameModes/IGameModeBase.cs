@@ -13,6 +13,7 @@ public interface IGameModeBase
     
     public abstract void RunGame();
     public abstract void EndGame();
+    public abstract void ResetGame();
     public abstract TeamColor GetWinner { get; }
     public abstract string ToString();
     public TimeSpan? GetTimer { get; }

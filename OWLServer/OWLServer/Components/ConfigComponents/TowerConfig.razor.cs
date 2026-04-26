@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using OWLServer.Models;
 using OWLServer.Services;
-using Radzen.Blazor;
 
 namespace OWLServer.Components.ConfigComponents;
 
@@ -12,19 +11,6 @@ public partial class TowerConfig : ComponentBase, IDisposable
     [Inject]
     public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
-    private RadzenDataGrid<Tower> rdGrid;
-    
-    async Task EditRow(Tower tower)
-    {
-        if (!rdGrid.IsValid) return;
-        await rdGrid.EditRow(tower);
-    }
-    
-    void CancelEdit(Tower order)
-    {
-        rdGrid.CancelEditRow(order);
-    }
-    
     private Action _stateChangedHandler = null!;
 
     protected override void OnInitialized()
@@ -37,5 +23,28 @@ public partial class TowerConfig : ComponentBase, IDisposable
     public void Dispose()
     {
         ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
+
+    private void ControllingTowerChanged(Tower tower, string newControllingTowerID)
+    {
+        if (tower.IsControlled)
+        {
+            var previousController = tower.IsControlledByID;
+            tower.IsControlled = false;
+            tower.IsControlledByID = null;
+            if (previousController != null && GameStateService.TowerManagerService.Towers.ContainsKey(previousController))
+                GameStateService.TowerManagerService.Towers[previousController].ControllsTowerID.Remove(tower.MacAddress);
+        }
+
+        if (!string.IsNullOrEmpty(newControllingTowerID))
+        {
+            tower.IsControlled = true;
+            tower.IsControlledByID = newControllingTowerID;
+            if (GameStateService.TowerManagerService.Towers.ContainsKey(newControllingTowerID))
+                GameStateService.TowerManagerService.Towers[newControllingTowerID].ControllsTowerID.Add(tower.MacAddress);
+        }
+
+        tower.SetToStartColor();
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 }

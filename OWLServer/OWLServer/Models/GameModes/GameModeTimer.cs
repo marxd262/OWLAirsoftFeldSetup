@@ -61,6 +61,14 @@ public class GameModeTimer : IGameModeBase
         GameStateService.HandleGameEnd();
     }
 
+    public void ResetGame()
+    {
+        if (IsRunning) EndGame();
+        IsFinished = false;
+        StartTime = null;
+        _abort = new CancellationTokenSource();
+    }
+
     public TeamColor GetWinner => TeamColor.NONE;
     public TimeSpan? GetTimer
     {
