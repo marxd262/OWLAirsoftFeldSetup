@@ -8,7 +8,6 @@
 - Abhängigkeiten zwischen Towern Visualisieren.
 
 ## Weitere
-- AudioService.cs: Countdown/Freeze sounds return empty string (TODO)
 - DatabaseContext.cs line 8: TODO comment for full database schema
 - No error handling for tower network failures
 - Sounds für Countdown und Freeze
@@ -17,6 +16,10 @@
 
 
 # Done
-- Spielende Triggert jetzt Sound und zeigt endscreen
+- Spielende Triggert jetzt Sound und zeigt Endscreen
 - Robustere Logik für Spielende
+- Überarbeitung der DebugApiSeite
+- Sound können jetzt Hochgeladen und Konfiguriert werden
+- Die Map kann jetzt Konfiguriert werden
+- Es gibt jetzt die Mölichkeit Sounds auch unter Windows abzuspielen
 - 

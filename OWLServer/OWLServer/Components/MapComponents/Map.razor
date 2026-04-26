@@ -1,7 +1,7 @@
-﻿@using OWLServer.Services
-@inject IJSRuntime _jsRuntime;
+﻿@inject IJSRuntime _jsRuntime;
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService _GameStateService
+@inject MapService _MapService
 
 <style>
     #map{
@@ -12,7 +12,7 @@
 </style>
 
 <div style="position: relative">
-    <img id="map" src="../../map.png" @onclick="OnClickEvent"/>
+    <img id="map" src="@_MapService.GetCurrentMapUrl()" @onclick="OnClickEvent"/>
 
     @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
     {

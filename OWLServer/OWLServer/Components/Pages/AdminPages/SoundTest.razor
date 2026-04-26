@@ -1,19 +1,113 @@
 @page "/SoundTest"
-@using OWLServer.Services
 
-@inject AudioService AudioService
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
 
-<RadzenButton Text="Start" Click="() => PlaySound(Sounds.Start)"/>
-
-<RadzenButton Text="Stop" Click="() => PlaySound(Sounds.Stop)"/>
-
-<RadzenButton Text="CoundDown" Click="() => PlaySound(Sounds.Countdown)"/>
-
-<RadzenButton Text="Freeze" Click="() => PlaySound(Sounds.Freeze)"/>
-@code {
-
-    private void PlaySound(Sounds sound)
+    @if (_statusMessage != null)
     {
-        AudioService.PlaySound(sound);
+        <RadzenAlert AlertStyle="@(_statusIsError ? AlertStyle.Danger : AlertStyle.Success)"
+                     Shade="Shade.Default" AllowClose="true"
+                     Close="() => _statusMessage = null">
+            @_statusMessage
+        </RadzenAlert>
     }
-}
+
+    <RadzenCard Variant="Variant.Flat">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" class="rz-mb-3">
+            <RadzenText TextStyle="TextStyle.H6">Sound-Zuweisungen</RadzenText>
+            <RadzenButton Icon="stop"
+                          Text="Stop"
+                          ButtonStyle="ButtonStyle.Danger"
+                          Variant="Variant.Flat"
+                          Size="ButtonSize.Small"
+                          Click="StopSound"/>
+        </RadzenStack>
+        <RadzenDataGrid TItem="Sounds"
+                        Data="Enum.GetValues<Sounds>()"
+                        AllowSorting="false" AllowFiltering="false"
+                        AllowPaging="false" ShowPagingSummary="false">
+            <Columns>
+                <RadzenDataGridColumn TItem="Sounds" Title="Slot" Width="120px">
+                    <Template Context="slot">
+                        <RadzenText>@slot.ToString()</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Sounds" Title="Datei">
+                    <Template Context="slot">
+                        <RadzenDropDown TValue="string"
+                                        Data="AvailableFiles"
+                                        Value="@_pendingAssignments[slot]"
+                                        ValueChanged="@(v => OnDropdownChanged(slot, v))"
+                                        AllowClear="true"
+                                        Placeholder="(keine)"
+                                        Style="width: 100%"/>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Sounds" Title="Speichern" Width="90px">
+                    <Template Context="slot">
+                        <RadzenButton Icon="save"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Variant="Variant.Flat"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => SaveSlot(slot))"/>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Sounds" Title="Test" Width="90px">
+                    <Template Context="slot">
+                        <RadzenButton Icon="play_arrow"
+                                      ButtonStyle="ButtonStyle.Success"
+                                      Variant="Variant.Flat"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => PlaySound(slot))"/>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+
+    <RadzenCard Variant="Variant.Flat">
+        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-3">Datei hochladen</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenButton Text="Datei auswählen..."
+                          ButtonStyle="ButtonStyle.Secondary"
+                          Disabled="@_isUploading"
+                          Click="TriggerFileInput"/>
+            <InputFile id="soundFileInput"
+                       OnChange="OnUploadChange"
+                       multiple
+                       accept=".mp3,.wav,.ogg"
+                       style="display:none"/>
+            @if (_isUploading)
+            {
+                <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate"
+                                           Size="ProgressBarCircularSize.Small"/>
+            }
+        </RadzenStack>
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-mt-2">
+            Unterstützte Formate: MP3, WAV, OGG — Max. 50 MB
+        </RadzenText>
+    </RadzenCard>
+
+    <RadzenCard Variant="Variant.Flat">
+        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-3">Verfügbare Dateien</RadzenText>
+        <RadzenDataGrid TItem="string"
+                        Data="AvailableFiles"
+                        AllowSorting="false" AllowFiltering="false"
+                        AllowPaging="false" ShowPagingSummary="false">
+            <Columns>
+                <RadzenDataGridColumn TItem="string" Title="Dateiname">
+                    <Template Context="file">@file</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="string" Title="Löschen" Width="90px">
+                    <Template Context="file">
+                        <RadzenButton Icon="delete"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Variant="Variant.Flat"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => DeleteFile(file))"/>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+
+</RadzenStack>

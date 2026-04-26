@@ -16,6 +16,7 @@ builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite($"Da
 builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddSingleton<ExternalTriggerService>();
 builder.Services.AddSingleton<AudioService>();
+builder.Services.AddSingleton<MapService>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();
