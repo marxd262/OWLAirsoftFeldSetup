@@ -6,6 +6,7 @@ public interface IGameModeBase
     public int GameDurationInMinutes { get; set; }
     public DateTime? StartTime { get; set; }
     public bool IsRunning { get; set; }
+    public bool IsFinished { get; set; }
     public int MaxTickets { get; set; }
     public bool ShowRespawnButton { get; }
     public GameMode GameMode { get;  }

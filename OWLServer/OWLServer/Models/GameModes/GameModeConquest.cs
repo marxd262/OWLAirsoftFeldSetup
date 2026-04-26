@@ -134,15 +134,12 @@ public class GameModeConquest : IGameModeBase, IDisposable
 
     public void EndGame()
     {
-        
+        if (IsFinished) return;
         _abort.Cancel();
         IsRunning = false;
         IsFinished = true;
         StartTime = null;
-        
-        //throw new NotImplementedException();
-        // not implemented
-        // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
+        GameStateService.HandleGameEnd();
     }
 
     [NotMapped]

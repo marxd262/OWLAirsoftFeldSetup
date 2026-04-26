@@ -50,6 +50,13 @@ namespace OWLServer.Services
             CurrentGame?.EndGame();
         }
 
+        public void HandleGameEnd()
+        {
+            AudioService.PlaySound(Sounds.Stop);
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
+        }
+
         public async void AutoStartGame()
         {
             while ((!StadtSpawnReady || !WaldSpawnReady))

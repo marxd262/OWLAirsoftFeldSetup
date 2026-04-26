@@ -5,6 +5,7 @@ namespace OWLServer.Models.GameModes;
 public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 {
     private ExternalTriggerService ExternalTriggerService { get; set; }
+    private GameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Teamdeathmatch";
     public GameMode GameMode => GameMode.TeamDeathMatch;
     public int GameDurationInMinutes { get; set; } = 20;
@@ -18,9 +19,10 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public Dictionary<TeamColor, int> TeamDeaths = new();
 
-    public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService)
+    public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
+        GameStateService = gameStateService;
         ExternalTriggerService.KlickerPressedAction += ClickerPressed;
     }
 
@@ -34,14 +36,13 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         }
     }
 
-    public TimeSpan? GetTimer 
+    public TimeSpan? GetTimer
     {
         get
         {
-            if (StartTime == null)
-                return new TimeSpan(0, GameDurationInMinutes, 0);
-            else
-                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
+            if (StartTime == null || IsFinished)
+                return new TimeSpan(0, IsFinished ? 0 : GameDurationInMinutes, 0);
+            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
         }
     }
 
@@ -109,13 +110,12 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public void EndGame()
     {
+        if (IsFinished) return;
         _abort.Cancel();
         IsRunning = false;
         IsFinished = true;
         StartTime = null;
-        //throw new NotImplementedException();
-        // not implemented
-        // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
+        GameStateService.HandleGameEnd();
     }
 
     public TeamColor GetWinner
@@ -127,7 +127,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
                 return TeamColor.NONE;
             }
 
-            return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Max()).Key;
+            return TeamDeaths.First(e => e.Value == TeamDeaths.Values.Min()).Key;
         }
     }
 

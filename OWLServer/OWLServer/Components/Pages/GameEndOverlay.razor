@@ -1,0 +1,95 @@
+@inject GameStateService GameStateService
+@inject ExternalTriggerService ExternalTriggerService
+@implements IDisposable
+
+@if (GameStateService.CurrentGame?.IsFinished == true)
+{
+    var winner = GameStateService.CurrentGame.GetWinner;
+    var winnerTeam = winner != TeamColor.NONE ? GameStateService.Teams[winner] : null;
+    var blueScore = GameStateService.CurrentGame.GetDisplayPoints(TeamColor.BLUE);
+    var redScore = GameStateService.CurrentGame.GetDisplayPoints(TeamColor.RED);
+
+    <div class="game-end-overlay">
+        <div class="game-end-content">
+            <div class="game-end-title">SPIEL ENDE</div>
+
+            @if (winnerTeam != null)
+            {
+                <div class="game-end-winner @(winner == TeamColor.BLUE ? "team-blue" : "team-red")">
+                    @winnerTeam.Name gewinnt!
+                </div>
+            }
+            else
+            {
+                <div class="game-end-winner">Unentschieden</div>
+            }
+
+            @if (winner != TeamColor.NONE)
+            {
+                <div class="game-end-scores">
+                    <div class="score-row team-blue">
+                        <span>@GameStateService.Teams[TeamColor.BLUE].Name</span>
+                        <span>@blueScore</span>
+                    </div>
+                    <div class="score-row team-red">
+                        <span>@GameStateService.Teams[TeamColor.RED].Name</span>
+                        <span>@redScore</span>
+                    </div>
+                </div>
+            }
+
+            <div class="game-end-hint">Warte auf Admin Reset...</div>
+        </div>
+    </div>
+}
+
+<style>
+    .game-end-overlay {
+        position: fixed; top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .game-end-content {
+        background: #0d1f2d; border-radius: 1rem;
+        padding: 3rem 4rem; text-align: center; color: white;
+        min-width: 360px;
+    }
+    .game-end-title {
+        font-size: 1.4rem; font-weight: bold;
+        letter-spacing: .15em; color: #aaa; margin-bottom: .75rem;
+    }
+    .game-end-winner {
+        font-size: 3rem; font-weight: 900; margin-bottom: 1.5rem;
+    }
+    .team-blue { color: #00b4f1; }
+    .team-red  { color: #fc1911; }
+    .game-end-scores {
+        display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.5rem;
+    }
+    .score-row {
+        display: flex; justify-content: space-between;
+        font-size: 1.4rem; font-weight: bold;
+        padding: .3rem 1rem; border-radius: .4rem;
+        background: rgba(255,255,255,.07);
+    }
+    .score-row.team-blue { border-left: 4px solid #00b4f1; }
+    .score-row.team-red  { border-left: 4px solid #fc1911; }
+    .game-end-hint { font-size: .9rem; color: #666; }
+</style>
+
+@code {
+    private Action _stateChangedHandler = null!;
+
+    protected override void OnInitialized()
+    {
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
+}

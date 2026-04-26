@@ -10,6 +10,7 @@ public class GameModeTimer : IGameModeBase
     public int GameDurationInMinutes { get; set; } = 20;
     public DateTime? StartTime { get; set; }
     public bool IsRunning { get; set; }
+    public bool IsFinished { get; set; }
     public int MaxTickets { get; set; } = 1000;
     private CancellationTokenSource _abort = new();
     public bool ShowRespawnButton => false;
@@ -52,23 +53,22 @@ public class GameModeTimer : IGameModeBase
 
     public void EndGame()
     {
+        if (IsFinished) return;
         _abort.Cancel();
         IsRunning = false;
+        IsFinished = true;
         StartTime = null;
-        //throw new NotImplementedException();
-        // not implemented
-        // hier Trigger triggern: Signalanlage (Spielende), UI Refresh
+        GameStateService.HandleGameEnd();
     }
 
     public TeamColor GetWinner => TeamColor.NONE;
-    public TimeSpan? GetTimer 
+    public TimeSpan? GetTimer
     {
         get
         {
-            if (StartTime == null)
-                return new TimeSpan(0, GameDurationInMinutes, 0);
-            else
-                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
+            if (StartTime == null || IsFinished)
+                return new TimeSpan(0, IsFinished ? 0 : GameDurationInMinutes, 0);
+            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
         }
     }
     public int GetDisplayPoints(TeamColor color)

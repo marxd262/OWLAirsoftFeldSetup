@@ -1,5 +1,26 @@
 @using OWLServer.Services
 <RadzenRow>
+    @if (GameStateService.CurrentGame?.IsFinished == true)
+    {
+        var winner = GameStateService.CurrentGame.GetWinner;
+        var winnerName = winner != TeamColor.NONE
+            ? GameStateService.Teams[winner].Name
+            : "Unentschieden";
+        var style = winner == TeamColor.BLUE ? AlertStyle.Info
+                  : winner == TeamColor.RED  ? AlertStyle.Danger
+                  : AlertStyle.Warning;
+
+        <RadzenColumn Size="12">
+            <RadzenAlert AlertStyle="@style" Shade="Shade.Dark" AllowClose="false" class="rz-mb-2">
+                <strong>Spiel beendet</strong> — Gewinner: <strong>@winnerName</strong>
+                &nbsp;|&nbsp;
+                @foreach (var kvp in GameStateService.Teams)
+                {
+                    <span>@kvp.Value.Name: @GameStateService.CurrentGame?.GetDisplayPoints(kvp.Key)&nbsp;&nbsp;</span>
+                }
+            </RadzenAlert>
+        </RadzenColumn>
+    }
     <RadzenColumn Size="4">
         <RadzenRow JustifyContent="JustifyContent.SpaceBetween">
             <RadzenColumn Size="12">

@@ -36,7 +36,7 @@ public partial class AdminPanel : ComponentBase, IDisposable
                 GameStateService.CurrentGame = null;
                 break;
             case GameMode.TeamDeathMatch:
-                GameStateService.CurrentGame = new GameModeTeamDeathmatch(ExternalTriggerService);
+                GameStateService.CurrentGame = new GameModeTeamDeathmatch(ExternalTriggerService, GameStateService);
                 GameStateService.CurrentGame.FillTeams(GameStateService.Teams.Values.ToList());
                 break;
             case GameMode.Conquest:
@@ -110,6 +110,11 @@ public partial class AdminPanel : ComponentBase, IDisposable
         
         GameModeChanged(GameMode.None);
         GameModeChanged(gm);
+
+        Task.Run(() => {
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
+            catch { }
+        });
     }
     private void ButtonClick()
     {

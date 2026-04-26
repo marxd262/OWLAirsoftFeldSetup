@@ -1,11 +1,11 @@
-﻿@page "/"
+@page "/"
 @using System.Text.Json;
 @using OWLServer.Context
 @using OWLServer.Services
 @inject GameStateService GameStateService
 @inject ExternalTriggerService ExternalTriggerService
 @inject DatabaseContext ctx
-
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 
@@ -13,13 +13,27 @@
 <div style="margin-top:-40px">
 <Map />
 </div>
- 
+
+@if (ShowGameEndOverlay)
+{
+    <GameEndOverlay />
+}
+
 @code{
     [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;
-    
+    [Parameter] public bool ShowGameEndOverlay { get; set; } = true;
+
+    private Action _stateChangedHandler = null!;
+
     protected override void OnInitialized()
     {
-        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
         base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
     }
 }
