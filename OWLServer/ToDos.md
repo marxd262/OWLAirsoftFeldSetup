@@ -10,8 +10,6 @@
 ## Weitere
 - DatabaseContext.cs line 8: TODO comment for full database schema
 - No error handling for tower network failures
-- Sounds für Countdown und Freeze
-- Sounds Configurierbar machen
 
 
 
