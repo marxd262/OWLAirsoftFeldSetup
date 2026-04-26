@@ -1,7 +1,6 @@
 # KNOWN ISSUES / TODO
 
 ## Fehler
-- Game ends on exact minute equality (unlikely to fire: StartTime?.AddMinutes(...) == DateTime.Now)\
 - DBSet<Tower> Teams in DB Context
 
 ## Erweiterungen
@@ -14,4 +13,10 @@
 - No error handling for tower network failures
 - Sounds für Countdown und Freeze
 - Sounds Configurierbar machen
-- Spielende Richtig Triggern (stribt aktuell lautlos)
+
+
+
+# Done
+- Spielende Triggert jetzt Sound und zeigt endscreen
+- Robustere Logik für Spielende
+- 
