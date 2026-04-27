@@ -1,0 +1,139 @@
+@using OWLServer.Models
+@using OWLServer.Models.GameModes
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+
+    @* ── Base config ── *@
+    <RadzenStack>
+        <RadzenFormField Text="Game Duration (min)" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="CurrentGame.GameDurationInMinutes" Min="1"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Max Tickets" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="CurrentGame.MaxTickets" Min="1"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Is Ticket" Variant="Variant.Flat">
+            <RadzenCheckBox @bind-Value="CurrentGame.IsTicket"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Point Distribution (s)" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="CurrentGame.PointDistributionFrequencyInSeconds" Min="1"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Chain Factor" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="CurrentGame.ChainFactor" TValue="double"/>
+        </RadzenFormField>
+    </RadzenStack>
+
+    @* ── Active layout badge ── *@
+    @if (CurrentGame.ActiveChainLayout != null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Success" AllowClose="false">
+            Aktives Layout: <strong>@CurrentGame.ActiveChainLayout.Name</strong>
+            (@(CurrentGame.ActiveChainLayout.Links.Count) Links)
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" AllowClose="false">
+            Kein Chain-Layout aktiv — alle Tower frei einnehmbar.
+        </RadzenAlert>
+    }
+
+    @* ── Saved layouts list ── *@
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Gespeicherte Layouts</RadzenText>
+        @if (!_savedLayouts.Any())
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Noch keine Layouts gespeichert.</RadzenText>
+        }
+        else
+        {
+            @foreach (var savedLayout in _savedLayouts)
+            {
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                             JustifyContent="JustifyContent.SpaceBetween" class="rz-mb-1">
+                    <RadzenText>@savedLayout.Name (@(savedLayout.Links.Count) Links)</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                        <RadzenButton Text="Laden" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                                      Click="@(() => LoadLayoutIntoEditor(savedLayout))"/>
+                        <RadzenButton Text="Aktivieren" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success"
+                                      Click="@(() => ActivateLayout(savedLayout))"/>
+                        <RadzenButton Text="Löschen" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                      Click="@(async () => await DeleteLayout(savedLayout))"/>
+                    </RadzenStack>
+                </RadzenStack>
+            }
+        }
+    </RadzenCard>
+
+    @* ── Layout editor ── *@
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Layout-Editor</RadzenText>
+
+        @* Existing links *@
+        @if (_editorLinks.Any())
+        {
+            @foreach (var link in _editorLinks.ToList())
+            {
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                             JustifyContent="JustifyContent.SpaceBetween" class="rz-mb-1">
+                    <RadzenText>@LinkLabel(link)</RadzenText>
+                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                  Click="@(() => RemoveLink(link))"/>
+                </RadzenStack>
+            }
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2" class="rz-mb-2">Noch keine Links im Editor.</RadzenText>
+        }
+
+        @* Add new link form *@
+        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap" class="rz-mt-2">
+            <RadzenDropDown TValue="string" @bind-Value="_fromMac"
+                            Data="GameStateService.TowerManagerService.Towers.Values"
+                            TextProperty="DisplayLetter"
+                            ValueProperty="MacAddress"
+                            Placeholder="Von Tower"
+                            Style="min-width:120px"/>
+            <RadzenDropDown TValue="string" @bind-Value="_toMac"
+                            Data="GameStateService.TowerManagerService.Towers.Values"
+                            TextProperty="DisplayLetter"
+                            ValueProperty="MacAddress"
+                            Placeholder="Zu Tower"
+                            Style="min-width:120px"/>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap=".25rem">
+                <RadzenCheckBox @bind-Value="_isBidirectional" Name="biCheck"/>
+                <RadzenLabel Text="Bidirektional" Component="biCheck"/>
+            </RadzenStack>
+            <RadzenButton Text="Link hinzufügen" Icon="add" ButtonStyle="ButtonStyle.Primary"
+                          Click="AddLink"/>
+        </RadzenStack>
+
+        @* Save / Update *@
+        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" class="rz-mt-3" Wrap="FlexWrap.Wrap">
+            <RadzenTextBox @bind-Value="_newLayoutName" Placeholder="Layout-Name" Style="flex:1;min-width:150px"/>
+            <RadzenButton Text="Neu speichern" Icon="save" ButtonStyle="ButtonStyle.Info"
+                          Click="@(async () => await SaveAsNew())"/>
+            @if (_editingLayoutId != null)
+            {
+                <RadzenButton Text="Aktualisieren" Icon="update" ButtonStyle="ButtonStyle.Warning"
+                              Click="@(async () => await UpdateExisting())"/>
+            }
+        </RadzenStack>
+    </RadzenCard>
+
+    @* ── Towers outside layout info ── *@
+    @{
+        var allMacs = GameStateService.TowerManagerService.Towers.Keys.ToHashSet();
+        var inLayout = _editorLinks
+            .SelectMany(l => new[] { l.FromTowerMacAddress, l.ToTowerMacAddress })
+            .ToHashSet();
+        var outsideCount = allMacs.Except(inLayout).Count();
+    }
+    @if (outsideCount > 0)
+    {
+        <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
+            @outsideCount Tower außerhalb des Layouts — frei einnehmbar.
+        </RadzenText>
+    }
+
+</RadzenStack>

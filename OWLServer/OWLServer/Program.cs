@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite($"Data Source=OWLAirsoft.db"));
+builder.Services.AddDbContextFactory<DatabaseContext>(options => options.UseSqlite("Data Source=OWLAirsoft.db"));
 
 builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddSingleton<ExternalTriggerService>();
