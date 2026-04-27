@@ -34,7 +34,7 @@
     <svg viewBox="0 0 100 100" preserveAspectRatio="none"
          style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
 
-        @* One arrowhead marker per controlling tower so each can carry its own color. *@
+        @* Control relationship arrow overlay — shown when a Conquest game with ActiveControlLayout is running. *@
         <defs style="overflow:visible">
             <filter id="arrowGlow" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
@@ -43,10 +43,8 @@
                     <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             </filter>
-            @foreach (var src in ControllingSortedTowers)
+            @foreach (var src in ControllerTowers)
             {
-                @* markerUnits="userSpaceOnUse": keeps arrowhead size in 0-100 coordinate
-                     space instead of scaling it with stroke-width. *@
                 <marker id="arrow-@src.MacAddress"
                         markerWidth="6" markerHeight="5" refX="0" refY="2.5"
                         orient="auto" markerUnits="userSpaceOnUse">
@@ -55,23 +53,22 @@
             }
         </defs>
 
-        @foreach (var src in ControllingSortedTowers)
+        @foreach (var link in ActiveControlLinks)
         {
-            foreach (var mac in src.ControllsTowerID)
-            {
-                var dst = _GameStateService.TowerManagerService.Towers.Values
-                    .FirstOrDefault(t => t.MacAddress == mac && t.Location != null);
+            var src = _GameStateService.TowerManagerService.Towers.Values
+                .FirstOrDefault(t => t.MacAddress == link.ControllerTowerMacAddress && t.Location != null);
+            var dst = _GameStateService.TowerManagerService.Towers.Values
+                .FirstOrDefault(t => t.MacAddress == link.ControlledTowerMacAddress && t.Location != null);
 
-                if (dst != null)
-                {
-                    var (ax1, ay1, ax2, ay2) = ArrowLine(src, dst);
-                    <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
-                          stroke="@ArrowColor(src)"
-                          stroke-width="2"
-                          class="arrow-flow"
-                          filter="url(#arrowGlow)"
-                          marker-end="url(#arrow-@src.MacAddress)" />
-                }
+            if (src != null && dst != null)
+            {
+                var (ax1, ay1, ax2, ay2) = ArrowLine(src, dst);
+                <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
+                      stroke="@ArrowColor(src)"
+                      stroke-width="2"
+                      class="arrow-flow"
+                      filter="url(#arrowGlow)"
+                      marker-end="url(#arrow-@src.MacAddress)" />
             }
         }
 
@@ -186,10 +183,32 @@
     // SVG arrow helpers
     // -------------------------------------------------------------------------
 
-    // Towers that have at least one controlled tower and are placed on the map.
-    private IEnumerable<Tower> ControllingSortedTowers =>
-        _GameStateService.TowerManagerService.Towers.Values
-            .Where(t => t.Location != null && t.ControllsTowerID.Any());
+    // Controller towers with a Location from the ActiveControlLayout (Conquest mode).
+    private IEnumerable<Tower> ControllerTowers
+    {
+        get
+        {
+            if (_GameStateService.CurrentGame is GameModeConquest cq && cq.ActiveControlLayout != null)
+            {
+                var controllerMacs = cq.ActiveControlLayout.Links
+                    .Select(l => l.ControllerTowerMacAddress)
+                    .ToHashSet();
+                return _GameStateService.TowerManagerService.Towers.Values
+                    .Where(t => t.Location != null && controllerMacs.Contains(t.MacAddress));
+            }
+            return Enumerable.Empty<Tower>();
+        }
+    }
+
+    private IEnumerable<TowerControlLink> ActiveControlLinks
+    {
+        get
+        {
+            if (_GameStateService.CurrentGame is GameModeConquest cq && cq.ActiveControlLayout != null)
+                return cq.ActiveControlLayout.Links;
+            return Enumerable.Empty<TowerControlLink>();
+        }
+    }
 
     private bool IsChainBreakActive =>
         _GameStateService.CurrentGame is GameModeChainBreak cb

@@ -199,14 +199,7 @@
                 <div><strong>LastPressed:</strong> @_selectedTower.LastPressed?.ToString("HH:mm:ss") ?? "—"</div>
                 <div><strong>CapturedAt:</strong> @(_selectedTower.CapturedAt?.ToString("HH:mm:ss") ?? "—")</div>
                 <div><strong>IsLocked:</strong> @_selectedTower.IsLocked</div>
-                <div><strong>IsControlled:</strong> @_selectedTower.IsControlled</div>
-                <div><strong>IsControlledByID:</strong> @(_selectedTower.IsControlledByID ?? "—")</div>
-                <div><strong>IsForControlling:</strong> @_selectedTower.IsForControlling</div>
-                <div><strong>ControllsTowerID:</strong>
-                    @(_selectedTower.ControllsTowerID?.Count > 0
-                        ? string.Join(", ", _selectedTower.ControllsTowerID)
-                        : "—")
-                </div>
+                @* Control properties removed — managed via TowerControlLayout in GameModeConquest *@
             </RadzenStack>
         </div>
     </div>

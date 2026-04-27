@@ -35,18 +35,6 @@ namespace OWLServer.Models
         public bool IsLocked => CurrentColor == TeamColor.LOCKED;
 
         [NotMapped]
-        public bool IsControlled { get; set; }
-
-        [NotMapped]
-        public string? IsControlledByID { get; set; }
-
-        [NotMapped]
-        public bool IsForControlling => ControllsTowerID.Any();
-
-        [NotMapped]
-        public List<string> ControllsTowerID { get; set; } = new();
-
-        [NotMapped]
         public DateTime? CapturedAt { get; set; }
 
         [NotMapped]
@@ -114,14 +102,7 @@ namespace OWLServer.Models
 
         public void SetToStartColor()
         {
-            if (IsControlled)
-            {
-                SetTowerColor(TeamColor.LOCKED);
-            }
-            else
-            {
-                SetTowerColor(TeamColor.NONE);
-            }
+            SetTowerColor(TeamColor.NONE);
         }
 
         public Color MapColor()

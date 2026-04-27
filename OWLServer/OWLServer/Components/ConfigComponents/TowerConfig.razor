@@ -75,16 +75,6 @@
                                 <RadzenFormField Text="Multiplier" Style="flex:1;min-width:100px">
                                     <RadzenNumeric @bind-Value="tower.Multiplier"/>
                                 </RadzenFormField>
-                                <RadzenFormField Text="Wird kontrolliert von" Style="flex:2;min-width:140px">
-                                    <RadzenDropDown TValue="string?"
-                                                    Value="@tower.IsControlledByID"
-                                                    Data="GameStateService.TowerManagerService.Towers.Values
-                                                              .Where(t => t.MacAddress != tower.MacAddress)
-                                                              .Select(t => t.MacAddress)"
-                                                    AllowClear="true"
-                                                    Placeholder="(keine)"
-                                                    Change="@(args => ControllingTowerChanged(tower, $"{args}"))"/>
-                                </RadzenFormField>
                             </RadzenStack>
                         </RadzenStack>
 

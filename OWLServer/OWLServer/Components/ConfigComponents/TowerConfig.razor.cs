@@ -25,26 +25,6 @@ public partial class TowerConfig : ComponentBase, IDisposable
         ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
     }
 
-    private void ControllingTowerChanged(Tower tower, string newControllingTowerID)
-    {
-        if (tower.IsControlled)
-        {
-            var previousController = tower.IsControlledByID;
-            tower.IsControlled = false;
-            tower.IsControlledByID = null;
-            if (previousController != null && GameStateService.TowerManagerService.Towers.ContainsKey(previousController))
-                GameStateService.TowerManagerService.Towers[previousController].ControllsTowerID.Remove(tower.MacAddress);
-        }
-
-        if (!string.IsNullOrEmpty(newControllingTowerID))
-        {
-            tower.IsControlled = true;
-            tower.IsControlledByID = newControllingTowerID;
-            if (GameStateService.TowerManagerService.Towers.ContainsKey(newControllingTowerID))
-                GameStateService.TowerManagerService.Towers[newControllingTowerID].ControllsTowerID.Add(tower.MacAddress);
-        }
-
-        tower.SetToStartColor();
-        ExternalTriggerService.StateHasChangedAction?.Invoke();
-    }
+    // Control relationships are now managed via TowerControlLayout in GameModeConquest.
+    // UI for editing them at runtime is removed — configure layouts via the database/seeding.
 }
