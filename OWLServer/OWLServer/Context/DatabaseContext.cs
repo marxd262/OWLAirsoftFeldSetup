@@ -5,14 +5,10 @@ namespace OWLServer.Context
 {
     public class DatabaseContext : DbContext
     {
-        // TODO Datenbank hierhin
-        // Tabllen:
-        // Tower
-        // Teams
-        // Spielmodi-Config
-
-        DbSet<Tower> Towers { get; set; }
-        DbSet<Tower> Teams { get; set; }
+        public DbSet<Tower> Towers { get; set; }
+        public DbSet<TeamBase> Teams { get; set; }
+        public DbSet<ChainLayout> ChainLayouts { get; set; }
+        public DbSet<ChainLink> ChainLinks { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -33,6 +29,18 @@ namespace OWLServer.Context
             builder.Entity<TeamBase>(e =>
             {
                 e.HasKey(el => el.Id);
+            });
+            builder.Entity<ChainLayout>(e =>
+            {
+                e.HasKey(cl => cl.Id);
+                e.HasMany(cl => cl.Links)
+                 .WithOne()
+                 .HasForeignKey(lnk => lnk.ChainLayoutId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<ChainLink>(e =>
+            {
+                e.HasKey(lnk => lnk.Id);
             });
         }
     }
