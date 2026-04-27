@@ -106,6 +106,8 @@ public partial class GameModeChainBreakConfig : ComponentBase
         }).ToList();
         await db.SaveChangesAsync();
         await LoadSavedLayouts();
+        if (CurrentGame.ActiveChainLayout?.Id == _editingLayoutId)
+            CurrentGame.ActiveChainLayout = _savedLayouts.FirstOrDefault(sl => sl.Id == _editingLayoutId);
     }
 
     private async Task DeleteLayout(ChainLayout layout)
@@ -117,6 +119,8 @@ public partial class GameModeChainBreakConfig : ComponentBase
             db.ChainLayouts.Remove(entity);
             await db.SaveChangesAsync();
         }
+        if (CurrentGame.ActiveChainLayout?.Id == layout.Id)
+            CurrentGame.ActiveChainLayout = null;
         if (_editingLayoutId == layout.Id)
         {
             _editingLayoutId = null;

@@ -224,6 +224,8 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
         if (!towers.ContainsKey(mac)) return false;
         var tower = towers[mac];
 
+        if (tower.CurrentColor == team) return false;
+
         bool inLayout = _predecessors.ContainsKey(mac) || _successors.ContainsKey(mac)
                         || _chainEntryPoints.Contains(mac);
         if (!inLayout) return true;

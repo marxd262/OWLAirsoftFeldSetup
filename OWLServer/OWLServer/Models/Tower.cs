@@ -32,7 +32,7 @@ namespace OWLServer.Models
         public DateTime LastPing { get; set; }
 
         [NotMapped]
-        public bool IsLocked { get; set; }
+        public bool IsLocked => CurrentColor == TeamColor.LOCKED;
 
         [NotMapped]
         public bool IsControlled { get; set; }
