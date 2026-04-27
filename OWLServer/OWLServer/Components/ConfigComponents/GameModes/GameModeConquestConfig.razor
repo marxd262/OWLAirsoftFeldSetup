@@ -1,12 +1,20 @@
+@using OWLServer.Models.GameModes
 
-        <RadzenStack>
-            <RadzenFormField Text="Game Duration" Variant="Variant.Flat">
-                <RadzenNumeric @bind-Value="@CurrentGame.GameDurationInMinutes"/>
-            </RadzenFormField>
-            <RadzenFormField Text="Max Tickets" Variant="Variant.Flat">
-                <RadzenNumeric @bind-Value="@CurrentGame.MaxTickets"/>
-            </RadzenFormField>
-            <RadzenFormField Text="Is Ticket" Variant="Variant.Flat">
-                <RadzenCheckBox @bind-Value="@CurrentGame.IsTicket"/>
-            </RadzenFormField>
-        </RadzenStack>
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+    <RadzenStack>
+        <RadzenFormField Text="Game Duration" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="@CurrentGame.GameDurationInMinutes"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Max Tickets" Variant="Variant.Flat">
+            <RadzenNumeric @bind-Value="@CurrentGame.MaxTickets"/>
+        </RadzenFormField>
+        <RadzenFormField Text="Is Ticket" Variant="Variant.Flat">
+            <RadzenCheckBox @bind-Value="@CurrentGame.IsTicket"/>
+        </RadzenFormField>
+    </RadzenStack>
+
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Tower-Steuerung (Control-Layout)</RadzenText>
+        <TowerControlConfig CurrentGame="@CurrentGame" />
+    </RadzenCard>
+</RadzenStack>
