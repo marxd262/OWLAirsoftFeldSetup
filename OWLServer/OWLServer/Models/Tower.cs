@@ -106,7 +106,7 @@ namespace OWLServer.Models
         }
 
 
-        public async void SetTowerColor(TeamColor color)
+        public void SetTowerColor(TeamColor color)
         {
             CurrentColor = color;
             SendColorToTower(Util.TeamColorToColorTranslator(color));
@@ -126,9 +126,6 @@ namespace OWLServer.Models
 
         public Color MapColor()
         {
-            if (CaptureProgress >= .99)
-                return ColorTranslator.FromHtml(CurrentColor.ToString());
-
             return ColorTranslator.FromHtml(CurrentColor.ToString());
         }
 

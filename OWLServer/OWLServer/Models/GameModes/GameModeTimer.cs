@@ -66,6 +66,7 @@ public class GameModeTimer : IGameModeBase
         if (IsRunning) EndGame();
         IsFinished = false;
         StartTime = null;
+        _abort.Dispose();
         _abort = new CancellationTokenSource();
     }
 

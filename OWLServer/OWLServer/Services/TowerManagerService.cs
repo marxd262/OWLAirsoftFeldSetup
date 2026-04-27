@@ -24,12 +24,12 @@ public class TowerManagerService
                      && t.CapturedAt != null
                      && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) < DateTime.Now))
         {
-            tower.CurrentColor = TeamColor.NONE;
+            tower.SetTowerColor(TeamColor.NONE);
 
             foreach (string towerid in tower.ControllsTowerID)
             {
                 if(Towers[towerid].CurrentColor == TeamColor.NONE)
-                    Towers[towerid].CurrentColor = TeamColor.LOCKED;
+                    Towers[towerid].SetTowerColor(TeamColor.LOCKED);
             }
 
             tower.CapturedAt = null;
@@ -56,7 +56,7 @@ public class TowerManagerService
                 {
                     foreach (string towerid in tower.ControllsTowerID)
                     {
-                        Towers[towerid].CurrentColor = TeamColor.NONE;
+                        Towers[towerid].SetTowerColor(TeamColor.NONE);
                     }
                 }
             }

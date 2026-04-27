@@ -1,7 +1,8 @@
-﻿@inject IJSRuntime _jsRuntime;
+@inject IJSRuntime _jsRuntime;
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService _GameStateService
 @inject MapService _MapService
+@implements IDisposable
 
 <style>
     #map{
@@ -9,64 +10,180 @@
         height: calc(100% - 90px);
         object-fit:fill;
     }
+    @@keyframes flowDash {
+        to { stroke-dashoffset: -8; }
+    }
+    .arrow-flow {
+        stroke-dasharray: 5 3;
+        animation: flowDash 1.6s linear infinite;
+    }
 </style>
 
 <div style="position: relative">
+
     <img id="map" src="@_MapService.GetCurrentMapUrl()" @onclick="OnClickEvent"/>
+
+    @* SVG overlay for tower dependency arrows.
+       viewBox="0 0 100 100": explicit coordinate space matching normalized tower positions
+       (Location.Left/Top are 0–1, multiplied by 100). SVG %-coordinates don't resolve
+       reliably when the parent has no explicit height.
+       preserveAspectRatio="none": scales non-uniformly to match the map image (object-fit:fill).
+       pointer-events:none: click events fall through to the img below. *@
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+
+        @* One arrowhead marker per controlling tower so each can carry its own color. *@
+        <defs style="overflow:visible">
+            <filter id="arrowGlow" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            @foreach (var src in ControllingSortedTowers)
+            {
+                @* markerUnits="userSpaceOnUse": keeps arrowhead size in 0-100 coordinate
+                     space instead of scaling it with stroke-width. *@
+                <marker id="arrow-@src.MacAddress"
+                        markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                        orient="auto" markerUnits="userSpaceOnUse">
+                    <polygon points="0 0, 6 2.5, 0 5" fill="@ArrowColor(src)" />
+                </marker>
+            }
+        </defs>
+
+        @foreach (var src in ControllingSortedTowers)
+        {
+            foreach (var mac in src.ControllsTowerID)
+            {
+                var dst = _GameStateService.TowerManagerService.Towers.Values
+                    .FirstOrDefault(t => t.MacAddress == mac && t.Location != null);
+
+                if (dst != null)
+                {
+                    var (ax1, ay1, ax2, ay2) = ArrowLine(src, dst);
+                    <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
+                          stroke="@ArrowColor(src)"
+                          stroke-width="2"
+                          class="arrow-flow"
+                          filter="url(#arrowGlow)"
+                          marker-end="url(#arrow-@src.MacAddress)" />
+                }
+            }
+        }
+    </svg>
 
     @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
     {
         <TowerComponent Tower="tower"></TowerComponent>
     }
+
 </div>
+
 <script>
-        function GetElementLocation(elementId){
+    function GetElementLocation(elementId) {
         var element = $(elementId);
         var position = element.position();
-        var offset = element.offset();
-        var width = element.outerWidth();
-        var height = element.outerHeight();
-        
+        var offset   = element.offset();
         return {
-            Width: width,
-            Height: height,
-            offsetTop: offset.top,
+            Width:      element.outerWidth(),
+            Height:     element.outerHeight(),
+            offsetTop:  offset.top,
             offsetLeft: offset.left,
-            Top: position.top,
-            Left: position.left,
-        }
+            Top:        position.top,
+            Left:       position.left,
+        };
     }
 </script>
 
 @code {
-    [Parameter]
-    public List<Tower> TowerListe { get; set; } = [];
 
-    [Parameter]
-    public List<ElementLocation> LocoListe { get; set; } = [];
+    // -------------------------------------------------------------------------
+    // Parameters
+    // -------------------------------------------------------------------------
 
-    [Parameter]
-    public Action<ElementLocation> Clicked { get; set; }
+    [Parameter] public List<Tower>         TowerListe { get; set; } = [];
+    [Parameter] public List<ElementLocation> LocoListe { get; set; } = [];
+    [Parameter] public Action<ElementLocation> Clicked { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Map click → normalized (0–1) coordinates
+    // -------------------------------------------------------------------------
 
     private async void OnClickEvent(MouseEventArgs args)
     {
         var result = await _jsRuntime.InvokeAsync<ElementLocation>("GetElementLocation", "#map");
-        if(result != null)
+        if (result != null)
         {
-            // (Pos - BildOffset) / Höhe
-            var topPercent = (args.PageY - result.offsetTop) / (result.Height);
-            result.Top = topPercent;
-
-            var leftPercent = (args.PageX - result.offsetLeft) / result.Width;
-            result.Left = leftPercent;
-
-            Clicked?.Invoke(result);            
+            result.Top  = (args.PageY - result.offsetTop)  / result.Height;
+            result.Left = (args.PageX - result.offsetLeft) / result.Width;
+            Clicked?.Invoke(result);
         }
     }
 
+    // -------------------------------------------------------------------------
+    // SVG arrow helpers
+    // -------------------------------------------------------------------------
+
+    // Towers that have at least one controlled tower and are placed on the map.
+    private IEnumerable<Tower> ControllingSortedTowers =>
+        _GameStateService.TowerManagerService.Towers.Values
+            .Where(t => t.Location != null && t.ControllsTowerID.Any());
+
+    // Arrow color reflects whether players can currently attack the follow-up tower:
+    // red/blue = controlling tower is captured by that team, black = nobody can attack yet.
+    private string ArrowColor(Tower src) => src.CurrentColor switch
+    {
+        TeamColor.RED  => "#fc1911",
+        TeamColor.BLUE => "#00b4f1",
+        _              => "#000000"
+    };
+
+    /// <summary>
+    /// Offsets both endpoints away from tower centers so the arrow doesn't overlap
+    /// the circular marker. Gap is in 0-100 SVG coordinate units.
+    /// </summary>
+    // destGap = srcGap (tower clearance) + arrowhead length (6 units in userSpaceOnUse)
+    // so the line ends exactly at the arrowhead tail and the tip clears the tower.
+    private static (string x1, string y1, string x2, string y2) ArrowLine(
+        Tower src, Tower dst, double srcGap = 3.0, double destGap = 9.0)
+    {
+        double sx = src.Location!.Left * 100, sy = src.Location!.Top * 100;
+        double ex = dst.Location!.Left * 100, ey = dst.Location!.Top * 100;
+        double dx = ex - sx, dy = ey - sy;
+        double len = Math.Sqrt(dx * dx + dy * dy);
+
+        if (len < 0.001) return (Fmt(sx), Fmt(sy), Fmt(ex), Fmt(ey));
+
+        double nx = dx / len, ny = dy / len;
+        return (Fmt(sx + nx * srcGap), Fmt(sy + ny * srcGap),
+                Fmt(ex - nx * destGap), Fmt(ey - ny * destGap));
+    }
+    /// <summary>
+    /// InvariantCulture prevents locale decimal separators (e.g. German commas)
+    /// from producing invalid SVG coordinate values that browsers silently coerce to 0.
+    /// </summary>
+    /// <param name="v"></param>
+    /// <returns></returns>
+    private static string Fmt(double v) =>
+        v.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
+
+    private Action _stateChangedHandler = null!;
+
     protected override void OnInitialized()
     {
-        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
         base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
     }
 }

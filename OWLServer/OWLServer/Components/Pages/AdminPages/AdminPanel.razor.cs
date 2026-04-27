@@ -29,7 +29,11 @@ public partial class AdminPanel : ComponentBase, IDisposable
     private void GameModeChanged(GameMode? mode)
     {
         if (mode == null) return;
-        
+
+        var old = GameStateService.CurrentGame;
+        if (old?.IsRunning == true) old.EndGame();
+        (old as IDisposable)?.Dispose();
+
         switch (mode)
         {
             case GameMode.None:

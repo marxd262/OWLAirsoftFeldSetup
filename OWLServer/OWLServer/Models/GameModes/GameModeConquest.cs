@@ -147,6 +147,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         StartTime = null;
         foreach (var key in TeamPoints.Keys.ToList())
             TeamPoints[key] = 0;
+        _abort.Dispose();
         _abort = new CancellationTokenSource();
     }
 

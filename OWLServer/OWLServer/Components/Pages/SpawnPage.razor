@@ -2,6 +2,7 @@
 @using OWLServer.Services
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService GameStateService
+@implements IDisposable
 <PageTitle>SpawnStadt</PageTitle>
 
 <Home TeamOnSide="@GetSpawnColor()"/>
@@ -40,6 +41,8 @@
     [Parameter]
     public string SpawnPlace { get; set; }
 
+    private Action _stateChangedHandler = null!;
+
     public bool WaldSpawn => SpawnPlace == "Wald";
     public bool StadtSpawn => SpawnPlace == "Stadt";
 
@@ -73,10 +76,16 @@
     
     protected override void OnInitialized()
     {
-        ExternalTriggerService.StateHasChangedAction += () => InvokeAsync(StateHasChanged);
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
         base.OnInitialized();
     }
-    
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
+
     private void ToggleButtonClick()
     {
         ExternalTriggerService.StateHasChangedAction();

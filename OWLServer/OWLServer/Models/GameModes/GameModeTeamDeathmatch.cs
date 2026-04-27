@@ -125,6 +125,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         StartTime = null;
         foreach (var key in TeamDeaths.Keys.ToList())
             TeamDeaths[key] = 0;
+        _abort.Dispose();
         _abort = new CancellationTokenSource();
     }
 

@@ -220,6 +220,7 @@
     private readonly List<(DateTime Time, string Message)> _log = new();
     private Tower? _selectedTower;
     private string _regId = "";
+    // Set IP to 1.1.1.1 to have a valid IP for testing. The Towers created with this api are just for local tests.
     private string _regIp = "1.1.1.1";
     private HttpClient _client = null!;
 
