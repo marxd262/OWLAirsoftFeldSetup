@@ -9,6 +9,8 @@ namespace OWLServer.Context
         public DbSet<TeamBase> Teams { get; set; }
         public DbSet<ChainLayout> ChainLayouts { get; set; }
         public DbSet<ChainLink> ChainLinks { get; set; }
+        public DbSet<TowerControlLayout> TowerControlLayouts { get; set; }
+        public DbSet<TowerControlLink> TowerControlLinks { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -39,6 +41,18 @@ namespace OWLServer.Context
                  .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<ChainLink>(e =>
+            {
+                e.HasKey(lnk => lnk.Id);
+            });
+            builder.Entity<TowerControlLayout>(e =>
+            {
+                e.HasKey(tcl => tcl.Id);
+                e.HasMany(tcl => tcl.Links)
+                 .WithOne()
+                 .HasForeignKey(lnk => lnk.TowerControlLayoutId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<TowerControlLink>(e =>
             {
                 e.HasKey(lnk => lnk.Id);
             });
