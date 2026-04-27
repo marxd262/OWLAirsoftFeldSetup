@@ -2,6 +2,8 @@
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService _GameStateService
 @inject MapService _MapService
+@using OWLServer.Models.GameModes
+@using OWLServer.Models
 @implements IDisposable
 
 <style>
@@ -72,6 +74,48 @@
                 }
             }
         }
+
+        @* Chain link overlay — only visible in ChainBreak mode *@
+        @if (IsChainBreakActive)
+        {
+            <defs>
+                <marker id="chain-arrow" markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                        orient="auto" markerUnits="userSpaceOnUse">
+                    <polygon points="0 0, 6 2.5, 0 5" fill="@ChainLinkColor"/>
+                </marker>
+            </defs>
+
+            @foreach (var link in ActiveChainLinks)
+            {
+                var srcTower = _GameStateService.TowerManagerService.Towers.Values
+                    .FirstOrDefault(t => t.MacAddress == link.FromTowerMacAddress && t.Location != null);
+                var dstTower = _GameStateService.TowerManagerService.Towers.Values
+                    .FirstOrDefault(t => t.MacAddress == link.ToTowerMacAddress && t.Location != null);
+
+                @if (srcTower != null && dstTower != null)
+                {
+                    @if (link.IsBidirectional)
+                    {
+                        var (bx1, by1, bx2, by2) = ArrowLine(srcTower, dstTower, srcGap: 3.0, destGap: 3.0);
+                        <line x1="@bx1" y1="@by1" x2="@bx2" y2="@by2"
+                              stroke="@ChainLinkColor"
+                              stroke-width="2"
+                              stroke-dasharray="4 2"
+                              filter="url(#arrowGlow)"/>
+                    }
+                    else
+                    {
+                        var (ax1, ay1, ax2, ay2) = ArrowLine(srcTower, dstTower);
+                        <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
+                              stroke="@ChainLinkColor"
+                              stroke-width="2"
+                              stroke-dasharray="4 2"
+                              marker-end="url(#chain-arrow)"
+                              filter="url(#arrowGlow)"/>
+                    }
+                }
+            }
+        }
     </svg>
 
     @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
@@ -130,6 +174,17 @@
     private IEnumerable<Tower> ControllingSortedTowers =>
         _GameStateService.TowerManagerService.Towers.Values
             .Where(t => t.Location != null && t.ControllsTowerID.Any());
+
+    private bool IsChainBreakActive =>
+        _GameStateService.CurrentGame is GameModeChainBreak cb
+        && cb.ActiveChainLayout != null;
+
+    private IEnumerable<ChainLink> ActiveChainLinks =>
+        (_GameStateService.CurrentGame as GameModeChainBreak)
+            ?.ActiveChainLayout?.Links
+        ?? Enumerable.Empty<ChainLink>();
+
+    private string ChainLinkColor => "#9b59b6";
 
     // Arrow color reflects whether players can currently attack the follow-up tower:
     // red/blue = controlling tower is captured by that team, black = nobody can attack yet.
