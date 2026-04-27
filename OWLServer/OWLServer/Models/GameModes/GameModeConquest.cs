@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices.JavaScript;
 using Microsoft.AspNetCore.Components;
+using OWLServer.Models;
 using OWLServer.Services;
 
 namespace OWLServer.Models.GameModes;
@@ -24,6 +25,12 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public DateTime? StartTime { get; set; }
 
     private CancellationTokenSource _abort = new();
+
+    public TowerControlLayout? ActiveControlLayout { get; set; }
+
+    // Runtime control graph — built at RunGame()
+    private Dictionary<string, List<string>> _controlledChildren = new();
+    private Dictionary<string, string> _controllerByChild = new();
 
     public Dictionary<TeamColor, int> TeamPoints = new();
 
@@ -82,6 +89,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
     
     public void RunGame()
     {
+        BuildControlMaps();
+        InitializeControlTowerStates();
         StartTime = DateTime.Now;
         IsRunning = true;
         Task.Run(Runner, _abort.Token);
@@ -106,7 +115,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 break;
             }
 
-            GameStateService.TowerManagerService.ProcessTowerStateMachine();
+            ProcessConquestStateMachine();
 
             if (lastPointDistributed.AddSeconds(PointDistributionFrequencyInSeconds) <= DateTime.Now)
             {
@@ -128,6 +137,103 @@ public class GameModeConquest : IGameModeBase, IDisposable
         {
             TeamPoints[teamColor] += GameStateService.TowerManagerService.GetPoints(teamColor);
         }
+    }
+
+    private void BuildControlMaps()
+    {
+        _controlledChildren = new Dictionary<string, List<string>>();
+        _controllerByChild = new Dictionary<string, string>();
+
+        if (ActiveControlLayout == null) return;
+
+        foreach (var link in ActiveControlLayout.Links)
+        {
+            if (!_controlledChildren.ContainsKey(link.ControllerTowerMacAddress))
+                _controlledChildren[link.ControllerTowerMacAddress] = new List<string>();
+            _controlledChildren[link.ControllerTowerMacAddress].Add(link.ControlledTowerMacAddress);
+            _controllerByChild[link.ControlledTowerMacAddress] = link.ControllerTowerMacAddress;
+        }
+    }
+
+    private void InitializeControlTowerStates()
+    {
+        var controlledMacs = ActiveControlLayout?.Links
+            .Select(l => l.ControlledTowerMacAddress)
+            .ToHashSet() ?? new HashSet<string>();
+
+        foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+        {
+            if (controlledMacs.Contains(tower.MacAddress))
+                tower.SetTowerColor(TeamColor.LOCKED);
+            else
+                tower.SetTowerColor(TeamColor.NONE);
+        }
+    }
+
+    private void ProcessConquestStateMachine()
+    {
+        var towers = GameStateService.TowerManagerService.Towers;
+
+        // Lock: controller reset timer expired
+        foreach (var tower in towers.Values.Where(t =>
+            _controlledChildren.ContainsKey(t.MacAddress)
+            && t.CurrentColor != TeamColor.NONE
+            && t.CapturedAt != null
+            && t.CapturedAt?.AddSeconds(t.ResetsAfterInSeconds) < DateTime.Now).ToList())
+        {
+            tower.SetTowerColor(TeamColor.NONE);
+
+            foreach (string childMac in _controlledChildren[tower.MacAddress])
+            {
+                if (towers.TryGetValue(childMac, out var child) && child.CurrentColor == TeamColor.NONE)
+                    child.SetTowerColor(TeamColor.LOCKED);
+            }
+
+            tower.CapturedAt = null;
+        }
+
+        // Capture in progress
+        foreach (var tower in towers.Values.Where(t => t.IsPressed).ToList())
+        {
+            // Guard: if controlled, check controller's ownership
+            if (_controllerByChild.TryGetValue(tower.MacAddress, out var controllerMac)
+                && towers.TryGetValue(controllerMac, out var controllerTower)
+                && controllerTower.CurrentColor != tower.PressedByColor)
+            {
+                tower.IsPressed = false;
+                tower.LastPressed = null;
+                tower.PressedByColor = TeamColor.NONE;
+                tower.CaptureProgress = 0;
+                continue;
+            }
+
+            if (tower.LastPressed?.AddSeconds(tower.TimeToCaptureInSeconds) < DateTime.Now)
+            {
+                tower.SetTowerColor(tower.PressedByColor);
+                tower.CapturedAt = DateTime.Now;
+                tower.IsPressed = false;
+                tower.LastPressed = null;
+                tower.PressedByColor = TeamColor.NONE;
+                tower.CaptureProgress = 1;
+
+                // Unlock children
+                if (_controlledChildren.TryGetValue(tower.MacAddress, out var children))
+                {
+                    foreach (string childMac in children)
+                    {
+                        if (towers.TryGetValue(childMac, out var child))
+                            child.SetTowerColor(TeamColor.NONE);
+                    }
+                }
+            }
+            else
+            {
+                var elapsed = DateTime.Now - tower.LastPressed;
+                tower.CaptureProgress = elapsed?.TotalSeconds / tower.TimeToCaptureInSeconds ?? 0;
+            }
+        }
+
+        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
     public void EndGame()
