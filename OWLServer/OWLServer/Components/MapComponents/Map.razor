@@ -75,13 +75,23 @@
             }
         }
 
-        @* Chain link overlay — only visible in ChainBreak mode *@
+        @* Chain link overlay — only visible in ChainBreak mode.
+           Arrow color reflects the source tower's team: red/blue = that team can advance,
+           grey = path locked or neutral. *@
         @if (IsChainBreakActive)
         {
             <defs>
-                <marker id="chain-arrow" markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                <marker id="chain-arrow-red" markerWidth="6" markerHeight="5" refX="0" refY="2.5"
                         orient="auto" markerUnits="userSpaceOnUse">
-                    <polygon points="0 0, 6 2.5, 0 5" fill="@ChainLinkColor"/>
+                    <polygon points="0 0, 6 2.5, 0 5" fill="#fc1911"/>
+                </marker>
+                <marker id="chain-arrow-blue" markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                        orient="auto" markerUnits="userSpaceOnUse">
+                    <polygon points="0 0, 6 2.5, 0 5" fill="#00b4f1"/>
+                </marker>
+                <marker id="chain-arrow-grey" markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                        orient="auto" markerUnits="userSpaceOnUse">
+                    <polygon points="0 0, 6 2.5, 0 5" fill="#555555"/>
                 </marker>
             </defs>
 
@@ -96,22 +106,28 @@
                 {
                     @if (link.IsBidirectional)
                     {
-                        var (bx1, by1, bx2, by2) = ArrowLine(srcTower, dstTower, srcGap: 3.0, destGap: 3.0);
-                        <line x1="@bx1" y1="@by1" x2="@bx2" y2="@by2"
-                              stroke="@ChainLinkColor"
-                              stroke-width="2"
-                              stroke-dasharray="4 2"
-                              filter="url(#arrowGlow)"/>
+                        @* Draw two offset arrows — one each direction — so players see both teams' advance path *@
+                        var (fx1, fy1, fx2, fy2) = ArrowLine(srcTower, dstTower, srcGap: 3.0, destGap: 9.0, perpOffset: 1.2);
+                        var (rx1, ry1, rx2, ry2) = ArrowLine(dstTower, srcTower, srcGap: 3.0, destGap: 9.0, perpOffset: 1.2);
+                        var fwdColor  = ChainLinkColorForTower(srcTower);
+                        var revColor  = ChainLinkColorForTower(dstTower);
+                        var fwdMarker = ChainMarkerIdForTower(srcTower);
+                        var revMarker = ChainMarkerIdForTower(dstTower);
+                        <line x1="@fx1" y1="@fy1" x2="@fx2" y2="@fy2"
+                              stroke="@fwdColor" stroke-width="2" stroke-dasharray="4 2"
+                              marker-end="url(#@fwdMarker)" filter="url(#arrowGlow)"/>
+                        <line x1="@rx1" y1="@ry1" x2="@rx2" y2="@ry2"
+                              stroke="@revColor" stroke-width="2" stroke-dasharray="4 2"
+                              marker-end="url(#@revMarker)" filter="url(#arrowGlow)"/>
                     }
                     else
                     {
                         var (ax1, ay1, ax2, ay2) = ArrowLine(srcTower, dstTower);
+                        var linkColor  = ChainLinkColorForTower(srcTower);
+                        var markerId   = ChainMarkerIdForTower(srcTower);
                         <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
-                              stroke="@ChainLinkColor"
-                              stroke-width="2"
-                              stroke-dasharray="4 2"
-                              marker-end="url(#chain-arrow)"
-                              filter="url(#arrowGlow)"/>
+                              stroke="@linkColor" stroke-width="2" stroke-dasharray="4 2"
+                              marker-end="url(#@markerId)" filter="url(#arrowGlow)"/>
                     }
                 }
             }
@@ -184,10 +200,7 @@
             ?.ActiveChainLayout?.Links
         ?? Enumerable.Empty<ChainLink>();
 
-    private string ChainLinkColor => "#9b59b6";
-
-    // Arrow color reflects whether players can currently attack the follow-up tower:
-    // red/blue = controlling tower is captured by that team, black = nobody can attack yet.
+    // Arrow color for source tower in the existing ControllsTowerID overlay.
     private string ArrowColor(Tower src) => src.CurrentColor switch
     {
         TeamColor.RED  => "#fc1911",
@@ -195,14 +208,29 @@
         _              => "#000000"
     };
 
+    // Chain link color based on which team holds the source tower.
+    private static string ChainLinkColorForTower(Tower src) => src.CurrentColor switch
+    {
+        TeamColor.RED  => "#fc1911",
+        TeamColor.BLUE => "#00b4f1",
+        _              => "#555555"   // grey = locked or uncaptured
+    };
+
+    private static string ChainMarkerIdForTower(Tower src) => src.CurrentColor switch
+    {
+        TeamColor.RED  => "chain-arrow-red",
+        TeamColor.BLUE => "chain-arrow-blue",
+        _              => "chain-arrow-grey"
+    };
+
     /// <summary>
     /// Offsets both endpoints away from tower centers so the arrow doesn't overlap
-    /// the circular marker. Gap is in 0-100 SVG coordinate units.
+    /// the circular marker. perpOffset shifts the line sideways (for parallel bidir arrows).
+    /// Gap is in 0-100 SVG coordinate units.
     /// </summary>
     // destGap = srcGap (tower clearance) + arrowhead length (6 units in userSpaceOnUse)
-    // so the line ends exactly at the arrowhead tail and the tip clears the tower.
     private static (string x1, string y1, string x2, string y2) ArrowLine(
-        Tower src, Tower dst, double srcGap = 3.0, double destGap = 9.0)
+        Tower src, Tower dst, double srcGap = 3.0, double destGap = 9.0, double perpOffset = 0.0)
     {
         double sx = src.Location!.Left * 100, sy = src.Location!.Top * 100;
         double ex = dst.Location!.Left * 100, ey = dst.Location!.Top * 100;
@@ -212,8 +240,10 @@
         if (len < 0.001) return (Fmt(sx), Fmt(sy), Fmt(ex), Fmt(ey));
 
         double nx = dx / len, ny = dy / len;
-        return (Fmt(sx + nx * srcGap), Fmt(sy + ny * srcGap),
-                Fmt(ex - nx * destGap), Fmt(ey - ny * destGap));
+        // perpendicular unit vector (rotated 90°)
+        double px = -ny, py = nx;
+        return (Fmt(sx + nx * srcGap  + px * perpOffset), Fmt(sy + ny * srcGap  + py * perpOffset),
+                Fmt(ex - nx * destGap + px * perpOffset), Fmt(ey - ny * destGap + py * perpOffset));
     }
     /// <summary>
     /// InvariantCulture prevents locale decimal separators (e.g. German commas)

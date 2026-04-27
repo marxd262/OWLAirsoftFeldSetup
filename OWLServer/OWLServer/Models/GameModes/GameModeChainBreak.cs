@@ -84,9 +84,24 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
     public void RunGame()
     {
         BuildChainMaps();
+        InitializeTowerStates();
         StartTime = DateTime.Now;
         IsRunning = true;
         Task.Run(Runner, _abort.Token);
+    }
+
+    private void InitializeTowerStates()
+    {
+        foreach (var tower in GameStateService.TowerManagerService.Towers.Values)
+        {
+            bool inChain = _chainEntryPoints.Contains(tower.MacAddress)
+                           || _predecessors.ContainsKey(tower.MacAddress)
+                           || _successors.ContainsKey(tower.MacAddress);
+            if (inChain && !_chainEntryPoints.Contains(tower.MacAddress))
+                tower.SetTowerColor(TeamColor.LOCKED);
+            else
+                tower.SetTowerColor(TeamColor.NONE);
+        }
     }
 
     private void Runner()
