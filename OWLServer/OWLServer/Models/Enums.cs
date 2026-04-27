@@ -15,6 +15,7 @@
         TeamDeathMatch,
         Conquest,
         Timer,
+        ChainBreak,
         CaptureTheFlag,
         Bomb,
     }
