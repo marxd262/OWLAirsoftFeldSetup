@@ -1,0 +1,245 @@
+@using OWLServer.Models
+@using OWLServer.Services
+@inject GameStateService GSS
+@inject ExternalTriggerService ETS
+@implements IDisposable
+
+<RadzenStack Gap="0.75rem">
+
+    @* ─── Top stat cards ─── *@
+    <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Stretch" Gap="0.75rem">
+        <RadzenColumn Size="12" SizeMD="4" SizeLG="4">
+            <RadzenCard Variant="Variant.Flat">
+                <RadzenStack AlignItems="AlignItems.Center" Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">Status</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H3" Style="@(IsRunning ? "color: var(--rz-success)" : "color: var(--rz-warning)")">
+                        @(IsRunning ? "Laufend" : "Warten")
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="4" SizeLG="4">
+            <RadzenCard Variant="Variant.Flat">
+                <RadzenStack AlignItems="AlignItems.Center" Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">Modus</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" Style="color: var(--rz-primary)">
+                        @(GSS.CurrentGame?.Name ?? "—")
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="4" SizeLG="4">
+            <RadzenCard Variant="Variant.Flat">
+                <RadzenStack AlignItems="AlignItems.Center" Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">Towers Online</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H3" Style="@(TowerOnlineRatio >= 0.75 ? "color: var(--rz-success)" : TowerOnlineRatio >= 0.5 ? "color: var(--rz-warning)" : "color: var(--rz-danger)")">
+                        @OnlineTowerCount/@TotalTowerCount
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @* ─── Team panels with swap button ─── *@
+    <RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Stretch" Gap="0">
+        <RadzenColumn Size="5" SizeMD="5">
+            <RadzenCard Variant="Variant.Flat"
+                        Style="@($"border-left: 4px solid {GSS.Teams[TeamColor.BLUE].ColorCssImportant}; border-radius: var(--rz-border-radius); padding: 1rem;")">
+                <RadzenStack Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">
+                        @GSS.Teams[TeamColor.BLUE].Name &middot; @(GSS.TeamInWald == TeamColor.BLUE ? "Wald" : "Stadt")
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.H2" Style="@($"color: {GSS.Teams[TeamColor.BLUE].ColorCssImportant}")">
+                        @if (IsRunning)
+                        {
+                            @GSS.CurrentGame?.GetDisplayPoints(TeamColor.BLUE)
+                        }
+                        else
+                        {
+                            @(GSS.WaldSpawnReady && GSS.TeamInWald == TeamColor.BLUE ? "BEREIT"
+                            : GSS.StadtSpawnReady && GSS.TeamInStadt == TeamColor.BLUE ? "BEREIT"
+                            : "NICHT BEREIT")
+                        }
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="2" SizeMD="2" Style="display: flex; align-items: center; justify-content: center;">
+            @if (!IsRunning)
+            {
+                <RadzenButton Icon="swap_horiz" ButtonStyle="ButtonStyle.Secondary"
+                              Click="@SwapSpawns" Size="ButtonSize.Medium"
+                              Style="width: 44px; height: 44px;" />
+            }
+        </RadzenColumn>
+        <RadzenColumn Size="5" SizeMD="5">
+            <RadzenCard Variant="Variant.Flat"
+                        Style="@($"border-right: 4px solid {GSS.Teams[TeamColor.RED].ColorCssImportant}; border-radius: var(--rz-border-radius); padding: 1rem; text-align: right;")">
+                <RadzenStack Gap="0.25rem" AlignItems="AlignItems.End">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">
+                        @GSS.Teams[TeamColor.RED].Name &middot; @(GSS.TeamInStadt == TeamColor.RED ? "Stadt" : "Wald")
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.H2" Style="@($"color: {GSS.Teams[TeamColor.RED].ColorCssImportant}")">
+                        @if (IsRunning)
+                        {
+                            @GSS.CurrentGame?.GetDisplayPoints(TeamColor.RED)
+                        }
+                        else
+                        {
+                            @(GSS.StadtSpawnReady && GSS.TeamInStadt == TeamColor.RED ? "BEREIT"
+                            : GSS.WaldSpawnReady && GSS.TeamInWald == TeamColor.RED ? "BEREIT"
+                            : "NICHT BEREIT")
+                        }
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @* ─── Timer (in-game only) ─── *@
+    @if (IsRunning)
+    {
+        <RadzenRow>
+            <RadzenColumn Size="12">
+                <RadzenCard Variant="Variant.Flat">
+                    <RadzenStack AlignItems="AlignItems.Center" Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">Game Time</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="font-family: monospace;">
+                            @GSS.CurrentGame?.GetTimer?.ToString(@"mm\:ss")
+                        </RadzenText>
+                        @if (GSS.CurrentGame?.IsPaused == true)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="PAUSED" />
+                        }
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+
+    @* ─── Controls ─── *@
+    <RadzenRow JustifyContent="JustifyContent.Center" Gap="0.5rem">
+        @if (IsRunning)
+        {
+            <RadzenButton ButtonStyle="ButtonStyle.Warning"
+                          Text="@(GSS.CurrentGame?.IsPaused == true ? "Fortsetzen" : "Pause")"
+                          Click="@TogglePause" />
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Spiel Beenden"
+                          Click="@EndGame" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Reset"
+                          Click="@ResetGame" />
+        }
+        else
+        {
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Spiel Starten"
+                          Click="@StartGame" />
+        }
+    </RadzenRow>
+
+    @* ─── Map + Tower status ─── *@
+    <RadzenRow AlignItems="AlignItems.Start" Gap="0.75rem">
+        <RadzenColumn Size="12" SizeLG="7">
+            <RadzenCard Variant="Variant.Flat" Style="padding: 0.5rem;">
+                <Map />
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeLG="5">
+            <RadzenCard Variant="Variant.Flat" Style="max-height: 400px; overflow-y: auto;">
+                <RadzenStack Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.H6">Tower Status</RadzenText>
+                    @foreach (var tower in GSS.TowerManagerService.Towers.Values.OrderBy(t => t.DisplayLetter))
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                     Gap="0.5rem" Style="padding: 0.4rem 0.5rem; border-radius: var(--rz-border-radius); background: var(--rz-surface-hover-color);">
+                            <span style="@($"width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: {(tower.TowerOnline ? "var(--rz-success)" : "var(--rz-danger)")};")"></span>
+                            <RadzenText TextStyle="TextStyle.Caption" Style="min-width: 60px;">
+                                @(string.IsNullOrEmpty(tower.DisplayLetter) ? tower.MacAddress : $"Tower {tower.DisplayLetter}")
+                            </RadzenText>
+                            @if (IsRunning && tower.IsPressed)
+                            {
+                                <span style="margin-left: auto; width: 50px; height: 8px; border-radius: 4px; background: var(--rz-surface-color);">
+                                    <span style="@($"display: block; width: {tower.CaptureProgress * 100}%; height: 100%; border-radius: 4px; background: {GetTeamColorHex(tower.PressedByColor)};")"></span>
+                                </span>
+                            }
+                            else if (!tower.TowerOnline)
+                            {
+                                <RadzenText TextStyle="TextStyle.Caption" Style="margin-left: auto; color: var(--rz-text-tertiary-color);">offline</RadzenText>
+                            }
+                            else
+                            {
+                                <span style="@($"margin-left: auto; width: 12px; height: 12px; border-radius: 2px; background: {GetTeamColorHex(tower.CurrentColor)};")"></span>
+                            }
+                        </RadzenStack>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+</RadzenStack>
+
+@code {
+    private Action _stateChangedHandler = null!;
+
+    private bool IsRunning => GSS.CurrentGame?.IsRunning ?? false;
+
+    private int OnlineTowerCount =>
+        GSS.TowerManagerService.Towers.Values.Count(t => t.TowerOnline);
+
+    private int TotalTowerCount =>
+        GSS.TowerManagerService.Towers.Count;
+
+    private double TowerOnlineRatio =>
+        TotalTowerCount == 0 ? 1.0 : (double)OnlineTowerCount / TotalTowerCount;
+
+    protected override void OnInitialized()
+    {
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ETS.StateHasChangedAction += _stateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        ETS.StateHasChangedAction -= _stateChangedHandler;
+    }
+
+    private void StartGame()
+    {
+        GSS.StartGame();
+    }
+
+    private void EndGame()
+    {
+        GSS.StopGame();
+    }
+
+    private void ResetGame()
+    {
+        GSS.Reset();
+    }
+
+    private void TogglePause()
+    {
+        if (GSS.CurrentGame?.IsPaused == true)
+            GSS.CurrentGame.ResumeGame();
+        else
+            GSS.CurrentGame?.PauseGame();
+    }
+
+    private void SwapSpawns()
+    {
+        var wald = GSS.TeamInWald;
+        GSS.TeamInWald = GSS.TeamInStadt;
+        GSS.TeamInStadt = wald;
+        ETS.StateHasChangedAction.Invoke();
+    }
+
+    private string GetTeamColorHex(TeamColor color) => color switch
+    {
+        TeamColor.RED => "#fc1911",
+        TeamColor.BLUE => "#00b4f1",
+        TeamColor.LOCKED => "#FFD700",
+        TeamColor.NONE => "#6b7280",
+        _ => "#6b7280"
+    };
+}
