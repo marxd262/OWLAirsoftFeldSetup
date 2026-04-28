@@ -16,6 +16,9 @@ public class GameModeConquest : IGameModeBase, IDisposable
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
     public bool ShowRespawnButton => false;
+    public bool IsPaused { get; set; }
+    public TimeSpan PausedDuration { get; set; }
+    public DateTime? PauseStartedAt { get; set; }
 
     // Zwei Mögliche Spielmode sind implementiert. Ticket basiert (zählt runter) oder Punkte basiert (Zählt hoch)
     public bool IsTicket = true;

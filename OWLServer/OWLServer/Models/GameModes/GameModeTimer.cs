@@ -14,6 +14,9 @@ public class GameModeTimer : IGameModeBase
     public int MaxTickets { get; set; } = 1000;
     private CancellationTokenSource _abort = new();
     public bool ShowRespawnButton => false;
+    public bool IsPaused { get; set; }
+    public TimeSpan PausedDuration { get; set; }
+    public DateTime? PauseStartedAt { get; set; }
     public GameMode GameMode => GameMode.Timer;
     
     public GameModeTimer (ExternalTriggerService externalTriggerService, GameStateService gameStateService)

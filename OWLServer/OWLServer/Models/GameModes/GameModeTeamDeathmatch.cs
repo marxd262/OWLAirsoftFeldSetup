@@ -11,6 +11,9 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
     public int GameDurationInMinutes { get; set; } = 20;
     public int MaxTickets { get; set; } = 15;
     public bool IsTicket = true;
+    public bool IsPaused { get; set; }
+    public TimeSpan PausedDuration { get; set; }
+    public DateTime? PauseStartedAt { get; set; }
     public bool IsRunning { get; set; }
     public bool IsFinished { get; set; }
     public DateTime? StartTime { get; set; }

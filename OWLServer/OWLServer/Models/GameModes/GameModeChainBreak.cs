@@ -17,6 +17,9 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
     public bool IsTicket { get; set; } = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool ShowRespawnButton => false;
+    public bool IsPaused { get; set; }
+    public TimeSpan PausedDuration { get; set; }
+    public DateTime? PauseStartedAt { get; set; }
     public bool IsRunning { get; set; } = false;
     public bool IsFinished { get; set; } = false;
     public DateTime? StartTime { get; set; }
@@ -177,31 +180,31 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
 
         foreach (var link in ActiveChainLayout.Links)
         {
-            AddEdge(link.FromTowerMacAddress, link.ToTowerMacAddress);
-            if (link.IsBidirectional)
-                AddEdge(link.ToTowerMacAddress, link.FromTowerMacAddress);
+            AddEdge(link.TowerAMacAddress, link.TowerBMacAddress);
+            if (link.EntryAtBothEnds)
+                AddEdge(link.TowerBMacAddress, link.TowerAMacAddress);
         }
 
-        var uniTo = ActiveChainLayout.Links
-            .Where(l => !l.IsBidirectional)
-            .Select(l => l.ToTowerMacAddress)
+        var oneWayB = ActiveChainLayout.Links
+            .Where(l => !l.EntryAtBothEnds)
+            .Select(l => l.TowerBMacAddress)
             .ToHashSet();
-        var uniFrom = ActiveChainLayout.Links
-            .Where(l => !l.IsBidirectional)
-            .Select(l => l.FromTowerMacAddress)
+        var oneWayA = ActiveChainLayout.Links
+            .Where(l => !l.EntryAtBothEnds)
+            .Select(l => l.TowerAMacAddress)
             .ToHashSet();
-        foreach (var mac in uniFrom.Except(uniTo))
+        foreach (var mac in oneWayA.Except(oneWayB))
             _chainEntryPoints.Add(mac);
 
-        var biDegree = new Dictionary<string, int>();
-        foreach (var link in ActiveChainLayout.Links.Where(l => l.IsBidirectional))
+        var twoWayDegree = new Dictionary<string, int>();
+        foreach (var link in ActiveChainLayout.Links.Where(l => l.EntryAtBothEnds))
         {
-            biDegree[link.FromTowerMacAddress] = biDegree.GetValueOrDefault(link.FromTowerMacAddress) + 1;
-            biDegree[link.ToTowerMacAddress]   = biDegree.GetValueOrDefault(link.ToTowerMacAddress)   + 1;
+            twoWayDegree[link.TowerAMacAddress] = twoWayDegree.GetValueOrDefault(link.TowerAMacAddress) + 1;
+            twoWayDegree[link.TowerBMacAddress] = twoWayDegree.GetValueOrDefault(link.TowerBMacAddress) + 1;
         }
-        foreach (var (mac, degree) in biDegree)
+        foreach (var (mac, degree) in twoWayDegree)
         {
-            if (degree == 1 && !uniTo.Contains(mac))
+            if (degree == 1 && !oneWayB.Contains(mac))
                 _chainEntryPoints.Add(mac);
         }
 
@@ -373,4 +376,89 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
         }
         return (int)Math.Round(points);
     }
+
+    /// <summary>
+    /// Computes the visualization state for a single chain link, used by Map.razor.
+    /// Returns (colorHex, showArrowAtA, showArrowAtB, isAnimated, isAnimatedBothWays).
+    /// BothWays = contested (both teams hold one end each).
+    /// arrowA = capture possible toward TowerA (line drawn from B→A with arrow at A).
+    /// arrowB = capture possible toward TowerB (line drawn from A→B with arrow at B).
+    /// </summary>
+    public (string color, bool arrowA, bool arrowB, bool animated, bool bothWays) GetLinkVisualState(ChainLink link)
+    {
+        var towers = GameStateService.TowerManagerService.Towers;
+        if (!towers.TryGetValue(link.TowerAMacAddress, out var towerA) ||
+            !towers.TryGetValue(link.TowerBMacAddress, out var towerB))
+            return ("#BBBBBB", false, false, false, false);
+
+        var colorA = EffectiveCaptureColor(towerA);
+        var colorB = EffectiveCaptureColor(towerB);
+
+        bool isLocked = colorA == TeamColor.LOCKED || colorB == TeamColor.LOCKED;
+        if (isLocked)
+            return ("#FFD700", false, false, false, false);
+
+        bool aIsTeam = colorA != TeamColor.NONE && colorA != TeamColor.LOCKED && colorA != TeamColor.OFF;
+        bool bIsTeam = colorB != TeamColor.NONE && colorB != TeamColor.LOCKED && colorB != TeamColor.OFF;
+
+        if (aIsTeam && bIsTeam && colorA != colorB)
+            return ("#FFFFFF", true, true, true, true);
+
+        if (aIsTeam && bIsTeam && colorA == colorB)
+            return (TeamColorToHex(colorA), false, false, false, false);
+
+        bool canCaptureAtoB = aIsTeam && colorB == TeamColor.NONE;
+        bool canCaptureBtoA = bIsTeam && colorA == TeamColor.NONE;
+
+        if (link.EntryAtBothEnds)
+        {
+            if (canCaptureAtoB && canCaptureBtoA)
+                return ("#FFFFFF", true, true, true, true);
+            if (canCaptureAtoB)
+                return (EffectiveTeamColorHex(towerA), false, true, true, false);
+            if (canCaptureBtoA)
+                return (EffectiveTeamColorHex(towerB), true, false, true, false);
+        }
+        else
+        {
+            if (canCaptureAtoB)
+                return (EffectiveTeamColorHex(towerA), false, true, true, false);
+            if (bIsTeam)
+                return (EffectiveTeamColorHex(towerB), false, false, false, false);
+        }
+
+        if (!aIsTeam && !bIsTeam)
+            return ("#BBBBBB", false, false, false, false);
+
+        return ("#777777", false, false, false, false);
+    }
+
+    /// <summary>
+    /// Returns the tower's actual current color (not future press state).
+    /// </summary>
+    private static TeamColor EffectiveCaptureColor(Tower tower)
+    {
+        return tower.CurrentColor;
+    }
+
+    /// <summary>
+    /// Returns the effective team color hex for a tower (considering press state).
+    /// </summary>
+    private static string EffectiveTeamColorHex(Tower tower)
+    {
+        var color = EffectiveCaptureColor(tower);
+        return color switch
+        {
+            TeamColor.RED => "#fc1911",
+            TeamColor.BLUE => "#00b4f1",
+            _ => "#FFFFFF"
+        };
+    }
+
+    private static string TeamColorToHex(TeamColor color) => color switch
+    {
+        TeamColor.RED => "#fc1911",
+        TeamColor.BLUE => "#00b4f1",
+        _ => "#FFFFFF"
+    };
 }

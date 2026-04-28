@@ -20,4 +20,24 @@ public interface IGameModeBase
     public int GetDisplayPoints(TeamColor color);
 
     public abstract void FillTeams(List<TeamBase> teams);
+
+    public bool IsPaused { get; set; }
+    public TimeSpan PausedDuration { get; set; }
+    public DateTime? PauseStartedAt { get; set; }
+
+    public void PauseGame()
+    {
+        if (!IsRunning || IsPaused) return;
+        IsPaused = true;
+        PauseStartedAt = DateTime.Now;
+    }
+
+    public void ResumeGame()
+    {
+        if (!IsRunning || !IsPaused) return;
+        IsPaused = false;
+        if (PauseStartedAt != null)
+            PausedDuration += DateTime.Now - PauseStartedAt.Value;
+        PauseStartedAt = null;
+    }
 }
