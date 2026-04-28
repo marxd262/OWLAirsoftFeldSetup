@@ -290,3 +290,6 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+OWLServer/.claude/settings.local.json
+OWLServer/CLAUDE.md
+AGENTS.md
