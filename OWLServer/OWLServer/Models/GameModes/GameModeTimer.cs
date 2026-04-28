@@ -28,6 +28,9 @@ public class GameModeTimer : IGameModeBase
     {
         StartTime = DateTime.Now;
         IsRunning = true;
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
         Task.Run(Runner, _abort.Token);
     }
 
@@ -43,7 +46,9 @@ public class GameModeTimer : IGameModeBase
                 break;
             }
 
-            if (StartTime?.AddMinutes(GameDurationInMinutes) <= DateTime.Now)
+            if (IsPaused) continue;
+
+            if (StartTime?.AddMinutes(GameDurationInMinutes) + PausedDuration <= DateTime.Now)
             {
                 EndGame();
                 break;
@@ -71,6 +76,9 @@ public class GameModeTimer : IGameModeBase
         StartTime = null;
         _abort.Dispose();
         _abort = new CancellationTokenSource();
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
     }
 
     public TeamColor GetWinner => TeamColor.NONE;
@@ -80,7 +88,9 @@ public class GameModeTimer : IGameModeBase
         {
             if (StartTime == null || IsFinished)
                 return new TimeSpan(0, IsFinished ? 0 : GameDurationInMinutes, 0);
-            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
+            if (IsPaused && PauseStartedAt != null)
+                return StartTime.Value.AddMinutes(GameDurationInMinutes) - PauseStartedAt.Value + PausedDuration;
+            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now + PausedDuration;
         }
     }
     public int GetDisplayPoints(TeamColor color)
