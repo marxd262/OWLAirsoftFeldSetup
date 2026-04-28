@@ -52,8 +52,10 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 return new TimeSpan(0, GameDurationInMinutes, 0);
             else if (IsFinished)
                 return new TimeSpan(0, 0, 0);
+            else if (IsPaused && PauseStartedAt != null)
+                return StartTime.Value.AddMinutes(GameDurationInMinutes) - PauseStartedAt.Value + PausedDuration;
             else
-                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
+                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now + PausedDuration;
         }
     }
 
@@ -96,6 +98,9 @@ public class GameModeConquest : IGameModeBase, IDisposable
         InitializeControlTowerStates();
         StartTime = DateTime.Now;
         IsRunning = true;
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
         Task.Run(Runner, _abort.Token);
     }
 
@@ -112,7 +117,9 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 break;
             }
 
-            if (StartTime?.AddMinutes(GameDurationInMinutes) <= DateTime.Now)
+            if (IsPaused) continue;
+
+            if (StartTime?.AddMinutes(GameDurationInMinutes) + PausedDuration <= DateTime.Now)
             {
                 EndGame();
                 break;
@@ -258,6 +265,9 @@ public class GameModeConquest : IGameModeBase, IDisposable
             TeamPoints[key] = 0;
         _abort.Dispose();
         _abort = new CancellationTokenSource();
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
     }
 
     [NotMapped]
