@@ -22,10 +22,16 @@ public partial class GameModeChainBreakConfig : ComponentBase
     private int? _editingLayoutId;
     private string _newLayoutName = string.Empty;
 
-    // New-link form
-    private string _fromMac = string.Empty;
-    private string _toMac = string.Empty;
-    private bool _isBidirectional;
+    // Manual single-link form
+    private string _manualTowerA = string.Empty;
+    private string _manualTowerB = string.Empty;
+    private bool _manualEntryAtBothEnds = true;
+
+    // Sequential chain builder state
+    private bool _chainBuilding;
+    private string? _chainLastMac;
+    private string _chainNextMac = string.Empty;
+    private bool _chainEntryAtBothEnds = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,29 +51,111 @@ public partial class GameModeChainBreakConfig : ComponentBase
         _editorLinks = layout.Links
             .Select(l => new ChainLink
             {
-                FromTowerMacAddress = l.FromTowerMacAddress,
-                ToTowerMacAddress   = l.ToTowerMacAddress,
-                IsBidirectional     = l.IsBidirectional
+                TowerAMacAddress = l.TowerAMacAddress,
+                TowerBMacAddress = l.TowerBMacAddress,
+                EntryAtBothEnds  = l.EntryAtBothEnds
             })
             .ToList();
+        _chainBuilding = false;
+        _chainLastMac = null;
     }
 
-    private void AddLink()
+    // ── Sequential chain builder ──
+
+    private void StartChainBuilding()
     {
-        if (string.IsNullOrEmpty(_fromMac) || string.IsNullOrEmpty(_toMac)) return;
-        if (_fromMac == _toMac) return;
+        _chainBuilding = true;
+        _chainLastMac = null;
+        _chainNextMac = string.Empty;
+        _chainEntryAtBothEnds = true;
+    }
+
+    private void EndChainBuilding()
+    {
+        _chainBuilding = false;
+        _chainLastMac = null;
+        _chainNextMac = string.Empty;
+    }
+
+    private void CancelChainBuilding()
+    {
+        // Remove links added during this building session
+        _editorLinks.Clear();
+        EndChainBuilding();
+    }
+
+    private string ChainPreview
+    {
+        get
+        {
+            if (!_editorLinks.Any()) return "—";
+            var macs = new List<string>();
+            foreach (var link in _editorLinks)
+            {
+                if (!macs.Any())
+                    macs.Add(link.TowerAMacAddress);
+                macs.Add(link.TowerBMacAddress);
+            }
+            return string.Join(" → ", macs.Select(TowerShortLabel));
+        }
+    }
+
+    private List<Tower> AvailableChainTowers =>
+        GameStateService.TowerManagerService.Towers.Values
+            .Where(t => !_editorLinks.Any() || t.MacAddress != _chainLastMac)
+            .ToList();
+
+    private void AddChainLink()
+    {
+        if (string.IsNullOrEmpty(_chainNextMac)) return;
+
+        if (_chainLastMac == null)
+        {
+            // First tower selected, just record it
+            _chainLastMac = _chainNextMac;
+            _chainNextMac = string.Empty;
+            return;
+        }
+
+        if (_chainNextMac == _chainLastMac) return;
+
         _editorLinks.Add(new ChainLink
         {
-            FromTowerMacAddress = _fromMac,
-            ToTowerMacAddress   = _toMac,
-            IsBidirectional     = _isBidirectional
+            TowerAMacAddress = _chainLastMac,
+            TowerBMacAddress = _chainNextMac,
+            EntryAtBothEnds  = _chainEntryAtBothEnds
         });
-        _fromMac = string.Empty;
-        _toMac   = string.Empty;
-        _isBidirectional = false;
+        _chainLastMac = _chainNextMac;
+        _chainNextMac = string.Empty;
+        _chainEntryAtBothEnds = true;
     }
 
-    private void RemoveLink(ChainLink link) => _editorLinks.Remove(link);
+    // ── Manual single-link form ──
+
+    private void AddManualLink()
+    {
+        if (string.IsNullOrEmpty(_manualTowerA) || string.IsNullOrEmpty(_manualTowerB)) return;
+        if (_manualTowerA == _manualTowerB) return;
+        _editorLinks.Add(new ChainLink
+        {
+            TowerAMacAddress = _manualTowerA,
+            TowerBMacAddress = _manualTowerB,
+            EntryAtBothEnds  = _manualEntryAtBothEnds
+        });
+        _manualTowerA = string.Empty;
+        _manualTowerB = string.Empty;
+        _manualEntryAtBothEnds = true;
+    }
+
+    private void RemoveLink(ChainLink link)
+    {
+        _editorLinks.Remove(link);
+        if (!_editorLinks.Any())
+        {
+            _chainBuilding = false;
+            _chainLastMac = null;
+        }
+    }
 
     private async Task SaveAsNew()
     {
@@ -78,9 +166,9 @@ public partial class GameModeChainBreakConfig : ComponentBase
             Name  = _newLayoutName,
             Links = _editorLinks.Select(l => new ChainLink
             {
-                FromTowerMacAddress = l.FromTowerMacAddress,
-                ToTowerMacAddress   = l.ToTowerMacAddress,
-                IsBidirectional     = l.IsBidirectional
+                TowerAMacAddress = l.TowerAMacAddress,
+                TowerBMacAddress = l.TowerBMacAddress,
+                EntryAtBothEnds  = l.EntryAtBothEnds
             }).ToList()
         };
         db.ChainLayouts.Add(layout);
@@ -100,9 +188,9 @@ public partial class GameModeChainBreakConfig : ComponentBase
         db.ChainLinks.RemoveRange(layout.Links);
         layout.Links = _editorLinks.Select(l => new ChainLink
         {
-            FromTowerMacAddress = l.FromTowerMacAddress,
-            ToTowerMacAddress   = l.ToTowerMacAddress,
-            IsBidirectional     = l.IsBidirectional
+            TowerAMacAddress = l.TowerAMacAddress,
+            TowerBMacAddress = l.TowerBMacAddress,
+            EntryAtBothEnds  = l.EntryAtBothEnds
         }).ToList();
         await db.SaveChangesAsync();
         await LoadSavedLayouts();
@@ -142,9 +230,16 @@ public partial class GameModeChainBreakConfig : ComponentBase
         return mac;
     }
 
+    private string TowerShortLabel(string mac)
+    {
+        if (GameStateService.TowerManagerService.Towers.TryGetValue(mac, out var t))
+            return t.DisplayLetter;
+        return mac;
+    }
+
     private string LinkLabel(ChainLink link)
     {
-        var arrow = link.IsBidirectional ? "↔" : "→";
-        return $"{TowerLabel(link.FromTowerMacAddress)} {arrow} {TowerLabel(link.ToTowerMacAddress)}";
+        var arrow = link.EntryAtBothEnds ? "↔" : "→";
+        return $"{TowerShortLabel(link.TowerAMacAddress)} {arrow} {TowerShortLabel(link.TowerBMacAddress)}";
     }
 }

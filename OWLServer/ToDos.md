@@ -3,6 +3,8 @@
 ## Fehler
 - DBSet<Tower> Teams in DB Context
 
+- Pfeile in ChainBreak
+
 ## Erweiterungen
 - Was in der DB gespeichert wird
 - Abhängigkeiten zwischen Towern Visualisieren.
