@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using OWLServer.Models;
+﻿using OWLServer.Models;
 using OWLServer.Models.GameModes;
 using OWLServer.Services.Interfaces;
 

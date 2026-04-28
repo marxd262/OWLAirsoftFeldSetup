@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Drawing;
-using System.Net.Http.Headers;
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models
 {
@@ -55,22 +55,24 @@ namespace OWLServer.Models
         [NotMapped]
         public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
 
-        private HttpClient _client = new HttpClient();
+        private ITowerHttpClient? _httpClient;
 
 
         public Tower() { } // Braucht man für DB
+
+        public Tower(string id, string ip, ITowerHttpClient client)
+        {
+            MacAddress = id;
+            IP = ip;
+            Name = string.Empty;
+            _httpClient = client;
+        }
 
         public Tower(string id, string ip)
         {
             MacAddress = id;
             IP = ip;
             Name = string.Empty;
-
-            var builder = new UriBuilder(ip);
-            _client.BaseAddress = builder.Uri;
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public string DisplaycolorAsHTML()
@@ -110,26 +112,23 @@ namespace OWLServer.Models
             return ColorTranslator.FromHtml(CurrentColor.ToString());
         }
 
-        public async void SendColorToTower(Color color)
+        public async Task SendColorToTower(Color color)
         {
+            if (_httpClient == null) return;
             try
             {
-                string c = $"{color.R.ToString()}/{color.G.ToString()}/{color.B.ToString()}";
-                string callURL = $"/api/setcolor/{c}";
-                HttpResponseMessage response = await _client.PostAsync(callURL, null);
+                string c = $"{color.R}/{color.G}/{color.B}";
+                await _httpClient.PostAsync($"/api/setcolor/{c}", null);
             }
-            catch
-            {
-            }
+            catch { }
         }
 
-        public async void PingTower()
+        public async Task PingTower()
         {
+            if (_httpClient == null) return;
             try
             {
-                string callURL = $"/api/ping";
-                HttpResponseMessage response = await _client.PostAsync(callURL, null);
-
+                var response = await _httpClient.PingAsync("/api/ping");
                 TowerOnline = response.IsSuccessStatusCode;
                 LastPing = DateTime.Now;
             }

@@ -1,17 +1,18 @@
 using OWLServer.Models;
 using OWLServer.Services.Interfaces;
-using Radzen;
 
 namespace OWLServer.Services;
 
 public class TowerManagerService : ITowerManagerService
 {
-    private ExternalTriggerService ExternalTriggerService { get; }
+    private IExternalTriggerService ExternalTriggerService { get; }
+    private readonly ITowerHttpClientFactory _httpFactory;
 
     public Dictionary<string, Tower> Towers { get; } = new();
 
-    public TowerManagerService(ExternalTriggerService externalTriggerService)
+    public TowerManagerService(IExternalTriggerService externalTriggerService, ITowerHttpClientFactory httpFactory)
     {
+        _httpFactory = httpFactory;
         ExternalTriggerService = externalTriggerService;
 
         ExternalTriggerService.TowerPressedAction += HandleTowerClicked;
@@ -30,23 +31,23 @@ public class TowerManagerService : ITowerManagerService
             maxChar = "A";
         }
 
-        Towers.Add(id, new Tower(id, ip) { CurrentColor = TeamColor.NONE, DisplayLetter=maxChar });
+        Towers.Add(id, new Tower(id, ip, _httpFactory.Create(ip)) { CurrentColor = TeamColor.NONE, DisplayLetter = maxChar });
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
-    public void TowerChangeColor(string TowerID, TeamColor newColor)
+    public void TowerChangeColor(string towerId, TeamColor newColor)
     {
-        if (Towers.ContainsKey(TowerID))
+        if (Towers.ContainsKey(towerId))
         {
-            Towers[TowerID].SetTowerColor(newColor);
+            Towers[towerId].SetTowerColor(newColor);
             ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
 
-    public int GetPoints(TeamColor TeamColor)
+    public int GetPoints(TeamColor teamColor)
     {
         double points = 0;
-        foreach (var tower in Towers.Values.Where(t => t.CurrentColor == TeamColor))
+        foreach (var tower in Towers.Values.Where(t => t.CurrentColor == teamColor))
         {
             points += tower.Multiplier;
         }
@@ -61,24 +62,24 @@ public class TowerManagerService : ITowerManagerService
         TowerChangeColor(args.TowerId, args.TeamColor);
     }
 
-    public void HandleTowerButtonPressed(string towerID, TeamColor color)
+    public void HandleTowerButtonPressed(string towerId, TeamColor color)
     {
-        if (!Towers.ContainsKey(towerID)) return;
-        if (Towers[towerID].IsPressed) return;
-        if (Towers[towerID].IsLocked) return;
+        if (!Towers.ContainsKey(towerId)) return;
+        if (Towers[towerId].IsPressed) return;
+        if (Towers[towerId].IsLocked) return;
 
-        Towers[towerID].LastPressed = DateTime.Now;
-        Towers[towerID].PressedByColor = color;
-        Towers[towerID].IsPressed = true;
+        Towers[towerId].LastPressed = DateTime.Now;
+        Towers[towerId].PressedByColor = color;
+        Towers[towerId].IsPressed = true;
     }
 
-    public void HandleTowerButtonReleased(string towerID)
+    public void HandleTowerButtonReleased(string towerId)
     {
-        if (!Towers.ContainsKey(towerID)) return;
+        if (!Towers.ContainsKey(towerId)) return;
 
-        Towers[towerID].IsPressed = false;
-        Towers[towerID].LastPressed = null;
-        Towers[towerID].PressedByColor = TeamColor.NONE;
+        Towers[towerId].IsPressed = false;
+        Towers[towerId].LastPressed = null;
+        Towers[towerId].PressedByColor = TeamColor.NONE;
     }
 
     public void SetColorForAllTowers(TeamColor teamColor)
@@ -99,28 +100,31 @@ public class TowerManagerService : ITowerManagerService
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
-    public async Task PingAll()
+    public Task PingAll()
     {
         foreach (var tower in Towers)
         {
             tower.Value.PingTower();
             ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
+        return Task.CompletedTask;
     }
-    public async Task OffTowers()
+    public Task OffTowers()
     {
         foreach (var tower in Towers)
         {
             tower.Value.SetTowerColor(TeamColor.OFF);
         }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
+        return Task.CompletedTask;
     }
-    public async Task ResetTowers()
+    public Task ResetTowers()
     {
         foreach (var tower in Towers)
         {
             tower.Value.Reset();
         }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
+        return Task.CompletedTask;
     }
 }
