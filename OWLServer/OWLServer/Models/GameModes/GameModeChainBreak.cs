@@ -58,7 +58,9 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
                 return new TimeSpan(0, GameDurationInMinutes, 0);
             if (IsFinished)
                 return new TimeSpan(0, 0, 0);
-            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now;
+            if (IsPaused && PauseStartedAt != null)
+                return StartTime.Value.AddMinutes(GameDurationInMinutes) - PauseStartedAt.Value + PausedDuration;
+            return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now + PausedDuration;
         }
     }
 
@@ -90,6 +92,9 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
         InitializeTowerStates();
         StartTime = DateTime.Now;
         IsRunning = true;
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
         Task.Run(Runner, _abort.Token);
     }
 
@@ -116,7 +121,9 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
 
             if (_abort.IsCancellationRequested) { EndGame(); break; }
 
-            if (StartTime?.AddMinutes(GameDurationInMinutes) <= DateTime.Now) { EndGame(); break; }
+            if (IsPaused) continue;
+
+            if (StartTime?.AddMinutes(GameDurationInMinutes) + PausedDuration <= DateTime.Now) { EndGame(); break; }
 
             ProcessChainBreakStateMachine();
 
@@ -155,6 +162,9 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
             TeamPoints[key] = 0;
         _abort.Dispose();
         _abort = new CancellationTokenSource();
+        IsPaused = false;
+        PauseStartedAt = null;
+        PausedDuration = TimeSpan.Zero;
     }
 
     public override string ToString() => Name;
