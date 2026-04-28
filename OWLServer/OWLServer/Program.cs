@@ -23,6 +23,8 @@ builder.Services.AddSingleton<ITowerManagerService>(sp => sp.GetRequiredService<
 builder.Services.AddSingleton<MapService>();
 builder.Services.AddSingleton<IMapService>(sp => sp.GetRequiredService<MapService>());
 builder.Services.AddSingleton<GameStateService>();
+builder.Services.AddSingleton<IGameStateService>(sp => sp.GetRequiredService<GameStateService>());
+builder.Services.AddSingleton<ITowerHttpClientFactory, TowerHttpClientFactory>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();
