@@ -3,7 +3,7 @@
 @inject ExternalTriggerService ExternalTriggerService
 @inject GameStateService GameStateService
 @implements IDisposable
-<PageTitle>SpawnStadt</PageTitle>
+<PageTitle>@PageTitle</PageTitle>
 
 <Home TeamOnSide="@GetSpawnColor()"/>
 
@@ -40,6 +40,8 @@
 @code {
     [Parameter]
     public string SpawnPlace { get; set; }
+
+    private string PageTitle => $"Spawn {SpawnPlace}";
 
     private Action _stateChangedHandler = null!;
 
