@@ -1,11 +1,12 @@
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models.GameModes;
 
 public class GameModeTimer : IGameModeBase
 {
-    private ExternalTriggerService ExternalTriggerService { get; set; }
-    private GameStateService GameStateService { get; set; }
+    private IExternalTriggerService ExternalTriggerService { get; set; }
+    private IGameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Zeitspiel";
     public int GameDurationInMinutes { get; set; } = 20;
     public DateTime? StartTime { get; set; }
@@ -19,7 +20,7 @@ public class GameModeTimer : IGameModeBase
     public DateTime? PauseStartedAt { get; set; }
     public GameMode GameMode => GameMode.Timer;
     
-    public GameModeTimer (ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+    public GameModeTimer (IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
         GameStateService = gameStateService;

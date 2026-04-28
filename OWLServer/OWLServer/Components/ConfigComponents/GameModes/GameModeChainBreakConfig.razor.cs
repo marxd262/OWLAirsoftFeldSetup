@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OWLServer.Context;
 using OWLServer.Models;
 using OWLServer.Models.GameModes;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Components.ConfigComponents.GameModes;
 
@@ -12,7 +12,7 @@ public partial class GameModeChainBreakConfig : ComponentBase
 {
     [Parameter] public GameModeChainBreak CurrentGame { get; set; } = null!;
 
-    [Inject] public GameStateService GameStateService { get; set; } = null!;
+    [Inject] public IGameStateService GameStateService { get; set; } = null!;
     [Inject] public IDbContextFactory<DatabaseContext> DbFactory { get; set; } = null!;
 
     private List<ChainLayout> _savedLayouts = new();

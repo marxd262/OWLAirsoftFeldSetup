@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using OWLServer.Models;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Components.Pages.AdminPages;
 
 public partial class SoundTest : ComponentBase
 {
-    [Inject] AudioService AudioService { get; set; } = null!;
+    [Inject] IAudioService AudioService { get; set; } = null!;
     [Inject] IJSRuntime JS { get; set; } = null!;
 
     private Dictionary<Sounds, string> _pendingAssignments = new();

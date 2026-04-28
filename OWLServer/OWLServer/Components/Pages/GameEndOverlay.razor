@@ -1,5 +1,5 @@
-@inject GameStateService GameStateService
-@inject ExternalTriggerService ExternalTriggerService
+@inject IGameStateService GameStateService
+@inject IExternalTriggerService ExternalTriggerService
 @implements IDisposable
 
 @if (GameStateService.CurrentGame?.IsFinished == true)

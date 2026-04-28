@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 using OWLServer.Models;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Controllers
 {
@@ -9,11 +9,11 @@ namespace OWLServer.Controllers
     [Microsoft.AspNetCore.Mvc.Route("api")]
     public class OWLAPI : Controller
     {
-        GameStateService GameStateService { get; set; }
+        IGameStateService GameStateService { get; set; }
 
-        ExternalTriggerService ExternalTriggerService { get; set; }
+        IExternalTriggerService ExternalTriggerService { get; set; }
 
-        public OWLAPI(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+        public OWLAPI(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
         {
             GameStateService = gameStateService;
             ExternalTriggerService = externalTriggerService;

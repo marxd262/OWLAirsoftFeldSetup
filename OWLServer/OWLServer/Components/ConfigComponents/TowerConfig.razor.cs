@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Components;
 using OWLServer.Models;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Components.ConfigComponents;
 
 public partial class TowerConfig : ComponentBase, IDisposable
 {
     [Inject]
-    public GameStateService GameStateService { get; set; } = null!;
+    public IGameStateService GameStateService { get; set; } = null!;
     [Inject]
-    public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
+    public IExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
     private Action _stateChangedHandler = null!;
 

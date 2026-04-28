@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using OWLServer.Models;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 using Radzen.Blazor;
 using System.ComponentModel.DataAnnotations;
 using System.Drawing;
@@ -11,10 +11,10 @@ namespace OWLServer.Components.TeamPanel;
 public partial class MatchScoreBar : ComponentBase, IDisposable
 {
     [Inject]
-    private GameStateService _gameStateService { get; set; } = null!;
+    private IGameStateService _gameStateService { get; set; } = null!;
 
     [Inject]
-    private ExternalTriggerService _triggerService { get; set; } = null!;
+    private IExternalTriggerService _triggerService { get; set; } = null!;
 
     [Inject]
     private IJSRuntime _jsRuntime { get; set; } = null!;

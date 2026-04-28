@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using OWLServer.Models;
 using OWLServer.Models.GameModes;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 using Radzen;
 
 namespace OWLServer.Components.Pages.AdminPages;
@@ -9,9 +9,9 @@ namespace OWLServer.Components.Pages.AdminPages;
 public partial class AdminPanel : ComponentBase, IDisposable
 {
     [Inject]
-    GameStateService GameStateService { get; set; } = null!;
+    IGameStateService GameStateService { get; set; } = null!;
     [Inject]
-    ExternalTriggerService ExternalTriggerService { get; set; } = null!;
+    IExternalTriggerService ExternalTriggerService { get; set; } = null!;
 
     private Action _stateChangedHandler = null!;
 

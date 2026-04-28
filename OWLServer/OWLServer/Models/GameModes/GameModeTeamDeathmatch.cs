@@ -1,11 +1,12 @@
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models.GameModes;
 
 public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 {
-    private ExternalTriggerService ExternalTriggerService { get; set; }
-    private GameStateService GameStateService { get; set; }
+    private IExternalTriggerService ExternalTriggerService { get; set; }
+    private IGameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Teamdeathmatch";
     public GameMode GameMode => GameMode.TeamDeathMatch;
     public int GameDurationInMinutes { get; set; } = 20;
@@ -22,7 +23,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
 
     public Dictionary<TeamColor, int> TeamDeaths = new();
 
-    public GameModeTeamDeathmatch(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+    public GameModeTeamDeathmatch(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
         GameStateService = gameStateService;

@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using OWLServer.Context;
 using OWLServer.Models;
-using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Components.Pages;
 
 public partial class MapTests : ComponentBase
 {
-    [Inject] GameStateService _GameStateService { get; set; } = null!;
-    [Inject] MapService MapService { get; set; } = null!;
+    [Inject] IGameStateService _GameStateService { get; set; } = null!;
+    [Inject] IMapService MapService { get; set; } = null!;
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] IDbContextFactory<DatabaseContext> DbFactory { get; set; } = null!;
 

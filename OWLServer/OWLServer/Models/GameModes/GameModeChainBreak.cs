@@ -2,13 +2,14 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using OWLServer.Models;
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models.GameModes;
 
 public class GameModeChainBreak : IGameModeBase, IDisposable
 {
-    private ExternalTriggerService ExternalTriggerService { get; }
-    private GameStateService GameStateService { get; }
+    private IExternalTriggerService ExternalTriggerService { get; }
+    private IGameStateService GameStateService { get; }
 
     public string Name { get; set; } = "ChainBreak";
     public GameMode GameMode => GameMode.ChainBreak;
@@ -37,7 +38,7 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
     private HashSet<string> _chainEntryPoints = new();
     private Dictionary<string, int> _depthMap = new();
 
-    public GameModeChainBreak(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+    public GameModeChainBreak(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
         GameStateService = gameStateService;

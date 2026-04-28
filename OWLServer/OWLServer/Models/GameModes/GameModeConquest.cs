@@ -4,13 +4,14 @@ using System.Runtime.InteropServices.JavaScript;
 using Microsoft.AspNetCore.Components;
 using OWLServer.Models;
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models.GameModes;
 
 public class GameModeConquest : IGameModeBase, IDisposable
 {
-    private ExternalTriggerService ExternalTriggerService { get; set; }
-    private GameStateService GameStateService { get; set; }
+    private IExternalTriggerService ExternalTriggerService { get; set; }
+    private IGameStateService GameStateService { get; set; }
     public string Name { get; set; } = "Conquest";
     public GameMode GameMode => GameMode.Conquest;
     public int GameDurationInMinutes { get; set; } = 20;
@@ -37,7 +38,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
 
     public Dictionary<TeamColor, int> TeamPoints = new();
 
-    public GameModeConquest(ExternalTriggerService externalTriggerService, GameStateService gameStateService)
+    public GameModeConquest(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
     {
         ExternalTriggerService = externalTriggerService;
         GameStateService = gameStateService;
