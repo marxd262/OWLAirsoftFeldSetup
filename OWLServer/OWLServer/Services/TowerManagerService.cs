@@ -1,9 +1,10 @@
 using OWLServer.Models;
+using OWLServer.Services.Interfaces;
 using Radzen;
 
 namespace OWLServer.Services;
 
-public class TowerManagerService
+public class TowerManagerService : ITowerManagerService
 {
     private ExternalTriggerService ExternalTriggerService { get; }
 
@@ -98,7 +99,7 @@ public class TowerManagerService
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
-    public async void PingAll()
+    public async Task PingAll()
     {
         foreach (var tower in Towers)
         {
@@ -106,7 +107,7 @@ public class TowerManagerService
             ExternalTriggerService.StateHasChangedAction?.Invoke();
         }
     }
-    public async void OffTowers()
+    public async Task OffTowers()
     {
         foreach (var tower in Towers)
         {
@@ -114,7 +115,7 @@ public class TowerManagerService
         }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
-    public async void ResetTowers()
+    public async Task ResetTowers()
     {
         foreach (var tower in Towers)
         {

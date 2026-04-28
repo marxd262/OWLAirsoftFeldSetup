@@ -3,10 +3,11 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using NAudio.Wave;
 using OWLServer.Models;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Services;
 
-public class AudioService
+public class AudioService : IAudioService
 {
     private static readonly string SoundsDir = "./wwwroot/Sounds";
     private static readonly string ConfigPath = "./wwwroot/Sounds/soundconfig.json";

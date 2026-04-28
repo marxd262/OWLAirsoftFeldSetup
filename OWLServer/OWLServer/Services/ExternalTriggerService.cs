@@ -1,10 +1,11 @@
 using OWLServer.Models;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Services;
 
-public class ExternalTriggerService
+public class ExternalTriggerService : IExternalTriggerService
 {
-    public Action StateHasChangedAction = null!;
+    public Action StateHasChangedAction { get; set; } = null!;
 
     public event EventHandler<KlickerEventArgs> KlickerPressedAction = null!;
     public event EventHandler<TowerEventArgs> TowerPressedAction = null!;

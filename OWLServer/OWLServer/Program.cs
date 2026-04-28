@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OWLServer.Components;
 using OWLServer.Context;
 using OWLServer.Services;
+using OWLServer.Services.Interfaces;
 using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,10 +14,15 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddDbContextFactory<DatabaseContext>(options => options.UseSqlite("Data Source=OWLAirsoft.db"));
 
-builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddSingleton<ExternalTriggerService>();
+builder.Services.AddSingleton<IExternalTriggerService>(sp => sp.GetRequiredService<ExternalTriggerService>());
 builder.Services.AddSingleton<AudioService>();
+builder.Services.AddSingleton<IAudioService>(sp => sp.GetRequiredService<AudioService>());
+builder.Services.AddSingleton<TowerManagerService>();
+builder.Services.AddSingleton<ITowerManagerService>(sp => sp.GetRequiredService<TowerManagerService>());
 builder.Services.AddSingleton<MapService>();
+builder.Services.AddSingleton<IMapService>(sp => sp.GetRequiredService<MapService>());
+builder.Services.AddSingleton<GameStateService>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();

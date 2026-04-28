@@ -1,8 +1,9 @@
 using System.Text.Json;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Services;
 
-public class MapService
+public class MapService : IMapService
 {
     private static readonly string MapsDir = "./wwwroot/Maps";
     private static readonly string ConfigPath = "./wwwroot/Maps/mapconfig.json";

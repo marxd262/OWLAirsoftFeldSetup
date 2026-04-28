@@ -1,16 +1,17 @@
 ﻿using System.Drawing;
 using OWLServer.Models;
 using OWLServer.Models.GameModes;
+using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Services
 {
-    public class GameStateService
+    public class GameStateService : IGameStateService
     {
-        public ExternalTriggerService ExternalTriggerService { get; set; } = null!;
-        public AudioService AudioService { get; set; } = null!;
+        public IExternalTriggerService ExternalTriggerService { get; set; } = null!;
+        public IAudioService AudioService { get; set; } = null!;
 
         public IGameModeBase? CurrentGame { get; set; } = null!;
-        public TowerManagerService TowerManagerService { get; set; }
+        public ITowerManagerService TowerManagerService { get; set; }
         public Dictionary<TeamColor, TeamBase> Teams { get; set; } = new();
         
         public TeamColor TeamInWald { get; set; } = TeamColor.BLUE;
@@ -26,12 +27,12 @@ namespace OWLServer.Services
         public bool AutoStartAfterReady { get; set; } = false;
         public int SecondsTillAutoStartAfterReady { get; set; } = 20;
         
-        public GameStateService(ExternalTriggerService externalTriggerService, AudioService audioService)
+        public GameStateService(IExternalTriggerService externalTriggerService, IAudioService audioService,
+                                ITowerManagerService towerManagerService)
         {
             ExternalTriggerService = externalTriggerService;
             AudioService = audioService;
-            
-            TowerManagerService = new TowerManagerService(externalTriggerService);
+            TowerManagerService = towerManagerService;
 
             Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
