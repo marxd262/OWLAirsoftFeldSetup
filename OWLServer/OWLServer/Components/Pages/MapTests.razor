@@ -1,75 +1,141 @@
 @page "/MapTests"
+@using OWLServer.Context
+<PageTitle>Karten-Konfiguration</PageTitle>
 
-<Map Clicked="MapClicked"/>
+<RadzenRow>
+    @* ── Left column: config panel ── *@
+    <RadzenColumn Size="3" class="rz-pr-3">
+        <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
 
-<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
-    <RadzenStack Orientation="Orientation.Horizontal">
-        <RadzenDropDown TValue="Tower"
-                        Data="_GameStateService.TowerManagerService.Towers.Values"
-                        Placeholder="Tower auswählen"
-                        @bind-Value="@selectedTower"/>
-        <RadzenButton Icon="Delete" Text="Tower neu platzieren"
-                      Click="BtnDeleteLocationClick"
-                      Visible="@(selectedTower != null)"/>
-    </RadzenStack>
-    @if (_statusMessage != null)
-    {
-        <RadzenAlert AlertStyle="@(_statusIsError ? AlertStyle.Danger : AlertStyle.Success)"
-                     Shade="Shade.Default" AllowClose="true"
-                     Close="() => _statusMessage = null">
-            @_statusMessage
-        </RadzenAlert>
-    }
-    <RadzenCard Variant="Variant.Flat">
-        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-3">Karten-Konfiguration</RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" class="rz-mb-3">
-            <RadzenDropDown TValue="string"
-                            Data="AvailableMapFiles"
-                            @bind-Value="_pendingMapFile"
-                            Placeholder="(Standard)"
-                            AllowClear="true"
-                            Style="min-width: 220px"/>
-            <RadzenButton Icon="save" Text="Aktivieren"
-                          ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat"
-                          Click="SetMap"/>
-            <RadzenButton Text="Datei hochladen..."
-                          ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Flat"
-                          Disabled="@_isUploading"
-                          Click="TriggerFileInput"/>
-            <InputFile id="mapFileInput" OnChange="OnUploadChange"
-                       accept=".png,.jpg,.jpeg,.webp" style="display:none"/>
-            @if (_isUploading)
-            {
-                <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate"
-                                           Size="ProgressBarCircularSize.Small"/>
-            }
+            @* Tower selection *@
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Tower-Position</RadzenText>
+                <RadzenStack Orientation="Orientation.Vertical" Gap=".5rem">
+                    <RadzenDropDown TValue="Tower"
+                                    Data="_GameStateService.TowerManagerService.Towers.Values"
+                                    Placeholder="Tower auswählen"
+                                    @bind-Value="selectedTower"
+                                    Change="OnTowerSelected"/>
+                    @if (selectedTower != null)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            Position: @(selectedTower.Location != null
+                                ? $"({selectedTower.Location.Left:F2}, {selectedTower.Location.Top:F2})"
+                                : "nicht gesetzt")
+                        </RadzenText>
+                        <RadzenButton Icon="delete" Text="Position löschen" Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Click="DeletePosition"/>
+                    }
+                    @if (_statusMessage != null)
+                    {
+                        <RadzenAlert AlertStyle="@(_statusIsError ? AlertStyle.Danger : AlertStyle.Success)"
+                                     Shade="Shade.Default" AllowClose="true"
+                                     Close="() => _statusMessage = null">
+                            @_statusMessage
+                        </RadzenAlert>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+
+            @* Layout management *@
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Positionen speichern/laden</RadzenText>
+                <RadzenStack Orientation="Orientation.Vertical" Gap=".5rem">
+                    @if (!_savedLayouts.Any())
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">Noch keine Layouts gespeichert.</RadzenText>
+                    }
+                    else
+                    {
+                        @foreach (var savedLayout in _savedLayouts)
+                        {
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center"
+                                         JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText>@savedLayout.Name (@savedLayout.Positions.Count)</RadzenText>
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap=".25rem">
+                                    <RadzenButton Icon="play_arrow" Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Success"
+                                                  Click="@(() => LoadLayout(savedLayout))"/>
+                                    <RadzenButton Icon="delete" Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Click="@(async () => await DeleteLayout(savedLayout))"/>
+                                </RadzenStack>
+                            </RadzenStack>
+                        }
+                    }
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap=".25rem" class="rz-mt-2">
+                        <RadzenTextBox @bind-Value="_newLayoutName" Placeholder="Layout-Name"
+                                       Style="flex:1;min-width:80px"/>
+                        <RadzenButton Text="Speichern" Icon="save" Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Info"
+                                      Click="@(async () => await SaveLayout())"/>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenCard>
+
+            @* Map file management *@
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Karten-Konfiguration</RadzenText>
+                <RadzenStack Orientation="Orientation.Vertical" Gap=".5rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap=".25rem">
+                        <RadzenDropDown TValue="string"
+                                        Data="AvailableMapFiles"
+                                        @bind-Value="_pendingMapFile"
+                                        Placeholder="(Standard)"
+                                        AllowClear="true"
+                                        Style="min-width:140px"/>
+                        <RadzenButton Icon="save" Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="SetMap"/>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap=".25rem">
+                        <RadzenButton Text="Hochladen..." Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Disabled="@_isUploading"
+                                      Click="TriggerFileInput"/>
+                        <InputFile id="mapFileInput" OnChange="OnUploadChange"
+                                   accept=".png,.jpg,.jpeg,.webp" style="display:none"/>
+                        @if (_isUploading)
+                        {
+                            <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate"
+                                                       Size="ProgressBarCircularSize.Small"/>
+                        }
+                    </RadzenStack>
+                    @if (AvailableMapFiles.Any())
+                    {
+                        <RadzenDataGrid TItem="string" Data="AvailableMapFiles"
+                                        AllowSorting="false" AllowFiltering="false"
+                                        AllowPaging="false" ShowPagingSummary="false">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="string" Title="Datei">
+                                    <Template Context="file">
+                                        @file
+                                        @if (file == MapService.GetCurrentMapFile())
+                                        {
+                                            <RadzenBadge Text="aktiv" BadgeStyle="BadgeStyle.Success" class="rz-ml-1"/>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Title="" Width="70px">
+                                    <Template Context="file">
+                                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                                                      Size="ButtonSize.Small"
+                                                      Click="@(() => DeleteMapFile(file))"/>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+
         </RadzenStack>
+    </RadzenColumn>
 
-        @if (AvailableMapFiles.Any())
-        {
-            <RadzenDataGrid TItem="string" Data="AvailableMapFiles"
-                            AllowSorting="false" AllowFiltering="false"
-                            AllowPaging="false" ShowPagingSummary="false">
-                <Columns>
-                    <RadzenDataGridColumn TItem="string" Title="Datei">
-                        <Template Context="file">
-                            @file
-                            @if (file == MapService.GetCurrentMapFile())
-                            {
-                                <RadzenBadge Text="aktiv" BadgeStyle="BadgeStyle.Success" class="rz-ml-2"/>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="string" Title="Löschen" Width="90px">
-                        <Template Context="file">
-                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
-                                          Variant="Variant.Flat" Size="ButtonSize.Small"
-                                          Click="@(() => DeleteMapFile(file))"/>
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-        }
-    </RadzenCard>
-
-</RadzenStack>
+    @* ── Right column: map ── *@
+    <RadzenColumn Size="9">
+        <Map Clicked="MapClicked"/>
+    </RadzenColumn>
+</RadzenRow>

@@ -11,10 +11,28 @@ namespace OWLServer.Context
         public DbSet<ChainLink> ChainLinks { get; set; }
         public DbSet<TowerControlLayout> TowerControlLayouts { get; set; }
         public DbSet<TowerControlLink> TowerControlLinks { get; set; }
+        public DbSet<TowerPositionLayout> TowerPositionLayouts { get; set; }
+        public DbSet<TowerPosition> TowerPositions { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
-            Database.EnsureCreated();
+            if (!Database.EnsureCreated())
+            {
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE IF NOT EXISTS \"TowerControlLayouts\" (" +
+                    "    \"Id\" INTEGER NOT NULL CONSTRAINT \"PK_TowerControlLayouts\" PRIMARY KEY AUTOINCREMENT," +
+                    "    \"Name\" TEXT NOT NULL" +
+                    ");");
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE IF NOT EXISTS \"TowerControlLinks\" (" +
+                    "    \"Id\" INTEGER NOT NULL CONSTRAINT \"PK_TowerControlLinks\" PRIMARY KEY AUTOINCREMENT," +
+                    "    \"TowerControlLayoutId\" INTEGER NOT NULL," +
+                    "    \"ControllerTowerMacAddress\" TEXT NOT NULL," +
+                    "    \"ControlledTowerMacAddress\" TEXT NOT NULL," +
+                    "    CONSTRAINT \"FK_TowerControlLinks_TowerControlLayouts_TowerControlLayoutId\" " +
+                    "        FOREIGN KEY (\"TowerControlLayoutId\") REFERENCES \"TowerControlLayouts\" (\"Id\") ON DELETE CASCADE" +
+                    ");");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -55,6 +73,18 @@ namespace OWLServer.Context
             builder.Entity<TowerControlLink>(e =>
             {
                 e.HasKey(lnk => lnk.Id);
+            });
+            builder.Entity<TowerPositionLayout>(e =>
+            {
+                e.HasKey(tpl => tpl.Id);
+                e.HasMany(tpl => tpl.Positions)
+                 .WithOne()
+                 .HasForeignKey(tp => tp.TowerPositionLayoutId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<TowerPosition>(e =>
+            {
+                e.HasKey(tp => tp.Id);
             });
         }
     }
