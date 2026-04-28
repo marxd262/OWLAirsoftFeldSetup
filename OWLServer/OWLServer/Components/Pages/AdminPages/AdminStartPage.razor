@@ -1,13 +1,14 @@
 @page "/Admin"
 @using OWLServer.Services
 @inject ExternalTriggerService ExternalTriggerService
+@inject GameStateService GameStateService
 
 <PageTitle>Admin</PageTitle>
 
 <RadzenTabs TabPosition="TabPosition.Top" >
     <Tabs>
-        <RadzenTabsItem Text="Startseite">
-            <Home ShowGameEndOverlay="false"/>
+        <RadzenTabsItem Text="@(GameStateService.CurrentGame?.IsRunning == true ? "Spiel-Übersicht" : "Startseite")">
+            <GameControlDashboard/>
         </RadzenTabsItem>
         <RadzenTabsItem Text="Spiel-Einstellungen">
             <AdminPanel/>
