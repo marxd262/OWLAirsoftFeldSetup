@@ -18,6 +18,9 @@ public interface IGameStateService
     bool AutoStartAfterReady { get; set; }
     int SecondsTillAutoStartAfterReady { get; set; }
     DateTime? AutoStartProcessStarted { get; set; }
+    int? AutoStartSecondsRemaining { get; }
+    bool AutoStartCountdownActive { get; }
+    bool AutoStartWaitingForSpawns { get; }
     CancellationTokenSource AutoStartCancellationTokenSrc { get; set; }
     void StartGame();
     void StopGame();

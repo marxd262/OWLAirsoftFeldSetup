@@ -25,6 +25,19 @@ namespace OWLServer.Services
         
         public bool AutoStartAfterReady { get; set; } = false;
         public int SecondsTillAutoStartAfterReady { get; set; } = 20;
+
+        public int? AutoStartSecondsRemaining => 
+            AutoStartProcessStarted.HasValue 
+                ? Math.Max(0, SecondsTillAutoStartAfterReady - (int)(DateTime.Now - AutoStartProcessStarted.Value).TotalSeconds)
+                : null;
+
+        public bool AutoStartCountdownActive => 
+            AutoStartAfterReady 
+            && AutoStartProcessStarted.HasValue 
+            && (DateTime.Now - AutoStartProcessStarted.Value).TotalSeconds < SecondsTillAutoStartAfterReady;
+
+        public bool AutoStartWaitingForSpawns =>
+            AutoStartAfterReady && !AutoStartProcessStarted.HasValue;
         
         public GameStateService(IExternalTriggerService externalTriggerService, IAudioService audioService,
                                 ITowerManagerService towerManagerService)
