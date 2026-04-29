@@ -38,6 +38,14 @@
                     <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Success" Text="Add"
                                   Click="RegisterTower"/>
                 </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" AlignItems="AlignItems.End"
+                             Style="margin-top:.75rem;border-top:1px solid var(--rz-border-color);padding-top:.75rem">
+                    <RadzenFormField Text="Anzahl">
+                        <RadzenNumeric @bind-Value="_bulkCount" Min="1" Max="255" Style="width:70px"/>
+                    </RadzenFormField>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Text="@($"Create {_bulkCount} Towers")"
+                                  Click="BulkRegisterTowers"/>
+                </RadzenStack>
             </RadzenCard>
         </RadzenColumn>
 
