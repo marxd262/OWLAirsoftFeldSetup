@@ -215,6 +215,7 @@
     private string _regId = "";
     // Set IP to 1.1.1.1 to have a valid IP for testing. The Towers created with this api are just for local tests.
     private string _regIp = "1.1.1.1";
+    private int _bulkCount = 3;
     private HttpClient _client = null!;
 
     protected override void OnInitialized()
@@ -315,6 +316,43 @@
         AddLog($"→ POST /api/RegisterTower id={_regId} ip={_regIp}");
         await ApiPost($"/api/RegisterTower?id={_regId}&ip={_regIp}");
         _regId = "";
+    }
+
+    private async Task BulkRegisterTowers()
+    {
+        if (_bulkCount <= 0) return;
+
+        AddLog($"→ Bulk: Create {_bulkCount} Towers");
+
+        var towers = GameStateService.TowerManagerService.Towers;
+        int highestSuffix = 0;
+
+        foreach (var key in towers.Keys)
+        {
+            if (key.StartsWith("DE:B0:00:00:00:") && key.Length == 17)
+            {
+                var suffix = key.Substring(15, 2);
+                if (int.TryParse(suffix, System.Globalization.NumberStyles.HexNumber, null, out var val))
+                {
+                    if (val > highestSuffix) highestSuffix = val;
+                }
+            }
+        }
+
+        var created = 0;
+        for (int i = 1; i <= _bulkCount; i++)
+        {
+            var next = highestSuffix + i;
+            if (next > 0xFF) break;
+
+            var mac = $"DE:B0:00:00:00:{next:X2}";
+            var ip = string.IsNullOrWhiteSpace(_regIp) ? "1.1.1.1" : _regIp;
+            await ApiPost($"/api/RegisterTower?id={mac}&ip={ip}");
+            created++;
+        }
+
+        AddLog($"  Created {created} tower{(created != 1 ? "s" : "")}");
+        _bulkCount = 3;
     }
 
     private void BulkPingAll()
