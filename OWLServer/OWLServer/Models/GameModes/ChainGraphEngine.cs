@@ -133,6 +133,17 @@ public class ChainGraphEngine
             bool neutral = succTower.CurrentColor == TeamColor.NONE;
             if (!ownedByPrev && !neutral) continue;
 
+            if (neutral && _predecessors.TryGetValue(succMac, out var preds))
+            {
+                bool hasSafePred = preds.Any(p =>
+                    _towers.TryGetValue(p, out var pt) &&
+                    pt.CurrentColor != TeamColor.NONE &&
+                    pt.CurrentColor != TeamColor.LOCKED &&
+                    pt.CurrentColor != previousOwner &&
+                    !visited.Contains(p));
+                if (hasSafePred) continue;
+            }
+
             succTower.SetTowerColor(TeamColor.LOCKED);
             LockDescendants(succMac, previousOwner, visited);
         }
