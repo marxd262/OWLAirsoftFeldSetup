@@ -93,8 +93,10 @@ public partial class AdminPanel : ComponentBase, IDisposable
     {
         if (newValue)
         {
+            GameStateService.AutoStartProcessStarted = null;
             GameStateService.AutoStartCancellationTokenSrc.TryReset();
             Task.Run(GameStateService.AutoStartGame, GameStateService.AutoStartCancellationTokenSrc.Token);
+            try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
         }
         else
         {
