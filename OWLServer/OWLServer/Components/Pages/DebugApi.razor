@@ -343,7 +343,7 @@
         for (int i = 1; i <= _bulkCount; i++)
         {
             var next = highestSuffix + i;
-            if (next > 0xFF) break;
+            if (next > 0xFF) { AddLog("  All MACs used — prefix DE:B0:00:00:00:XX is full"); break; }
 
             var mac = $"DE:B0:00:00:00:{next:X2}";
             var ip = string.IsNullOrWhiteSpace(_regIp) ? "1.1.1.1" : _regIp;
