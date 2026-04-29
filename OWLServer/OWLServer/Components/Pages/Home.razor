@@ -19,7 +19,7 @@
     <GameEndOverlay />
 }
 
-<AutoStartOverlay />
+<AutoStartOverlay TeamOnSide="@TeamOnSide" />
 
 @code{
     [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;

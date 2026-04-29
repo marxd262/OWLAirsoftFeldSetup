@@ -40,6 +40,32 @@
         </RadzenColumn>
     </RadzenRow>
 
+    @* ─── Autostart status ─── *@
+    @if (GSS.AutoStartWaitingForSpawns || GSS.AutoStartCountdownActive)
+    {
+        <RadzenRow>
+            <RadzenColumn Size="12">
+                <RadzenCard Variant="Variant.Flat" Style="@(GSS.AutoStartCountdownActive ? "text-align: center; border: 2px solid var(--rz-warning);" : "text-align: center;")">
+                    <RadzenStack AlignItems="AlignItems.Center" Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color)">Autostart</RadzenText>
+                        @if (GSS.AutoStartCountdownActive)
+                        {
+                            <RadzenText TextStyle="TextStyle.H2" Style="color: var(--rz-warning);">
+                                @GSS.AutoStartSecondsRemaining s
+                            </RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body1">
+                                Warte bis beide Teams bereit sind...
+                            </RadzenText>
+                        }
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+
     @* ─── Team panels with swap button ─── *@
     <RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Stretch" Gap="0">
         <RadzenColumn Size="5" SizeMD="5">

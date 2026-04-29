@@ -71,30 +71,40 @@ namespace OWLServer.Services
 
         public async void AutoStartGame()
         {
-            while ((!StadtSpawnReady || !WaldSpawnReady))
+            while (AutoStartAfterReady)
             {
-                await Task.Delay(100);
+                AutoStartProcessStarted = null;
                 try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
 
-                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
-            }
-            
-            AutoStartProcessStarted = DateTime.Now;
+                while ((!StadtSpawnReady || !WaldSpawnReady))
+                {
+                    await Task.Delay(100);
+                    try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
 
-            while ((DateTime.Now - AutoStartProcessStarted).Value.TotalSeconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
-            {
-                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
-                await Task.Delay(100);
+                    if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                }
+
+                AutoStartProcessStarted = DateTime.Now;
                 try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
-            }
 
-            if (!StadtSpawnReady || !WaldSpawnReady)
+                while ((DateTime.Now - AutoStartProcessStarted).Value.TotalSeconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
+                {
+                    if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                    await Task.Delay(100);
+                    try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
+                }
+
+                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+
+                if (!StadtSpawnReady || !WaldSpawnReady)
+                    continue;
+
+                StartGame();
+                StadtSpawnReady = false;
+                WaldSpawnReady = false;
+                AutoStartAfterReady = false;
                 return;
-            
-            StartGame();
-            StadtSpawnReady = false;
-            WaldSpawnReady = false;
-            AutoStartAfterReady = false;
+            }
         }
 
 

@@ -16,7 +16,12 @@
                     Stadt: @(GameStateService.StadtSpawnReady ? "Ready" : "Waiting...")
                 </span>
             </div>
-            <div class="autostart-hint">Countdown resets if a team un-readies</div>
+            @if (TeamOnSide != TeamColor.NONE)
+            {
+                <button class="autostart-cancel-btn" @onclick="SetNotReady">
+                    NOT READY
+                </button>
+            }
         </div>
     </div>
 }
@@ -55,9 +60,19 @@
     .spawn-badge.ready { background: rgba(0,180,0,.3); color: #4caf50; }
     .spawn-badge.waiting { background: rgba(255,255,255,.1); color: #999; }
     .autostart-hint { font-size: .85rem; color: #666; margin-top: .5rem; }
+    .autostart-cancel-btn {
+        display: block; margin: 1rem auto 0;
+        padding: .8rem 2.5rem; font-size: 1.3rem; font-weight: 900;
+        background: #fc1911; color: white; border: none;
+        border-radius: .5rem; cursor: pointer;
+        text-transform: uppercase; letter-spacing: .1em;
+    }
+    .autostart-cancel-btn:hover { background: #d4140e; }
 </style>
 
 @code {
+    [Parameter] public TeamColor TeamOnSide { get; set; } = TeamColor.NONE;
+
     private Action _stateChangedHandler = null!;
 
     protected override void OnInitialized()
@@ -69,5 +84,14 @@
     public void Dispose()
     {
         ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
+
+    private void SetNotReady()
+    {
+        if (GameStateService.TeamInWald == TeamOnSide)
+            GameStateService.WaldSpawnReady = false;
+        else if (GameStateService.TeamInStadt == TeamOnSide)
+            GameStateService.StadtSpawnReady = false;
+        try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
     }
 }
