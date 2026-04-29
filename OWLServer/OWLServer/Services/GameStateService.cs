@@ -74,6 +74,7 @@ namespace OWLServer.Services
             while ((!StadtSpawnReady || !WaldSpawnReady))
             {
                 await Task.Delay(100);
+                try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
 
                 if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
             }
@@ -84,6 +85,7 @@ namespace OWLServer.Services
             {
                 if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
                 await Task.Delay(100);
+                try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
             }
 
             if (!StadtSpawnReady || !WaldSpawnReady)

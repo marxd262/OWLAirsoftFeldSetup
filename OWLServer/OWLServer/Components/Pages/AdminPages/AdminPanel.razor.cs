@@ -99,6 +99,7 @@ public partial class AdminPanel : ComponentBase, IDisposable
         else
         {
             GameStateService.AutoStartCancellationTokenSrc.Cancel();
+            GameStateService.AutoStartProcessStarted = null;
             GameStateService.StadtSpawnReady = false;
             GameStateService.WaldSpawnReady = false;
         }
