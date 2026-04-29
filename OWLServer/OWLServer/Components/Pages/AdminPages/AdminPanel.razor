@@ -1,4 +1,9 @@
 @using OWLServer.Services
+<style>
+    .rz-dropdown-items-wrapper {
+        max-height: 600px !important;
+    }
+</style>
 <RadzenRow>
     @if (GameStateService.CurrentGame?.IsFinished == true)
     {
@@ -30,7 +35,8 @@
                         <RadzenDropDown TValue="GameMode?" ValueChanged="GameModeChanged"
                                         Data="Enum.GetValues(typeof(GameMode))"
                                         Value="@GameStateService.CurrentGame?.GameMode"
-                                        Change="@(ExternalTriggerService.StateHasChangedAction.Invoke)"/>
+                                        Change="@(ExternalTriggerService.StateHasChangedAction.Invoke)"
+                        />
                     </RadzenStack>
                 </RadzenCard>
                 <RadzenCard Variant="Variant.Flat" class="rz-my-2">
