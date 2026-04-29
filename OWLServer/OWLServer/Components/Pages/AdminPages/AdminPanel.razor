@@ -78,6 +78,16 @@
                             ToggleButtonStyle="ButtonStyle.Success"> @(GameStateService.AutoStartAfterReady ? "Autostart" : "kein Autostart")</RadzenToggleButton>
                         <RadzenNumeric @bind-Value="@GameStateService.SecondsTillAutoStartAfterReady">Zeit bis Autostart
                         </RadzenNumeric>
+                        @if (GameStateService.AutoStartCountdownActive)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" class="rz-w-auto" Style="font-size: 1.5rem; text-align: center; padding: 0.5rem;">
+                                Autostart in: @(GameStateService.AutoStartSecondsRemaining)s
+                            </RadzenBadge>
+                        }
+                        else if (GameStateService.AutoStartWaitingForSpawns)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">Warte bis beide Teams bereit sind...</RadzenText>
+                        }
                     </RadzenStack>
                 </RadzenCard>
                 
