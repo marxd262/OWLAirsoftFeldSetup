@@ -6,8 +6,8 @@
         public double Width { get; set; }
         public double Height { get; set; }
         
-        public int offsetTop { get; set; }
-        public int offsetLeft { get; set; }
+        public double offsetTop { get; set; }
+        public double offsetLeft { get; set; }
         public double Top { get; set; }
         public double Left { get; set; }
 
