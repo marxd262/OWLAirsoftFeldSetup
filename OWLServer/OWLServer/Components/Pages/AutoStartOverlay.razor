@@ -1,0 +1,71 @@
+@inject IGameStateService GameStateService
+@inject IExternalTriggerService ExternalTriggerService
+@implements IDisposable
+
+@if (!(GameStateService.CurrentGame?.IsRunning ?? false) && GameStateService.AutoStartCountdownActive)
+{
+    <div class="autostart-overlay">
+        <div class="autostart-content">
+            <div class="autostart-title">Game starting soon</div>
+            <div class="autostart-countdown">@GameStateService.AutoStartSecondsRemaining</div>
+            <div class="autostart-spawns">
+                <span class="spawn-badge @(GameStateService.WaldSpawnReady ? "ready" : "waiting")">
+                    Wald: @(GameStateService.WaldSpawnReady ? "Ready" : "Waiting...")
+                </span>
+                <span class="spawn-badge @(GameStateService.StadtSpawnReady ? "ready" : "waiting")">
+                    Stadt: @(GameStateService.StadtSpawnReady ? "Ready" : "Waiting...")
+                </span>
+            </div>
+            <div class="autostart-hint">Countdown resets if a team un-readies</div>
+        </div>
+    </div>
+}
+
+<style>
+    .autostart-overlay {
+        position: fixed; top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.85);
+        z-index: 9998;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .autostart-content {
+        background: #0d1f2d; border-radius: 1rem;
+        padding: 3rem 4rem; text-align: center; color: white;
+        min-width: 360px;
+    }
+    .autostart-title {
+        font-size: 1.4rem; font-weight: bold;
+        letter-spacing: .15em; color: #aaa; margin-bottom: .75rem;
+        text-transform: uppercase;
+    }
+    .autostart-countdown {
+        font-size: 6rem; font-weight: 900; margin-bottom: 1.5rem;
+        color: #ffc107;
+    }
+    .autostart-spawns {
+        display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;
+    }
+    .spawn-badge {
+        font-size: 1.2rem; font-weight: bold;
+        padding: .4rem 1.2rem; border-radius: .4rem;
+    }
+    .spawn-badge.ready { background: rgba(0,180,0,.3); color: #4caf50; }
+    .spawn-badge.waiting { background: rgba(255,255,255,.1); color: #999; }
+    .autostart-hint { font-size: .85rem; color: #666; margin-top: .5rem; }
+</style>
+
+@code {
+    private Action _stateChangedHandler = null!;
+
+    protected override void OnInitialized()
+    {
+        _stateChangedHandler = () => InvokeAsync(StateHasChanged);
+        ExternalTriggerService.StateHasChangedAction += _stateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        ExternalTriggerService.StateHasChangedAction -= _stateChangedHandler;
+    }
+}
