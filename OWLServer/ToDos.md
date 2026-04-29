@@ -1,23 +1,42 @@
 # KNOWN ISSUES / TODO
 
+## Tower
+- Tower zurückerobern nach 50% und abbruch neutral
+- Turm Status Speichern
+- Schatten hinter Türmen auf der Karte
+- Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
+- Zeit bis Relock Visualisieren.
+- Konfigurierbar ob Kontrollierende Türme gecappt bleiben wenn Abhängiger Turm eingenommen
+
+
+## Spielmodie
+- Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.
+- Chainlink 12345 Blau, ROt Captured 1, Alles bis auf 5 zurückgesetzt, 4 locked.
+- Chainlink Editor
+- Mehrere Abhängigkeiten kontrollieren einen turm in Conquest. Probleme bei Einnahmekontrolle und Zurücksetzen vom Turm
+- Abhängigen Turm nicht zurücksetzen wenn Kontrollierenderturm von kontrollierenden Team eingenommen wird
+
+## Allgemein
+- Start-Sound zu Counter offset
+- keine -Werte im score
+- Sieger im Admin Dashboard visualisieren
+- Resetblocker nach Spielstart für Admins
+- Autoreset bei spielstart
+- Spielhistorie
+
+
+
+
 ## Fehler
 - DBSet<Tower> Teams in DB Context
 
-- Pfeile in ChainBreak
-
 ## Erweiterungen
 - Was in der DB gespeichert wird
-- Abhängigkeiten zwischen Towern Visualisieren.
 
 ## Weitere
 - DatabaseContext.cs line 8: TODO comment for full database schema
 - No error handling for tower network failures
-- Towers Relock on Time
 - Towers Reset Timer allways used
-- Towers Chain Break?
-
-
-
 
 # Done
 - Spielende Triggert jetzt Sound und zeigt Endscreen
@@ -26,4 +45,6 @@
 - Sound können jetzt Hochgeladen und Konfiguriert werden
 - Die Map kann jetzt Konfiguriert werden
 - Es gibt jetzt die Mölichkeit Sounds auch unter Windows abzuspielen
- 
+- Autostart Feedback an Spieler und Admins
+- Towers Chain Break? 
+- Abhängigkeiten zwischen Towern Visualisieren.
