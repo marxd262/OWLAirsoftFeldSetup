@@ -20,7 +20,8 @@
                       width:150px; 
                       position: Absolute;
                       right: 1rem;
-                      bottom: 1rem;"/>
+                      bottom: 1rem;
+                      z-index: 9999;"/>
 }
 
 @if ((GameStateService.CurrentGame?.IsRunning ?? false) && (GameStateService.CurrentGame?.ShowRespawnButton ?? false))
