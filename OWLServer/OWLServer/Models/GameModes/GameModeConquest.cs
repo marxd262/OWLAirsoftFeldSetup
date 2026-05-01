@@ -38,6 +38,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
     private Dictionary<string, List<string>> _controlledChildren = new();
     private Dictionary<string, string> _controllerByChild = new();
 
+    public bool IsControllerTower(string macAddress) => _controlledChildren.ContainsKey(macAddress);
+
     public Dictionary<TeamColor, int> TeamPoints = new();
 
     public GameModeConquest(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
