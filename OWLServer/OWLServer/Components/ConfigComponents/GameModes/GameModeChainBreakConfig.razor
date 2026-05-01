@@ -20,6 +20,15 @@
         <RadzenFormField Text="Chain Factor" Variant="Variant.Flat">
             <RadzenNumeric @bind-Value="CurrentGame.ChainFactor" TValue="double"/>
         </RadzenFormField>
+        <RadzenFormField Text="Neutral at Threshold" Variant="Variant.Flat">
+            <RadzenCheckBox @bind-Value="@CurrentGame.NeutralAtThresholdEnabled"/>
+        </RadzenFormField>
+        @if (CurrentGame.NeutralAtThresholdEnabled)
+        {
+            <RadzenFormField Text="Neutral Threshold (%)" Variant="Variant.Flat">
+                <RadzenNumeric @bind-Value="@CurrentGame.CaptureNeutralThresholdPercent" Min="1" Max="99"/>
+            </RadzenFormField>
+        }
     </RadzenStack>
 
     @* Active layout badge *@

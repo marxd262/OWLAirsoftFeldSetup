@@ -17,6 +17,8 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
     public int MaxTickets { get; set; } = 15;
     public bool IsTicket { get; set; } = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
+    public bool NeutralAtThresholdEnabled { get; set; } = true;
+    public int CaptureNeutralThresholdPercent { get; set; } = 50;
     public bool ShowRespawnButton => false;
     public bool IsPaused { get; set; }
     public TimeSpan PausedDuration { get; set; }
@@ -86,6 +88,8 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
     public void RunGame()
     {
         Engine = new ChainGraphEngine(ActiveChainLayout, GameStateService.TowerManagerService.Towers);
+        Engine.NeutralAtThresholdEnabled = NeutralAtThresholdEnabled;
+        Engine.CaptureNeutralThresholdPercent = CaptureNeutralThresholdPercent;
         InitializeTowerStates();
         StartTime = DateTime.Now;
         IsRunning = true;
