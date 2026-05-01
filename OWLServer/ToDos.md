@@ -1,7 +1,6 @@
 # KNOWN ISSUES / TODO
 
 ## Tower
-- Tower zurückerobern nach 50% und abbruch neutral
 - Turm Status Speichern
 - Schatten hinter Türmen auf der Karte
 - Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
@@ -15,7 +14,6 @@
 
 ## Allgemein
 - Start-Sound zu Counter offset
-- keine -Werte im score
 - Sieger im Admin Dashboard visualisieren
 - Resetblocker nach Spielstart für Admins
 - Autoreset bei spielstart
@@ -32,9 +30,14 @@
 - No error handling for tower network failures
 - Towers Reset Timer allways used
 
+-------------------------------------------------------------
+
 # ToTest
 - Chainlink Editor
-- 
+- keine -Werte im score
+- Tower zurückerobern nach 50% und abbruch neutral
+
+
 # Done
 - Spielende Triggert jetzt Sound und zeigt Endscreen
 - Robustere Logik für Spielende
