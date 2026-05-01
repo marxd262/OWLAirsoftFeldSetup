@@ -145,6 +145,10 @@
                         CurrentGame="@((GameModeTimer)GameStateService.CurrentGame)"></GameModeTimerConfig>
                     break;
                 case GameModeChainBreak:
+                    <RadzenButton Text="Chain Editor" Icon="link" ButtonStyle="ButtonStyle.Info"
+                                  Size="ButtonSize.Small"
+                                  Click="@(() => Navigation.NavigateTo("/Admin/ChainEditor"))"
+                                  class="rz-mb-2" />
                     <GameModeChainBreakConfig
                         CurrentGame="@((GameModeChainBreak)GameStateService.CurrentGame)"/>
                     break;

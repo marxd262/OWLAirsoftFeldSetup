@@ -12,6 +12,8 @@ public partial class AdminPanel : ComponentBase, IDisposable
     IGameStateService GameStateService { get; set; } = null!;
     [Inject]
     IExternalTriggerService ExternalTriggerService { get; set; } = null!;
+    [Inject]
+    public NavigationManager Navigation { get; set; } = null!;
 
     private Action _stateChangedHandler = null!;
 
