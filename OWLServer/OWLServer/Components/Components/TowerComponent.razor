@@ -26,38 +26,44 @@
 }
 else
 {
-    <RadzenProgressBarCircular class="@TowerClass"
-        style="@(Smaller ? "" : $"filter:drop-shadow(0 0 4px rgba(0,0,0,0.65));{Tower.Location?.ToLocationString()}")"
-        Value="@(ShowResetTimer && Tower.ResetSecondsRemaining >= 0 && Tower.ResetsAfterInSeconds > 0
-            ? (int)((double)Tower.ResetSecondsRemaining / Tower.ResetsAfterInSeconds * 100)
-            : Tower.GetDisplayProgress())"
-        Size="@(Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)">
-        <Template>
-            @{
-                var resetsRemaining = Tower.ResetSecondsRemaining;
-                var showTimer = ShowResetTimer && resetsRemaining >= 0;
-            }
-            @if (showTimer)
-            {
-                <div style="display:flex;flex-direction:column;align-items:center;margin-top:2px;">
-                    <span style="color:@ColorTranslator.ToHtml(FontColor);font-size:14px;line-height:1;">
+    @if (ShowResetTimer && !Smaller)
+    {
+        <div style="@Tower.Location?.ToLocationString()">
+            <div style="text-align:center;">
+                <span style="color:white;font-size:10px;background:rgba(0,0,0,0.6);padding:1px 4px;border-radius:3px;line-height:1;">
+                    @(Tower.CapturedAt.HasValue ? $"{Math.Max(0, Tower.ResetSecondsRemaining)}s" : $"{Tower.ResetsAfterInSeconds}s")
+                </span>
+            </div>
+            <RadzenProgressBarCircular class="@TowerClass"
+                style="filter:drop-shadow(0 0 4px rgba(0,0,0,0.65));"
+                Value="@(Tower.ResetSecondsRemaining >= 0 && Tower.ResetsAfterInSeconds > 0
+                    ? (int)((double)Tower.ResetSecondsRemaining / Tower.ResetsAfterInSeconds * 100)
+                    : Tower.GetDisplayProgress())"
+                Size="ProgressBarCircularSize.Medium">
+                <Template>
+                    <RadzenText TextAlign="TextAlign.Center" TextStyle="TextStyle.DisplayH4"
+                        Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
                         @Tower.DisplayLetter
-                    </span>
-                    <span style="color:@ColorTranslator.ToHtml(FontColor);font-size:9px;line-height:1;">
-                        @(resetsRemaining)s
-                    </span>
-                </div>
-            }
-            else
-            {
+                    </RadzenText>
+                </Template>
+            </RadzenProgressBarCircular>
+        </div>
+    }
+    else
+    {
+        <RadzenProgressBarCircular class="@TowerClass"
+            style="@(Smaller ? "" : $"filter:drop-shadow(0 0 4px rgba(0,0,0,0.65));{Tower.Location?.ToLocationString()}")"
+            Value="@(Tower.GetDisplayProgress())"
+            Size="@(Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)">
+            <Template>
                 <RadzenText TextAlign="TextAlign.Center"
                     TextStyle="@(Smaller ? TextStyle.DisplayH6 : TextStyle.DisplayH4)"
                     Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
                     @Tower.DisplayLetter
                 </RadzenText>
-            }
-        </Template>
-    </RadzenProgressBarCircular>
+            </Template>
+        </RadzenProgressBarCircular>
+    }
 }
 
 @code {
