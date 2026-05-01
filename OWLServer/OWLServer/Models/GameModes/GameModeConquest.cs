@@ -24,6 +24,8 @@ public class GameModeConquest : IGameModeBase, IDisposable
     // Zwei Mögliche Spielmode sind implementiert. Ticket basiert (zählt runter) oder Punkte basiert (Zählt hoch)
     public bool IsTicket = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
+    public bool NeutralAtThresholdEnabled { get; set; } = true;
+    public int CaptureNeutralThresholdPercent { get; set; } = 50;
     public bool IsRunning { get; set; } = false;
     public bool IsFinished { get; set; } = false;
     public DateTime? StartTime { get; set; }
@@ -241,6 +243,14 @@ public class GameModeConquest : IGameModeBase, IDisposable
             {
                 var elapsed = DateTime.Now - tower.LastPressed;
                 tower.CaptureProgress = elapsed?.TotalSeconds / tower.TimeToCaptureInSeconds ?? 0;
+
+                if (NeutralAtThresholdEnabled
+                    && tower.CaptureProgress * 100 >= CaptureNeutralThresholdPercent
+                    && tower.CurrentColor != TeamColor.NONE
+                    && tower.CurrentColor != tower.PressedByColor)
+                {
+                    tower.SetTowerColor(TeamColor.NONE);
+                }
             }
         }
 
