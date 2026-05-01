@@ -1,0 +1,98 @@
+@page "/Admin/ChainEditor"
+@using OWLServer.Models
+@using OWLServer.Services.Interfaces
+@using OWLServer.Components.ConfigComponents
+@using static OWLServer.Components.ConfigComponents.ChainEditorToolbar
+@implements IDisposable
+
+<PageTitle>Chain Link Editor</PageTitle>
+
+<div style="height: 100vh; width: 100vw; position: relative; overflow: hidden;">
+
+    @* Map *@
+    <div style="position: relative; height: 100%;">
+        <img src="@_MapService.GetCurrentMapUrl()"
+             style="width:100%; height:100%; object-fit:fill;"
+             @onclick="BackgroundTapped" />
+
+        @* SVG overlay for editor links *@
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+             style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none;">
+            @foreach (var link in _editorLinks)
+            {
+                var towerA = GameStateService.TowerManagerService.Towers.Values
+                    .FirstOrDefault(t => t.MacAddress == link.TowerAMacAddress && t.Location != null);
+                var towerB = GameStateService.TowerManagerService.Towers.Values
+                    .FirstOrDefault(t => t.MacAddress == link.TowerBMacAddress && t.Location != null);
+
+                @if (towerA != null && towerB != null)
+                {
+                    var isSelected = _selectedLink == link;
+                    var color = isSelected ? "#e74c3c" : "#00b4f1";
+                    var width = isSelected ? "3.5" : "2.5";
+
+                    if (link.EntryAtBothEnds)
+                    {
+                        var (ax1, ay1, mx, my) = Half(towerA, towerB);
+                        var (bx1, by1, _, _) = Half(towerB, towerA);
+                        <line @key="link" x1="@ax1" y1="@ay1" x2="@mx" y2="@my"
+                              stroke="@color" stroke-width="@width" stroke-dasharray="5 3"
+                              style="pointer-events:auto;cursor:pointer;"
+                              @onclick="() => LinkClicked(link)" @onclick:stopPropagation="true" />
+                        <line x1="@bx1" y1="@by1" x2="@mx" y2="@my"
+                              stroke="@color" stroke-width="@width" stroke-dasharray="5 3"
+                              style="pointer-events:none;" />
+                    }
+                    else
+                    {
+                        var (x1, y1, x2, y2) = Arrow(towerA, towerB);
+                        <line @key="link" x1="@x1" y1="@y1" x2="@x2" y2="@y2"
+                              stroke="@color" stroke-width="@width"
+                              marker-end="url(#edit-arrow)"
+                              style="pointer-events:auto;cursor:pointer;"
+                              @onclick="() => LinkClicked(link)" @onclick:stopPropagation="true" />
+                    }
+                }
+            }
+            <defs>
+                <marker id="edit-arrow" markerWidth="7" markerHeight="6" refX="7" refY="3"
+                        orient="auto" markerUnits="userSpaceOnUse">
+                    <polygon points="0 0, 7 3, 0 6" fill="#00b4f1"/>
+                </marker>
+            </defs>
+        </svg>
+
+        @* Towers *@
+        @foreach (var tower in GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
+        {
+            var inChain = _editorLinks.Any(l =>
+                l.TowerAMacAddress == tower.MacAddress || l.TowerBMacAddress == tower.MacAddress);
+            var isSource = _selectedSource?.MacAddress == tower.MacAddress;
+
+            <div @key="tower.MacAddress"
+                 style="@(tower.Location?.ToLocationString() ?? "") cursor:pointer; position:absolute; @(inChain ? "" : "opacity:0.35;")"
+                 @onclick="() => TowerClicked(tower)" @onclick:stopPropagation="true">
+                <TowerComponent Tower="tower" Editable="true" />
+                @if (isSource)
+                {
+                    <div style="position:absolute;top:-4px;left:-4px;right:-4px;bottom:-4px;
+                                border:3px solid #ff0;border-radius:50%;pointer-events:none;"></div>
+                }
+            </div>
+        }
+    </div>
+
+    @* Toolbar *@
+    <ChainEditorToolbar @bind-Mode="_mode"
+                        CanUndo="@(_undoHistory.Count > 0)"
+                        CanRedo="@(_redoHistory.Count > 0)"
+                        OnUndo="@Undo" OnRedo="@Redo"
+                        @bind-PanelVisible="_panelVisible" />
+
+    @* Side Panel *@
+    <ChainEditorPanel @bind-Visible="_panelVisible"
+                      @ref="_panel"
+                      Links="_editorLinks"
+                      LinksChanged="OnPanelLinksChanged"
+                      OnLayoutChanged="OnLayoutChanged" />
+</div>
