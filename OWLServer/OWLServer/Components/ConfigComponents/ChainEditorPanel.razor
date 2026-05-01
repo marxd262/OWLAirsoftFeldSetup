@@ -1,0 +1,68 @@
+@using OWLServer.Models
+@using OWLServer.Context
+@using Microsoft.EntityFrameworkCore
+@namespace OWLServer.Components.ConfigComponents
+
+@if (Visible)
+{
+    <div class="panel-backdrop" @onclick="ClosePanel" @onclick:stopPropagation="true"></div>
+}
+
+<div class="side-panel @(Visible ? "visible" : "hidden")" @onclick:stopPropagation="true">
+
+    @* Section 1: Layout Management *@
+    <div class="panel-section">
+        <h4>Layout Management</h4>
+        <RadzenStack Gap=".5rem">
+            <RadzenDropDown TValue="int?" Data="@_layoutItems"
+                            TextProperty="Name" ValueProperty="Id"
+                            @bind-Value="_selectedLayoutId"
+                            Placeholder="Layout laden..."
+                            Style="width:100%" />
+            <RadzenTextBox @bind-Value="_layoutName" Placeholder="Layout-Name" Style="width:100%" />
+            <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                <RadzenButton Text="Neu speichern" Size="ButtonSize.Small"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Disabled="@(!Links.Any() || string.IsNullOrWhiteSpace(_layoutName))"
+                              Click="@SaveAsNew" />
+                @if (_selectedLayoutId != null)
+                {
+                    <RadzenButton Text="Aktualisieren" Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Warning"
+                                  Click="@UpdateExisting" />
+                }
+            </RadzenStack>
+            @if (_selectedLayoutId != null)
+            {
+                <RadzenButton Text="Löschen" Size="ButtonSize.Small"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Click="@DeleteLayout" />
+            }
+        </RadzenStack>
+    </div>
+
+    @* Section 2: Link List *@
+    <div class="panel-section">
+        <h4>Links (@Links.Count)</h4>
+        @if (!Links.Any())
+        {
+            <p style="color: var(--rz-text-secondary-color); font-size: 12px;">Keine Links vorhanden</p>
+        }
+        else
+        {
+            @foreach (var link in Links.ToList())
+            {
+                <div class="link-row">
+                    <span>@LinkLabel(link)</span>
+                    <button @onclick="() => RemoveLink(link)">✕</button>
+                </div>
+            }
+        }
+    </div>
+
+    @* Section 3: Graph Preview *@
+    <div class="panel-section">
+        <h4>Chain Preview</h4>
+        <ChainGraphPreview Links="Links" />
+    </div>
+</div>
