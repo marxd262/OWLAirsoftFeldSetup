@@ -1,0 +1,80 @@
+.editor-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: var(--rz-base-background-color);
+    border-top: 1px solid var(--rz-base-border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    z-index: 100;
+}
+
+.mode-group {
+    display: flex;
+    gap: 4px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+.mode-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--rz-text-secondary-color);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.mode-btn.active {
+    background: var(--rz-primary);
+    color: var(--rz-primary-contrast-color, white);
+    border-color: var(--rz-primary);
+}
+
+.mode-btn:hover:not(.active) {
+    color: var(--rz-text-color);
+    border-color: var(--rz-base-border-color);
+}
+
+.icon-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--rz-base-border-color);
+    background: transparent;
+    color: var(--rz-text-color);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.icon-btn:hover {
+    background: var(--rz-base-200);
+}
+
+.icon-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.panel-toggle {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--rz-base-border-color);
+    background: transparent;
+    color: var(--rz-text-color);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.panel-toggle:hover {
+    background: var(--rz-base-200);
+}

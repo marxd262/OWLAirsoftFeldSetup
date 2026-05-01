@@ -1,59 +1,5 @@
 @namespace OWLServer.Components.ConfigComponents
 
-<style>
-    .editor-toolbar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 48px;
-        background: var(--rz-base-background-color, #1a1a2e);
-        border-top: 1px solid var(--rz-base-border-color, #333);
-        display: flex;
-        align-items: center;
-        padding: 0 12px;
-        gap: 8px;
-        z-index: 100;
-    }
-    .mode-group { display: flex; gap: 4px; }
-    .spacer { flex: 1; }
-    .mode-btn {
-        padding: 6px 14px;
-        border-radius: 6px;
-        border: 1px solid transparent;
-        background: transparent;
-        color: #aaa;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.15s;
-    }
-    .mode-btn.active { background: var(--rz-primary); color: white; border-color: var(--rz-primary); }
-    .mode-btn:hover:not(.active) { color: #ccc; border-color: #555; }
-    .icon-btn {
-        padding: 6px 10px;
-        border-radius: 6px;
-        border: 1px solid #555;
-        background: transparent;
-        color: #ccc;
-        cursor: pointer;
-        font-size: 16px;
-        line-height: 1;
-    }
-    .icon-btn:hover { background: #333; }
-    .icon-btn:disabled { opacity: 0.4; cursor: default; }
-    .panel-toggle {
-        padding: 6px 14px;
-        border-radius: 6px;
-        border: 1px solid #555;
-        background: transparent;
-        color: #ccc;
-        cursor: pointer;
-        font-size: 13px;
-    }
-    .panel-toggle:hover { background: #333; }
-</style>
-
 <div class="editor-toolbar">
     <div class="mode-group">
         <button class="mode-btn @(Mode == EditorMode.Draw ? "active" : "")"
