@@ -8,21 +8,37 @@
     .absoluteTower { position: absolute }
 </style>
 
-<RadzenProgressBarCircular class="@TowerClass"
-    style="@GetTowerStyle()"
-    Value="@(Tower.GetDisplayProgress())"
-    Size="@(Editable ? ProgressBarCircularSize.Medium :
-           Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)"
-    Attributes="@GetAttributes()">
-    <Template>
-        <RadzenText
-            TextAlign="TextAlign.Center"
-            TextStyle="@(Smaller && !Editable ? TextStyle.DisplayH6 : TextStyle.DisplayH4)"
-            Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
-            @Tower.DisplayLetter
-        </RadzenText>
-    </Template>
-</RadzenProgressBarCircular>
+@if (Editable)
+{
+    <div @onclick="() => OnTowerClicked.InvokeAsync()"
+         style="cursor:pointer;transform:scale(1.6);@(Tower.Location?.ToLocationString())">
+        <RadzenProgressBarCircular class="@TowerClass"
+            Value="@(Tower.GetDisplayProgress())"
+            Size="ProgressBarCircularSize.Medium">
+            <Template>
+                <RadzenText TextAlign="TextAlign.Center" TextStyle="TextStyle.DisplayH4"
+                    Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
+                    @Tower.DisplayLetter
+                </RadzenText>
+            </Template>
+        </RadzenProgressBarCircular>
+    </div>
+}
+else
+{
+    <RadzenProgressBarCircular class="@TowerClass"
+        style="@(Smaller ? "" : Tower.Location?.ToLocationString())"
+        Value="@(Tower.GetDisplayProgress())"
+        Size="@(Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)">
+        <Template>
+            <RadzenText TextAlign="TextAlign.Center"
+                TextStyle="@(Smaller ? TextStyle.DisplayH6 : TextStyle.DisplayH4)"
+                Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
+                @Tower.DisplayLetter
+            </RadzenText>
+        </Template>
+    </RadzenProgressBarCircular>
+}
 
 @code {
     [Parameter] public required Tower Tower { get; set; }
@@ -32,22 +48,4 @@
     [Parameter] public EventCallback OnTowerClicked { get; set; }
 
     private string TowerClass => $"tower_{Tower.MacAddress.Replace(":", "-")}";
-
-    private string GetTowerStyle()
-    {
-        if (Editable)
-            return (Tower.Location?.ToLocationString() ?? "") + ";transform:scale(1.6);cursor:pointer;";
-        if (Smaller)
-            return "";
-        return Tower.Location?.ToLocationString() ?? "";
-    }
-
-    private Dictionary<string, object>? GetAttributes()
-    {
-        if (!Editable || !OnTowerClicked.HasDelegate) return null;
-        return new Dictionary<string, object>
-        {
-            ["onclick"] = EventCallback.Factory.Create(this, () => OnTowerClicked.InvokeAsync())
-        };
-    }
 }
