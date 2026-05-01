@@ -1,17 +1,11 @@
 @inject IJSRuntime _jsRuntime;
 @inject IExternalTriggerService ExternalTriggerService
 @inject IGameStateService _GameStateService
-@inject IMapService _MapService
 @using OWLServer.Models.GameModes
 @using OWLServer.Models
 @implements IDisposable
 
 <style>
-    #map{
-        width: 100%;
-        height: calc(100% - 90px);
-        object-fit:fill;
-    }
     @@keyframes flowDash {
         to { stroke-dashoffset: -8; }
     }
@@ -32,141 +26,112 @@
     }
 </style>
 
-<div style="position: relative">
+<MapCanvas>
+    <defs style="overflow:visible">
+        <filter id="arrowGlow" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        @foreach (var src in ControllerTowers)
+        {
+            <marker id="arrow-@src.MacAddress"
+                    markerWidth="6" markerHeight="5" refX="0" refY="2.5"
+                    orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 6 2.5, 0 5" fill="@ArrowColor(src)" />
+            </marker>
+        }
+    </defs>
 
-    <img id="map" src="@_MapService.GetCurrentMapUrl()" @onclick="OnClickEvent"/>
+    @foreach (var link in ActiveControlLinks)
+    {
+        var src = _GameStateService.TowerManagerService.Towers.Values
+            .FirstOrDefault(t => t.MacAddress == link.ControllerTowerMacAddress && t.Location != null);
+        var dst = _GameStateService.TowerManagerService.Towers.Values
+            .FirstOrDefault(t => t.MacAddress == link.ControlledTowerMacAddress && t.Location != null);
 
-    @* SVG overlay for tower dependency arrows.
-       viewBox="0 0 100 100": explicit coordinate space matching normalized tower positions
-       (Location.Left/Top are 0–1, multiplied by 100). SVG %-coordinates don't resolve
-       reliably when the parent has no explicit height.
-       preserveAspectRatio="none": scales non-uniformly to match the map image (object-fit:fill).
-       pointer-events:none: click events fall through to the img below. *@
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none"
-         style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+        if (src != null && dst != null)
+        {
+            var (ax1, ay1, ax2, ay2) = ArrowLine(src, dst);
+            <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
+                  stroke="@ArrowColor(src)" stroke-width="2"
+                  class="arrow-flow" filter="url(#arrowGlow)"
+                  marker-end="url(#arrow-@src.MacAddress)" />
+        }
+    }
 
-        @* Control relationship arrow overlay — shown when a Conquest game with ActiveControlLayout is running. *@
-        <defs style="overflow:visible">
-            <filter id="arrowGlow" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
-                <feMerge>
-                    <feMergeNode in="blur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
-            @foreach (var src in ControllerTowers)
-            {
-                <marker id="arrow-@src.MacAddress"
-                        markerWidth="6" markerHeight="5" refX="0" refY="2.5"
-                        orient="auto" markerUnits="userSpaceOnUse">
-                    <polygon points="0 0, 6 2.5, 0 5" fill="@ArrowColor(src)" />
-                </marker>
-            }
+    @if (IsChainBreakActive)
+    {
+        var gameMode = _GameStateService.CurrentGame as GameModeChainBreak;
+        <defs>
+            <marker id="chain-arrow-red" markerWidth="7" markerHeight="6" refX="0" refY="3"
+                    orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 7 3, 0 6" fill="#fc1911"/>
+            </marker>
+            <marker id="chain-arrow-blue" markerWidth="7" markerHeight="6" refX="0" refY="3"
+                    orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 7 3, 0 6" fill="#00b4f1"/>
+            </marker>
+            <marker id="chain-arrow-white" markerWidth="7" markerHeight="6" refX="0" refY="3"
+                    orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 7 3, 0 6" fill="#FFFFFF"/>
+            </marker>
         </defs>
 
-        @foreach (var link in ActiveControlLinks)
+        @foreach (var link in ActiveChainLinks)
         {
-            var src = _GameStateService.TowerManagerService.Towers.Values
-                .FirstOrDefault(t => t.MacAddress == link.ControllerTowerMacAddress && t.Location != null);
-            var dst = _GameStateService.TowerManagerService.Towers.Values
-                .FirstOrDefault(t => t.MacAddress == link.ControlledTowerMacAddress && t.Location != null);
+            var towerA = _GameStateService.TowerManagerService.Towers.Values
+                .FirstOrDefault(t => t.MacAddress == link.TowerAMacAddress && t.Location != null);
+            var towerB = _GameStateService.TowerManagerService.Towers.Values
+                .FirstOrDefault(t => t.MacAddress == link.TowerBMacAddress && t.Location != null);
 
-            if (src != null && dst != null)
+            @if (towerA != null && towerB != null && gameMode != null)
             {
-                var (ax1, ay1, ax2, ay2) = ArrowLine(src, dst);
-                <line x1="@ax1" y1="@ay1" x2="@ax2" y2="@ay2"
-                      stroke="@ArrowColor(src)"
-                      stroke-width="2"
-                      class="arrow-flow"
-                      filter="url(#arrowGlow)"
-                      marker-end="url(#arrow-@src.MacAddress)" />
-            }
-        }
+                var (color, arrowA, arrowB, animated, bothWays) = gameMode.GetLinkVisualState(link);
 
-        @* Chain link overlay — only visible in ChainBreak mode.
-           Single line per link. Color/animation based on capture state:
-           - Yellow + stationary: locked
-           - Team color + animated toward arrow: one team can capture
-           - White + animated both ways: both teams can capture *@
-        @if (IsChainBreakActive)
-        {
-            var gameMode = _GameStateService.CurrentGame as GameModeChainBreak;
-
-            <defs>
-                <marker id="chain-arrow-red" markerWidth="7" markerHeight="6" refX="0" refY="3"
-                        orient="auto" markerUnits="userSpaceOnUse">
-                    <polygon points="0 0, 7 3, 0 6" fill="#fc1911"/>
-                </marker>
-                <marker id="chain-arrow-blue" markerWidth="7" markerHeight="6" refX="0" refY="3"
-                        orient="auto" markerUnits="userSpaceOnUse">
-                    <polygon points="0 0, 7 3, 0 6" fill="#00b4f1"/>
-                </marker>
-                <marker id="chain-arrow-white" markerWidth="7" markerHeight="6" refX="0" refY="3"
-                        orient="auto" markerUnits="userSpaceOnUse">
-                    <polygon points="0 0, 7 3, 0 6" fill="#FFFFFF"/>
-                </marker>
-            </defs>
-
-            @foreach (var link in ActiveChainLinks)
-            {
-                var towerA = _GameStateService.TowerManagerService.Towers.Values
-                    .FirstOrDefault(t => t.MacAddress == link.TowerAMacAddress && t.Location != null);
-                var towerB = _GameStateService.TowerManagerService.Towers.Values
-                    .FirstOrDefault(t => t.MacAddress == link.TowerBMacAddress && t.Location != null);
-
-                @if (towerA != null && towerB != null && gameMode != null)
+                @if (bothWays)
                 {
-                    var (color, arrowA, arrowB, animated, bothWays) = gameMode.GetLinkVisualState(link);
-
-                    @if (bothWays)
-                    {
-                        var (ax1, ay1, mx, my) = HalfLine(towerA, towerB);
-                        var (bx1, by1, _, _) = HalfLine(towerB, towerA);
-                        var colorA = TowerTeamColorHex(towerA);
-                        var colorB = TowerTeamColorHex(towerB);
-                        <line x1="@ax1" y1="@ay1" x2="@mx" y2="@my"
-                              stroke="@colorA" stroke-width="2.5" stroke-dasharray="5 3"
-                              class="chain-flow" filter="url(#arrowGlow)"/>
-                        <line x1="@bx1" y1="@by1" x2="@mx" y2="@my"
-                              stroke="@colorB" stroke-width="2.5" stroke-dasharray="5 3"
-                              class="chain-flow" filter="url(#arrowGlow)"/>
-                    }
-                    else if (arrowB)
-                    {
-                        var (x1, y1, x2, y2) = ArrowLine(towerA, towerB, srcGap: 4.0, destGap: 11.0);
-                        var animClass = animated ? "chain-flow" : null;
-                        <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
-                              stroke="@color" stroke-width="2.5" stroke-dasharray="5 3"
-                              class="@animClass" filter="url(#arrowGlow)"
-                              marker-end="@ArrowRef(color)"/>
-                    }
-                    else if (arrowA)
-                    {
-                        var (x1, y1, x2, y2) = ArrowLine(towerB, towerA, srcGap: 4.0, destGap: 11.0);
-                        var animClass = animated ? "chain-flow" : null;
-                        <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
-                              stroke="@color" stroke-width="2.5" stroke-dasharray="5 3"
-                              class="@animClass" filter="url(#arrowGlow)"
-                              marker-end="@ArrowRef(color)"/>
-                    }
-                    else
-                    {
-                        var (x1, y1, x2, y2) = ArrowLine(towerA, towerB, srcGap: 4.0, destGap: 4.0);
-                        <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
-                              stroke="@color" stroke-width="2.5"
-                              filter="url(#arrowGlow)"/>
-                    }
+                    var (ax1, ay1, mx, my) = HalfLine(towerA, towerB);
+                    var (bx1, by1, _, _) = HalfLine(towerB, towerA);
+                    var colorA = TowerTeamColorHex(towerA);
+                    var colorB = TowerTeamColorHex(towerB);
+                    <line x1="@ax1" y1="@ay1" x2="@mx" y2="@my"
+                          stroke="@colorA" stroke-width="2.5" stroke-dasharray="5 3"
+                          class="chain-flow" filter="url(#arrowGlow)"/>
+                    <line x1="@bx1" y1="@by1" x2="@mx" y2="@my"
+                          stroke="@colorB" stroke-width="2.5" stroke-dasharray="5 3"
+                          class="chain-flow" filter="url(#arrowGlow)"/>
+                }
+                else if (arrowB)
+                {
+                    var (x1, y1, x2, y2) = ArrowLine(towerA, towerB, srcGap: 4.0, destGap: 11.0);
+                    var animClass = animated ? "chain-flow" : null;
+                    <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
+                          stroke="@color" stroke-width="2.5" stroke-dasharray="5 3"
+                          class="@animClass" filter="url(#arrowGlow)"
+                          marker-end="@ArrowRef(color)"/>
+                }
+                else if (arrowA)
+                {
+                    var (x1, y1, x2, y2) = ArrowLine(towerB, towerA, srcGap: 4.0, destGap: 11.0);
+                    var animClass = animated ? "chain-flow" : null;
+                    <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
+                          stroke="@color" stroke-width="2.5" stroke-dasharray="5 3"
+                          class="@animClass" filter="url(#arrowGlow)"
+                          marker-end="@ArrowRef(color)"/>
+                }
+                else
+                {
+                    var (x1, y1, x2, y2) = ArrowLine(towerA, towerB, srcGap: 4.0, destGap: 4.0);
+                    <line x1="@x1" y1="@y1" x2="@x2" y2="@y2"
+                          stroke="@color" stroke-width="2.5" filter="url(#arrowGlow)"/>
                 }
             }
         }
-    </svg>
-
-    @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
-    {
-        <TowerComponent Tower="tower"></TowerComponent>
     }
-
-</div>
+</MapCanvas>
 
 <script>
     function GetElementLocation(elementId) {
