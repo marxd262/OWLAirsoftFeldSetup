@@ -38,6 +38,12 @@ namespace OWLServer.Models
         public DateTime? CapturedAt { get; set; }
 
         [NotMapped]
+        public int ResetSecondsRemaining =>
+            CapturedAt.HasValue
+                ? Math.Max(0, ResetsAfterInSeconds - (int)(DateTime.Now - CapturedAt.Value).TotalSeconds)
+                : -1;
+
+        [NotMapped]
         public bool IsPressed { get; set; }
 
         [NotMapped]
