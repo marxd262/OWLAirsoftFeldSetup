@@ -1,6 +1,7 @@
 @inject IGameStateService _GameStateService
 @inject IMapService _MapService
 @using OWLServer.Models
+@using OWLServer.Models.GameModes
 @namespace OWLServer.Components.MapComponents
 
 <style>
@@ -19,8 +20,12 @@
         @ChildContent
     </svg>
 
+    @{
+        var conquest = _GameStateService.CurrentGame as GameModeConquest;
+    }
     @foreach (var tower in _GameStateService.TowerManagerService.Towers.Values.Where(t => t.Location != null))
     {
-        <TowerComponent Tower="tower" />
+        <TowerComponent Tower="tower"
+            ShowResetTimer="@(conquest?.IsControllerTower(tower.MacAddress) ?? false)" />
     }
 </div>
