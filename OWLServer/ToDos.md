@@ -10,9 +10,6 @@
 
 
 ## Spielmodie
-- Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.
-- Chainlink 12345 Blau, ROt Captured 1, Alles bis auf 5 zurückgesetzt, 4 locked.
-- Chainlink Editor
 - Mehrere Abhängigkeiten kontrollieren einen turm in Conquest. Probleme bei Einnahmekontrolle und Zurücksetzen vom Turm
 - Abhängigen Turm nicht zurücksetzen wenn Kontrollierenderturm von kontrollierenden Team eingenommen wird
 
@@ -23,9 +20,6 @@
 - Resetblocker nach Spielstart für Admins
 - Autoreset bei spielstart
 - Spielhistorie
-
-
-
 
 ## Fehler
 - DBSet<Tower> Teams in DB Context
@@ -38,6 +32,9 @@
 - No error handling for tower network failures
 - Towers Reset Timer allways used
 
+# ToTest
+- Chainlink Editor
+- 
 # Done
 - Spielende Triggert jetzt Sound und zeigt Endscreen
 - Robustere Logik für Spielende
@@ -48,3 +45,5 @@
 - Autostart Feedback an Spieler und Admins
 - Towers Chain Break? 
 - Abhängigkeiten zwischen Towern Visualisieren.
+- Chainlink 12345 Blau, ROt Captured 1, Alles bis auf 5 zurückgesetzt, 4 locked.
+- Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.

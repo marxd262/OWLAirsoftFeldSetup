@@ -398,6 +398,58 @@ public class ChainGraphEngineTests
         Assert.Equal(TeamColor.BLUE, t1.CurrentColor);
     }
 
+    [Fact]
+    public void CompleteCapture_DualEntryChain_PreviouslyOwnedTowerNotLockedWhenAltPathExists()
+    {
+        var t1 = T("1"); t1.SetTowerColor(TeamColor.RED);
+        var t2 = T("2"); t2.SetTowerColor(TeamColor.RED);
+        var t3 = T("3"); t3.SetTowerColor(TeamColor.RED);
+        var t4 = T("4"); t4.SetTowerColor(TeamColor.BLUE);
+        var t5 = T("5"); t5.SetTowerColor(TeamColor.BLUE);
+        var towers = Towers(t1, t2, t3, t4, t5);
+        var layout = Layout(
+            Link("1", "2", both: true),
+            Link("2", "3", both: true),
+            Link("3", "4", both: true),
+            Link("4", "5", both: true)
+        );
+        var engine = new ChainGraphEngine(layout, towers);
+
+        engine.CompleteCapture("1", TeamColor.BLUE);
+
+        Assert.Equal(TeamColor.BLUE, t1.CurrentColor);
+        Assert.Equal(TeamColor.NONE, t2.CurrentColor);
+        Assert.Equal(TeamColor.NONE, t3.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t4.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t5.CurrentColor);
+    }
+
+    [Fact]
+    public void CompleteCapture_DualEntryChain_FullTeamChainPreservedWhenEntryCaptured()
+    {
+        var t1 = T("1"); t1.SetTowerColor(TeamColor.BLUE);
+        var t2 = T("2"); t2.SetTowerColor(TeamColor.BLUE);
+        var t3 = T("3"); t3.SetTowerColor(TeamColor.BLUE);
+        var t4 = T("4"); t4.SetTowerColor(TeamColor.BLUE);
+        var t5 = T("5"); t5.SetTowerColor(TeamColor.BLUE);
+        var towers = Towers(t1, t2, t3, t4, t5);
+        var layout = Layout(
+            Link("1", "2", both: true),
+            Link("2", "3", both: true),
+            Link("3", "4", both: true),
+            Link("4", "5", both: true)
+        );
+        var engine = new ChainGraphEngine(layout, towers);
+
+        engine.CompleteCapture("1", TeamColor.RED);
+
+        Assert.Equal(TeamColor.RED, t1.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t2.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t3.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t4.CurrentColor);
+        Assert.Equal(TeamColor.BLUE, t5.CurrentColor);
+    }
+
     // --- CompleteCapture → UnlockSuccessors ---
 
     [Fact]
@@ -475,7 +527,7 @@ public class ChainGraphEngineTests
 
         engine.CompleteCapture("T2", TeamColor.RED);
 
-        Assert.Equal(TeamColor.NONE, t2.CurrentColor);
+        Assert.Equal(TeamColor.LOCKED, t2.CurrentColor);
     }
 
     [Fact]
@@ -490,7 +542,7 @@ public class ChainGraphEngineTests
 
         engine.CompleteCapture("B", TeamColor.RED);
 
-        Assert.Equal(TeamColor.NONE, tB.CurrentColor);
+        Assert.Equal(TeamColor.LOCKED, tB.CurrentColor);
         Assert.Equal(TeamColor.LOCKED, tC.CurrentColor);
     }
 

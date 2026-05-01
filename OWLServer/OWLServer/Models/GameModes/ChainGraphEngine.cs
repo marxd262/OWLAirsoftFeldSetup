@@ -283,7 +283,9 @@ public class ChainGraphEngine
                     && tower.CurrentColor != TeamColor.NONE
                     && tower.CurrentColor != pressingTeam)
                 {
+                    var previousOwner = tower.CurrentColor;
                     tower.SetTowerColor(TeamColor.NONE);
+                    RecalculateChainState(previousOwner);
                 }
 
                 updates.Add(new TowerCaptureUpdate { Tower = tower, CaptureCompleted = false, CaptureProgress = tower.CaptureProgress });
