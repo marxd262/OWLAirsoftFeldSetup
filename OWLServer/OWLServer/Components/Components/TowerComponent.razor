@@ -3,36 +3,51 @@
         .rz-progressbar-circular-value {
             stroke: @Tower.DisplaycolorAsHTML() !important;
         }
-        @(Smaller ?
-        "":
-        ".rz-progressbar-circular-background{fill: rgba(255,255,255,0.5);}")
+        @(Smaller && !Editable ? "" : ".rz-progressbar-circular-background{fill: rgba(255,255,255,0.5);}")
     }
-
-    .absoluteTower{
-        position: absolute
-    }
+    .absoluteTower { position: absolute }
 </style>
 
-<RadzenProgressBarCircular class="@TowerClass" style="@(Smaller ? "" : Tower.Location?.ToLocationString())" Value="@(Tower.GetDisplayProgress())"
-                           Size="@( Smaller ? ProgressBarCircularSize.Small :ProgressBarCircularSize.Medium)" 
->
+<RadzenProgressBarCircular class="@TowerClass"
+    style="@GetTowerStyle()"
+    Value="@(Tower.GetDisplayProgress())"
+    Size="@(Editable ? ProgressBarCircularSize.Medium :
+           Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)"
+    Attributes="@GetAttributes()">
     <Template>
-        <RadzenText 
+        <RadzenText
             TextAlign="TextAlign.Center"
-            TextStyle="@(Smaller ? TextStyle.DisplayH6: TextStyle.DisplayH4)" 
-            Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")"
-            >@Tower.DisplayLetter</RadzenText>
+            TextStyle="@(Smaller && !Editable ? TextStyle.DisplayH6 : TextStyle.DisplayH4)"
+            Style="@($"color: {ColorTranslator.ToHtml(FontColor)}; margin-top: 7px;")">
+            @Tower.DisplayLetter
+        </RadzenText>
     </Template>
 </RadzenProgressBarCircular>
 
-
 @code {
     [Parameter] public required Tower Tower { get; set; }
-
     [Parameter] public bool Smaller { get; set; }
-
+    [Parameter] public bool Editable { get; set; }
     [Parameter] public Color FontColor { get; set; } = Color.Black;
+    [Parameter] public EventCallback OnTowerClicked { get; set; }
 
     private string TowerClass => $"tower_{Tower.MacAddress.Replace(":", "-")}";
-    
+
+    private string GetTowerStyle()
+    {
+        if (Editable)
+            return (Tower.Location?.ToLocationString() ?? "") + ";transform:scale(1.6);cursor:pointer;";
+        if (Smaller)
+            return "";
+        return Tower.Location?.ToLocationString() ?? "";
+    }
+
+    private Dictionary<string, object>? GetAttributes()
+    {
+        if (!Editable || !OnTowerClicked.HasDelegate) return null;
+        return new Dictionary<string, object>
+        {
+            ["onclick"] = EventCallback.Factory.Create(this, () => OnTowerClicked.InvokeAsync())
+        };
+    }
 }
