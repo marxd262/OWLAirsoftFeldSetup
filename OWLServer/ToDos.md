@@ -2,7 +2,6 @@
 
 ## Tower
 - Turm Status Speichern
-- Schatten hinter Türmen auf der Karte
 - Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
 - Zeit bis Relock Visualisieren.
 - Konfigurierbar ob Kontrollierende Türme gecappt bleiben wenn Abhängiger Turm eingenommen
@@ -50,3 +49,4 @@
 - Abhängigkeiten zwischen Towern Visualisieren.
 - Chainlink 12345 Blau, ROt Captured 1, Alles bis auf 5 zurückgesetzt, 4 locked.
 - Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.
+- Schatten hinter Türmen auf der Karte

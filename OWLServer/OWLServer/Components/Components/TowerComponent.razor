@@ -28,7 +28,7 @@ else
 {
     <RadzenProgressBarCircular class="@TowerClass"
         style="@(Smaller ? "" : $"filter:drop-shadow(0 0 4px rgba(0,0,0,0.65));{Tower.Location?.ToLocationString()}")"
-        Value="@(ShowResetTimer && Tower.ResetSecondsRemaining >= 0
+        Value="@(ShowResetTimer && Tower.ResetSecondsRemaining >= 0 && Tower.ResetsAfterInSeconds > 0
             ? (int)((double)Tower.ResetSecondsRemaining / Tower.ResetsAfterInSeconds * 100)
             : Tower.GetDisplayProgress())"
         Size="@(Smaller ? ProgressBarCircularSize.Small : ProgressBarCircularSize.Medium)">
