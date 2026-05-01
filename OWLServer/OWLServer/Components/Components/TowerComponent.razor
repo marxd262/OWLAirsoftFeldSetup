@@ -36,7 +36,7 @@ else
             </div>
             <RadzenProgressBarCircular class="@TowerClass"
                 style="filter:drop-shadow(0 0 4px rgba(0,0,0,0.65));"
-                Value="@(Tower.ResetSecondsRemaining >= 0 && Tower.ResetsAfterInSeconds > 0
+                Value="@(!Tower.IsPressed && Tower.ResetSecondsRemaining >= 0 && Tower.ResetsAfterInSeconds > 0
                     ? (int)((double)Tower.ResetSecondsRemaining / Tower.ResetsAfterInSeconds * 100)
                     : Tower.GetDisplayProgress())"
                 Size="ProgressBarCircularSize.Medium">
