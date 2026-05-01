@@ -3,7 +3,7 @@
 
 <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
 
-    @* ── Base config ── *@
+    @* Base config *@
     <RadzenStack>
         <RadzenFormField Text="Game Duration (min)" Variant="Variant.Flat">
             <RadzenNumeric @bind-Value="CurrentGame.GameDurationInMinutes" Min="1"/>
@@ -22,7 +22,7 @@
         </RadzenFormField>
     </RadzenStack>
 
-    @* ── Active layout badge ── *@
+    @* Active layout badge *@
     @if (CurrentGame.ActiveChainLayout != null)
     {
         <RadzenAlert AlertStyle="AlertStyle.Success" AllowClose="false">
@@ -37,153 +37,25 @@
         </RadzenAlert>
     }
 
-    @* ── Saved layouts list ── *@
+    @* Layout Selector *@
     <RadzenCard Variant="Variant.Outlined">
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Gespeicherte Layouts</RadzenText>
-        @if (!_savedLayouts.Any())
-        {
-            <RadzenText TextStyle="TextStyle.Body2">Noch keine Layouts gespeichert.</RadzenText>
-        }
-        else
-        {
-            @foreach (var savedLayout in _savedLayouts)
-            {
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
-                             JustifyContent="JustifyContent.SpaceBetween" class="rz-mb-1">
-                    <RadzenText>@savedLayout.Name (@(savedLayout.Links.Count) Links)</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
-                        <RadzenButton Text="Laden" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
-                                      Click="@(() => LoadLayoutIntoEditor(savedLayout))"/>
-                        <RadzenButton Text="Aktivieren" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success"
-                                      Click="@(() => ActivateLayout(savedLayout))"/>
-                        <RadzenButton Text="Löschen" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
-                                      Click="@(async () => await DeleteLayout(savedLayout))"/>
-                    </RadzenStack>
-                </RadzenStack>
-            }
-        }
-    </RadzenCard>
-
-    @* ── Linked chain list ── *@
-    <RadzenCard Variant="Variant.Outlined">
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Ketten-Links</RadzenText>
-
-        @if (_editorLinks.Any())
-        {
-            @foreach (var link in _editorLinks.ToList())
-            {
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
-                             JustifyContent="JustifyContent.SpaceBetween" class="rz-mb-1">
-                    <RadzenText>@LinkLabel(link)</RadzenText>
-                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
-                                  Click="@(() => RemoveLink(link))"/>
-                </RadzenStack>
-            }
-        }
-        else
-        {
-            <RadzenText TextStyle="TextStyle.Body2" class="rz-mb-2">Noch keine Links.</RadzenText>
-        }
-
-        @* ── Sequential chain builder ── *@
-        <RadzenStack Orientation="Orientation.Vertical" Gap=".5rem" class="rz-mt-3">
-            @if (!_chainBuilding)
-            {
-                <RadzenButton Text="Kette beginnen" Icon="play_arrow" ButtonStyle="ButtonStyle.Secondary"
-                              Size="ButtonSize.Small" Click="StartChainBuilding"/>
-            }
-            else
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Info" AllowClose="false" class="rz-mb-2">
-                    <RadzenStack Orientation="Orientation.Vertical" Gap=".25rem">
-                        <RadzenText Style="font-weight:600">Kette: @ChainPreview</RadzenText>
-                        @if (_chainLastMac != null)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                Nächsten Tower an @TowerLabel(_chainLastMac) anhängen
-                            </RadzenText>
-                        }
-                    </RadzenStack>
-                </RadzenAlert>
-
-                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
-                    <RadzenDropDown TValue="string" @bind-Value="_chainNextMac"
-                                    Data="@AvailableChainTowers"
-                                    TextProperty="DisplayLetter"
-                                    ValueProperty="MacAddress"
-                                    Placeholder="Tower wählen"
-                                    Style="min-width:140px"/>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap=".25rem">
-                        <RadzenCheckBox @bind-Value="_chainEntryAtBothEnds" Name="chainEntry"/>
-                        <RadzenLabel Text="Einstieg an beiden Enden" Component="chainEntry"/>
-                    </RadzenStack>
-                    <RadzenButton Text="Anhängen" Icon="add" ButtonStyle="ButtonStyle.Primary"
-                                  Size="ButtonSize.Small" Click="AddChainLink"/>
-                </RadzenStack>
-
-                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" class="rz-mt-2">
-                    <RadzenButton Text="Kette beenden" Icon="stop" ButtonStyle="ButtonStyle.Warning"
-                                  Size="ButtonSize.Small" Click="EndChainBuilding"/>
-                    <RadzenButton Text="Abbrechen" Icon="close" ButtonStyle="ButtonStyle.Danger"
-                                  Size="ButtonSize.Small" Click="CancelChainBuilding"/>
-                </RadzenStack>
-            }
-        </RadzenStack>
-
-        @* Manual single-link form (collapsed by default) *@
-        <RadzenAccordion class="rz-mt-2">
-            <RadzenAccordionItem Text="Einzellink hinzufügen">
-                <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" Wrap="FlexWrap.Wrap">
-                    <RadzenDropDown TValue="string" @bind-Value="_manualTowerA"
-                                    Data="GameStateService.TowerManagerService.Towers.Values"
-                                    TextProperty="DisplayLetter"
-                                    ValueProperty="MacAddress"
-                                    Placeholder="Tower A"
-                                    Style="min-width:120px"/>
-                    <RadzenDropDown TValue="string" @bind-Value="_manualTowerB"
-                                    Data="GameStateService.TowerManagerService.Towers.Values"
-                                    TextProperty="DisplayLetter"
-                                    ValueProperty="MacAddress"
-                                    Placeholder="Tower B"
-                                    Style="min-width:120px"/>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap=".25rem">
-                        <RadzenCheckBox @bind-Value="_manualEntryAtBothEnds" Name="manualEntry"/>
-                        <RadzenLabel Text="Einstieg an beiden Enden" Component="manualEntry"/>
-                    </RadzenStack>
-                    <RadzenButton Text="Hinzufügen" Icon="add" ButtonStyle="ButtonStyle.Primary"
-                                  Size="ButtonSize.Small" Click="AddManualLink"/>
-                </RadzenStack>
-            </RadzenAccordionItem>
-        </RadzenAccordion>
-
-        @* Save / Update *@
-        <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem" class="rz-mt-3" Wrap="FlexWrap.Wrap">
-            <RadzenTextBox @bind-Value="_newLayoutName" Placeholder="Layout-Name" Style="flex:1;min-width:150px"/>
-            <RadzenButton Text="Neu speichern" Icon="save" ButtonStyle="ButtonStyle.Info"
-                          Size="ButtonSize.Small"
-                          Click="@(async () => await SaveAsNew())"/>
-            @if (_editingLayoutId != null)
-            {
-                <RadzenButton Text="Aktualisieren" Icon="update" ButtonStyle="ButtonStyle.Warning"
-                              Size="ButtonSize.Small"
-                              Click="@(async () => await UpdateExisting())"/>
-            }
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-2">Chain Layout</RadzenText>
+        <RadzenStack Gap=".5rem">
+            <RadzenDropDown TValue="int?" Data="@_layouts"
+                            TextProperty="Name" ValueProperty="Id"
+                            @bind-Value="_activeLayoutId"
+                            Placeholder="Kein Layout ausgewählt"
+                            Style="width:100%" />
+            <RadzenStack Orientation="Orientation.Horizontal" Gap=".5rem">
+                <RadzenButton Text="Aktivieren" Size="ButtonSize.Small"
+                              ButtonStyle="ButtonStyle.Success"
+                              Click="ActivateSelected"
+                              Disabled="@(_activeLayoutId == null)" />
+                <RadzenButton Text="Editor öffnen" Size="ButtonSize.Small"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Click="OpenEditor" />
+            </RadzenStack>
         </RadzenStack>
     </RadzenCard>
-
-    @* ── Towers outside layout info ── *@
-    @{
-        var allMacs = GameStateService.TowerManagerService.Towers.Keys.ToHashSet();
-        var inLayout = _editorLinks
-            .SelectMany(l => new[] { l.TowerAMacAddress, l.TowerBMacAddress })
-            .ToHashSet();
-        var outsideCount = allMacs.Except(inLayout).Count();
-    }
-    @if (outsideCount > 0)
-    {
-        <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
-            @outsideCount Tower außerhalb des Layouts — frei einnehmbar.
-        </RadzenText>
-    }
 
 </RadzenStack>
