@@ -21,6 +21,9 @@ public class ChainGraphEngine
     public IReadOnlySet<string> EntryPoints => _chainEntryPoints;
     public IReadOnlyDictionary<string, int> DepthMap => _depthMap;
 
+    public bool NeutralAtThresholdEnabled { get; set; } = true;
+    public int CaptureNeutralThresholdPercent { get; set; } = 50;
+
     public ChainGraphEngine(ChainLayout? layout, Dictionary<string, Tower> towers)
     {
         _towers = towers;
@@ -117,56 +120,6 @@ public class ChainGraphEngine
         return false;
     }
 
-    private void LockDescendants(string mac, TeamColor previousOwner, HashSet<string>? visited = null)
-    {
-        visited ??= new HashSet<string>();
-        if (!visited.Add(mac)) return;
-
-        if (!_successors.TryGetValue(mac, out var succs)) return;
-
-        foreach (var succMac in succs)
-        {
-            if (!_towers.TryGetValue(succMac, out var succTower)) continue;
-            if (_chainEntryPoints.Contains(succMac)) continue;
-
-            bool ownedByPrev = succTower.CurrentColor == previousOwner;
-            bool neutral = succTower.CurrentColor == TeamColor.NONE;
-            if (!ownedByPrev && !neutral) continue;
-
-            if (neutral && _predecessors.TryGetValue(succMac, out var preds))
-            {
-                bool hasSafePred = preds.Any(p =>
-                    _towers.TryGetValue(p, out var pt) &&
-                    pt.CurrentColor != TeamColor.NONE &&
-                    pt.CurrentColor != TeamColor.LOCKED &&
-                    pt.CurrentColor != previousOwner &&
-                    !visited.Contains(p));
-                if (hasSafePred) continue;
-            }
-
-            succTower.SetTowerColor(TeamColor.LOCKED);
-            LockDescendants(succMac, previousOwner, visited);
-        }
-    }
-
-    private void UnlockSuccessors(string mac, TeamColor capturingTeam)
-    {
-        if (!_successors.TryGetValue(mac, out var succs)) return;
-
-        foreach (var succMac in succs)
-        {
-            if (!_towers.TryGetValue(succMac, out var succTower)) continue;
-            if (succTower.CurrentColor != TeamColor.LOCKED) continue;
-
-            bool prereqMet = _chainEntryPoints.Contains(succMac);
-            if (!prereqMet && _predecessors.TryGetValue(succMac, out var preds))
-                prereqMet = preds.Any(p => _towers.TryGetValue(p, out var pt) && pt.CurrentColor == capturingTeam);
-
-            if (prereqMet)
-                succTower.SetTowerColor(TeamColor.NONE);
-        }
-    }
-
     public void CompleteCapture(string mac, TeamColor capturingTeam)
     {
         if (!_towers.TryGetValue(mac, out var tower)) return;
@@ -179,25 +132,121 @@ public class ChainGraphEngine
         tower.CaptureProgress = 1;
         tower.CapturedAt = DateTime.Now;
 
-        if (previousOwner != TeamColor.NONE && previousOwner != TeamColor.LOCKED)
-            LockDescendants(mac, previousOwner);
-
         bool hasPrereqs = _chainEntryPoints.Contains(mac)
                           || !_predecessors.TryGetValue(mac, out var preds)
                           || preds.Any(p =>
                                  _towers.TryGetValue(p, out var pt)
                                  && pt.CurrentColor == capturingTeam);
 
-        if (hasPrereqs)
+        tower.SetTowerColor(hasPrereqs ? capturingTeam : TeamColor.NONE);
+
+        RecalculateChainState(previousOwner);
+    }
+
+    private void RecalculateChainState(TeamColor previousOwner)
+    {
+        if (previousOwner != TeamColor.RED && previousOwner != TeamColor.BLUE)
         {
-            tower.SetTowerColor(capturingTeam);
-            UnlockSuccessors(mac, capturingTeam);
+            RecalculateUnlocksAndLocks();
+            return;
         }
-        else
+
+        var teamEntries = new List<string>();
+        foreach (var ep in _chainEntryPoints)
         {
-            tower.SetTowerColor(TeamColor.NONE);
-            LockDescendants(mac, TeamColor.NONE);
+            if (!_towers.TryGetValue(ep, out var t)) continue;
+            if (t.CurrentColor == previousOwner)
+                teamEntries.Add(ep);
         }
+
+        var reachable = new HashSet<string>();
+
+        if (teamEntries.Count > 0)
+        {
+            var queue = new Queue<string>();
+            foreach (var ep in teamEntries)
+            {
+                reachable.Add(ep);
+                queue.Enqueue(ep);
+            }
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                var neighbors = new HashSet<string>();
+                if (_successors.TryGetValue(current, out var succs))
+                    foreach (var n in succs) neighbors.Add(n);
+                if (_predecessors.TryGetValue(current, out var preds))
+                    foreach (var p in preds)
+                        if (_successors.TryGetValue(current, out var curSuccs) && curSuccs.Contains(p))
+                            neighbors.Add(p);
+
+                foreach (var neighbor in neighbors)
+                {
+                    if (reachable.Contains(neighbor)) continue;
+                    if (!_towers.TryGetValue(neighbor, out var nt)) continue;
+                    if (nt.CurrentColor != previousOwner) continue;
+                    reachable.Add(neighbor);
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        foreach (var (mac, tower) in _towers)
+        {
+            if (tower.CurrentColor != previousOwner) continue;
+            if (!reachable.Contains(mac))
+                tower.SetTowerColor(TeamColor.NONE);
+        }
+
+        RecalculateUnlocksAndLocks();
+    }
+
+    private void RecalculateUnlocksAndLocks()
+    {
+
+        foreach (var (mac, tower) in _towers)
+        {
+            if (tower.CurrentColor != TeamColor.LOCKED) continue;
+
+            bool hasCapturablePred = false;
+            if (_predecessors.TryGetValue(mac, out var preds))
+                hasCapturablePred = preds.Any(p => _towers.TryGetValue(p, out var pt) &&
+                    (pt.CurrentColor == TeamColor.RED || pt.CurrentColor == TeamColor.BLUE));
+            if (hasCapturablePred || _chainEntryPoints.Contains(mac))
+                tower.SetTowerColor(TeamColor.NONE);
+        }
+
+        var chainMacs = GetAllChainMacs();
+        foreach (var mac in chainMacs)
+        {
+            if (!_towers.TryGetValue(mac, out var t)) continue;
+            if (t.CurrentColor != TeamColor.NONE) continue;
+            if (_chainEntryPoints.Contains(mac)) continue;
+            if (!CanReachColoredTower(mac))
+                t.SetTowerColor(TeamColor.LOCKED);
+        }
+    }
+
+    private HashSet<string> GetAllChainMacs()
+    {
+        var all = new HashSet<string>(_chainEntryPoints);
+        foreach (var mac in _successors.Keys) all.Add(mac);
+        foreach (var mac in _predecessors.Keys) all.Add(mac);
+        return all;
+    }
+
+    private bool CanReachColoredTower(string startMac)
+    {
+        if (_predecessors.TryGetValue(startMac, out var preds))
+        {
+            if (preds.Any(p => _towers.TryGetValue(p, out var pt) &&
+                (pt.CurrentColor == TeamColor.RED || pt.CurrentColor == TeamColor.BLUE)))
+                return true;
+        }
+
+        return false;
     }
 
     public List<TowerCaptureUpdate> ProcessTick()
@@ -228,6 +277,15 @@ public class ChainGraphEngine
             {
                 var elapsed = DateTime.Now - tower.LastPressed;
                 tower.CaptureProgress = elapsed?.TotalSeconds / tower.TimeToCaptureInSeconds ?? 0;
+
+                if (NeutralAtThresholdEnabled
+                    && tower.CaptureProgress * 100 >= CaptureNeutralThresholdPercent
+                    && tower.CurrentColor != TeamColor.NONE
+                    && tower.CurrentColor != pressingTeam)
+                {
+                    tower.SetTowerColor(TeamColor.NONE);
+                }
+
                 updates.Add(new TowerCaptureUpdate { Tower = tower, CaptureCompleted = false, CaptureProgress = tower.CaptureProgress });
             }
         }
