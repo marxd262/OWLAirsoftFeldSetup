@@ -73,7 +73,7 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
             points = TeamDeaths[color];
         }
         
-        return points;
+        return points < 0 ? 0 : points;
     }
 
     public bool ShowRespawnButton => true;
@@ -156,10 +156,6 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         }
     }
 
-    public int GetTeamDeaths(TeamColor team)
-    {
-        return TeamDeaths[team];
-    }
     
     public override string ToString()
     {

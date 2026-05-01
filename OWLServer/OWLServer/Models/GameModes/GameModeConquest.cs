@@ -92,7 +92,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
             points = TeamPoints[color];
         }
         
-        return points;
+        return points < 0  ? 0 : points;
     }
     
     public void RunGame()
@@ -293,11 +293,6 @@ public class GameModeConquest : IGameModeBase, IDisposable
 
             return TeamPoints.First(e => e.Value == TeamPoints.Values.Max()).Key;
         }
-    }
-
-    public int GetTeamPoints(TeamColor team)
-    {
-        return TeamPoints[team];
     }
     
     public override string ToString()

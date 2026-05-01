@@ -65,12 +65,13 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
 
     public int GetDisplayPoints(TeamColor color)
     {
+        int points = TeamPoints[color];
         if (IsTicket)
         {
-            if (color == TeamColor.BLUE) return MaxTickets - TeamPoints[TeamColor.RED];
-            if (color == TeamColor.RED)  return MaxTickets - TeamPoints[TeamColor.BLUE];
+            if (color == TeamColor.BLUE) points = MaxTickets - TeamPoints[TeamColor.RED];
+            if (color == TeamColor.RED)  points =  MaxTickets - TeamPoints[TeamColor.BLUE];
         }
-        return TeamPoints[color];
+        return points < 0 ? 0 : points;
     }
 
     [NotMapped]
