@@ -152,8 +152,6 @@
                           Click="@TogglePause" />
             <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Spiel Beenden"
                           Click="@EndGame" />
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Reset"
-                          Click="@ResetGame" />
         }
         else
         {
@@ -231,6 +229,7 @@
 
     private void StartGame()
     {
+        GSS.Reset();
         GSS.StartGame();
     }
 
@@ -241,6 +240,7 @@
 
     private void ResetGame()
     {
+        if (IsRunning) return;
         GSS.Reset();
     }
 

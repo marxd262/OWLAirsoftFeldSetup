@@ -116,13 +116,8 @@ public partial class AdminPanel : ComponentBase, IDisposable
 
     public void ResetClick()
     {
-        //var gm = GameStateService.CurrentGame.GameMode;
-        //
-        //if(GameStateService.CurrentGame.IsRunning)
-        //    GameStateService.StopGame();
-        //GameModeChanged(GameMode.None);
-        //ameModeChanged(gm);
-        
+        if (GameStateService.CurrentGame?.IsRunning == true) return;
+
         GameStateService.Reset();
 
         Task.Run(() => {
@@ -134,6 +129,7 @@ public partial class AdminPanel : ComponentBase, IDisposable
     {
         if (GetButtonStyle == ButtonStyle.Success)
         {
+            GameStateService.Reset();
             GameStateService.StartGame();
         }
         else

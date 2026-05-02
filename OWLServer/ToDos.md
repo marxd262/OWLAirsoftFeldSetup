@@ -10,7 +10,6 @@
 - Abhängigen Turm nicht zurücksetzen wenn Kontrollierenderturm von kontrollierenden Team eingenommen wird
 
 ## Allgemein
-- Start-Sound zu Counter offset
 - Sieger im Admin Dashboard visualisieren
 - Resetblocker nach Spielstart für Admins
 - Autoreset bei spielstart
@@ -50,3 +49,4 @@
 - Chainlink 12345 Blau, ROt Captured 1, Alles bis auf 5 zurückgesetzt, 4 locked.
 - Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.
 - Schatten hinter Türmen auf der Karte
+- Start-Sound zu Counter offset

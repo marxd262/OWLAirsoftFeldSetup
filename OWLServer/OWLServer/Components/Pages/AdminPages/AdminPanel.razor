@@ -44,7 +44,8 @@
                         <RadzenText TextStyle="TextStyle.H6"> Spielstart</RadzenText>
                         <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton ButtonStyle="@(GetButtonStyle)" Text="@(GetButtonText)" Click="ButtonClick"/>
-                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Text="Reset" Click="ResetClick"/>
+                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Text="Reset" Click="ResetClick"
+                                      Disabled="@(GameStateService.CurrentGame?.IsRunning == true)"/>
                         </RadzenStack>
                         <RadzenToggleButton
                             @bind-Value="GameStateService.TeamSetReady"
