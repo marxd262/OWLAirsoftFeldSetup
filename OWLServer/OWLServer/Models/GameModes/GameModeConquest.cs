@@ -109,12 +109,12 @@ public class GameModeConquest : IGameModeBase, IDisposable
         Task.Run(Runner, _abort.Token);
     }
 
-    private void Runner()
+    private async void Runner()
     {
         DateTime lastPointDistributed = DateTime.Now;
         while (true)
         {
-            Thread.Sleep(200);
+            await Task.Delay(200);
 
             if (_abort.IsCancellationRequested)
             {

@@ -88,11 +88,11 @@ public class GameModeTeamDeathmatch : IGameModeBase, IDisposable
         Task.Run(Runner, _abort.Token);
     }
 
-    private void Runner()
+    private async void Runner()
     {
         while (true)
         {
-            Thread.Sleep(500);
+            await Task.Delay(500);
 
             if (_abort.IsCancellationRequested)
             {

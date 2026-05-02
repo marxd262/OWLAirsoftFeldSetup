@@ -115,12 +115,12 @@ public class GameModeChainBreak : IGameModeBase, IDisposable
         }
     }
 
-    private void Runner()
+    private async void Runner()
     {
         var lastPointDistributed = DateTime.Now;
         while (true)
         {
-            Thread.Sleep(200);
+            await Task.Delay(200);
 
             if (_abort.IsCancellationRequested) { EndGame(); break; }
 

@@ -35,11 +35,11 @@ public class GameModeTimer : IGameModeBase
         Task.Run(Runner, _abort.Token);
     }
 
-    private void Runner()
+    private async void Runner()
     {
         while (true)
         {
-            Thread.Sleep(500);
+            await Task.Delay(200);
 
             if (_abort.IsCancellationRequested)
             {
