@@ -12,6 +12,7 @@ public partial class SoundTest : ComponentBase
     [Inject] IJSRuntime JS { get; set; } = null!;
 
     private Dictionary<Sounds, string> _pendingAssignments = new();
+    private Dictionary<Sounds, int> _pendingDelays = new();
     private string? _statusMessage;
     private bool _statusIsError;
     private bool _isUploading;
@@ -19,7 +20,10 @@ public partial class SoundTest : ComponentBase
     protected override void OnInitialized()
     {
         foreach (Sounds s in Enum.GetValues<Sounds>())
+        {
             _pendingAssignments[s] = AudioService.GetAssignedFile(s);
+            _pendingDelays[s] = AudioService.GetDelay(s);
+        }
     }
 
     private IReadOnlyList<string> AvailableFiles => AudioService.GetAvailableSoundFiles();
@@ -34,6 +38,7 @@ public partial class SoundTest : ComponentBase
         try
         {
             AudioService.SetSoundFile(slot, _pendingAssignments[slot]);
+            AudioService.SetDelay(slot, _pendingDelays[slot]);
             SetStatus($"{slot} gespeichert.", false);
         }
         catch (Exception ex)

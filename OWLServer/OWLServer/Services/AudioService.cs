@@ -11,8 +11,10 @@ public class AudioService : IAudioService
 {
     private static readonly string SoundsDir = "./wwwroot/Sounds";
     private static readonly string ConfigPath = "./wwwroot/Sounds/soundconfig.json";
+    private static readonly string DelaysPath = "./wwwroot/Sounds/sounddelays.json";
 
     private readonly Dictionary<Sounds, string> _assignments = new();
+    private readonly Dictionary<Sounds, int> _delays = new();
     private readonly object _configLock = new();
     private readonly object _playbackLock = new();
     private WaveOutEvent? _currentWaveOut;
@@ -21,6 +23,7 @@ public class AudioService : IAudioService
     public AudioService()
     {
         LoadConfig();
+        LoadDelays();
     }
 
     private void LoadConfig()
@@ -194,6 +197,54 @@ public class AudioService : IAudioService
             _assignments[sound] = safe;
             SaveConfig();
         }
+    }
+
+    public int GetDelay(Sounds sound)
+    {
+        lock (_configLock)
+        {
+            return _delays.TryGetValue(sound, out var d) ? d : 0;
+        }
+    }
+
+    public void SetDelay(Sounds sound, int seconds)
+    {
+        lock (_configLock)
+        {
+            _delays[sound] = seconds;
+            SaveDelays();
+        }
+    }
+
+    private void LoadDelays()
+    {
+        if (!File.Exists(DelaysPath)) return;
+
+        try
+        {
+            var json = File.ReadAllText(DelaysPath);
+            var raw = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
+            if (raw != null)
+            {
+                foreach (var kvp in raw)
+                {
+                    if (Enum.TryParse<Sounds>(kvp.Key, out var sound))
+                        _delays[sound] = kvp.Value;
+                }
+            }
+        }
+        catch { }
+    }
+
+    private void SaveDelays()
+    {
+        var dict = _delays.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
+        var json = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true });
+
+        if (!Directory.Exists(SoundsDir))
+            Directory.CreateDirectory(SoundsDir);
+
+        File.WriteAllText(DelaysPath, json);
     }
 
     public async Task SaveUploadedFileAsync(string filename, Stream data)

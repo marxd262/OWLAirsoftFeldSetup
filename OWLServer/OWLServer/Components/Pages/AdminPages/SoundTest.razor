@@ -43,6 +43,14 @@
                                         Style="width: 100%"/>
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Sounds" Title="Delay (s)" Width="90px">
+                    <Template Context="slot">
+                        @if (slot == Sounds.Start)
+                        {
+                            <RadzenNumeric @bind-Value="@_pendingDelays[slot]" Min="0" Max="60"/>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Sounds" Title="Speichern" Width="90px">
                     <Template Context="slot">
                         <RadzenButton Icon="save"

@@ -50,10 +50,11 @@ namespace OWLServer.Services
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
         }
 
-        public void StartGame()
+        public async void StartGame()
         {
-            AudioService.PlaySound(Sounds.Countdown);
             AudioService.PlaySound(Sounds.Start);
+            var delay = AudioService.GetDelay(Sounds.Start);
+            if (delay > 0) await Task.Delay(delay * 1000);
             CurrentGame?.RunGame();
         }
 

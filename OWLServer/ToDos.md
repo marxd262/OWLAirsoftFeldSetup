@@ -2,8 +2,6 @@
 
 ## Tower
 - Turm Status Speichern
-- Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
-- Zeit bis Relock Visualisieren.
 - Konfigurierbar ob Kontrollierende Türme gecappt bleiben wenn Abhängiger Turm eingenommen
 
 
@@ -35,6 +33,8 @@
 - Chainlink Editor
 - keine -Werte im score
 - Tower zurückerobern nach 50% und abbruch neutral
+- Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
+- Zeit bis Relock Visualisieren.
 
 
 # Done
