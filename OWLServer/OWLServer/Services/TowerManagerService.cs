@@ -67,6 +67,7 @@ public class TowerManagerService : ITowerManagerService
         if (!Towers.ContainsKey(towerId)) return;
         if (Towers[towerId].IsPressed) return;
         if (Towers[towerId].IsLocked) return;
+        if (Towers[towerId].CurrentColor == color) return;
 
         Towers[towerId].LastPressed = DateTime.Now;
         Towers[towerId].PressedByColor = color;
