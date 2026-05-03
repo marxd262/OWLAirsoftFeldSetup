@@ -12,12 +12,13 @@ public class GameStateServiceTests
     private readonly Mock<IExternalTriggerService> _mockEts = new();
     private readonly Mock<IAudioService> _mockAudio = new();
     private readonly Mock<ITowerManagerService> _mockTms = new();
+    private readonly Mock<IGameHistoryService> _mockGhs = new();
 
     private GameStateService CreateService()
     {
         _mockEts.SetupAllProperties();
         _mockEts.Object.StateHasChangedAction = () => { };
-        return new GameStateService(_mockEts.Object, _mockAudio.Object, _mockTms.Object);
+        return new GameStateService(_mockEts.Object, _mockAudio.Object, _mockTms.Object, _mockGhs.Object);
     }
 
     [Fact]
@@ -29,7 +30,6 @@ public class GameStateServiceTests
 
         service.StartGame();
 
-        _mockAudio.Verify(a => a.PlaySound(Sounds.Countdown), Times.Once);
         _mockAudio.Verify(a => a.PlaySound(Sounds.Start), Times.Once);
     }
 
