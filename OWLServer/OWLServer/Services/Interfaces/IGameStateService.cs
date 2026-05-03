@@ -7,6 +7,7 @@ public interface IGameStateService
 {
     IExternalTriggerService ExternalTriggerService { get; }
     IAudioService AudioService { get; }
+    IGameHistoryService GameHistoryService { get; }
     IGameModeBase? CurrentGame { get; set; }
     ITowerManagerService TowerManagerService { get; }
     Dictionary<TeamColor, TeamBase> Teams { get; }

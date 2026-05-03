@@ -8,6 +8,7 @@ namespace OWLServer.Services
     {
         public IExternalTriggerService ExternalTriggerService { get; set; } = null!;
         public IAudioService AudioService { get; set; } = null!;
+        public IGameHistoryService GameHistoryService { get; set; } = null!;
 
         public IGameModeBase? CurrentGame { get; set; } = null!;
         public ITowerManagerService TowerManagerService { get; set; }
@@ -40,11 +41,12 @@ namespace OWLServer.Services
             AutoStartAfterReady && !AutoStartProcessStarted.HasValue;
         
         public GameStateService(IExternalTriggerService externalTriggerService, IAudioService audioService,
-                                ITowerManagerService towerManagerService)
+                                ITowerManagerService towerManagerService, IGameHistoryService gameHistoryService)
         {
             ExternalTriggerService = externalTriggerService;
             AudioService = audioService;
             TowerManagerService = towerManagerService;
+            GameHistoryService = gameHistoryService;
 
             Teams.Add(TeamColor.BLUE, new TeamBase(TeamColor.BLUE));
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
@@ -52,6 +54,7 @@ namespace OWLServer.Services
 
         public async void StartGame()
         {
+            GameHistoryService.RecordGameStart();
             AudioService.PlaySound(Sounds.Start);
             var delay = AudioService.GetDelay(Sounds.Start);
             if (delay > 0) await Task.Delay(delay * 1000);
@@ -60,11 +63,13 @@ namespace OWLServer.Services
 
         public void StopGame()
         {
+            GameHistoryService.EndReason = "Stopped";
             CurrentGame?.EndGame();
         }
 
         public void HandleGameEnd()
         {
+            GameHistoryService.RecordGameEnd();
             AudioService.PlaySound(Sounds.Stop);
             try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
             catch { }
