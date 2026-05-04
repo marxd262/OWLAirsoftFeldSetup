@@ -7,6 +7,18 @@ using Radzen.Blazor;
 
 namespace OWLServer.Components.Pages.AdminPages;
 
+public class DropdownOption<T>
+{
+    public string Text { get; set; }
+    public T Value { get; set; }
+
+    public DropdownOption(string text, T value)
+    {
+        Text = text;
+        Value = value;
+    }
+}
+
 public partial class GameHistoryPage : IDisposable
 {
     [Inject] private IExternalTriggerService ExternalTriggerService { get; set; } = null!;
@@ -25,26 +37,26 @@ public partial class GameHistoryPage : IDisposable
 
     private Action _stateChangedHandler = null!;
 
-    private readonly List<(string Text, int Value)> _gameModeOptions = new()
+    private readonly List<DropdownOption<int>> _gameModeOptions = new()
     {
-        ("Conquest", 2),
-        ("TeamDeathmatch", 1),
-        ("Timer", 3),
-        ("ChainBreak", 4)
+        new("Eroberung", 2),
+        new("Team Deathmatch", 1),
+        new("Timer", 3),
+        new("Kettenbruch", 4)
     };
 
-    private readonly List<(string Text, int? Value)> _winnerOptions = new()
+    private readonly List<DropdownOption<int?>> _winnerOptions = new()
     {
-        ("Blau", (int)TeamColor.BLUE),
-        ("Rot", (int)TeamColor.RED),
-        ("Unentschieden", (int)TeamColor.NONE)
+        new("Blau", (int)TeamColor.BLUE),
+        new("Rot", (int)TeamColor.RED),
+        new("Unentschieden", (int)TeamColor.NONE)
     };
 
-    private readonly List<(string Text, string Value)> _sortOptions = new()
+    private readonly List<DropdownOption<string>> _sortOptions = new()
     {
-        ("Neueste zuerst", "newest"),
-        ("Alteste zuerst", "oldest"),
-        ("Langste Dauer", "longest")
+        new("Neueste zuerst", "newest"),
+        new("Alteste zuerst", "oldest"),
+        new("Langste Dauer", "longest")
     };
 
     protected override void OnInitialized()
