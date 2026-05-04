@@ -327,6 +327,7 @@ namespace OWLServer.Services
             using var db = _dbFactory.CreateDbContext();
             return db.GameHistoryEvents
                 .Where(e => e.GameHistoryId == gameHistoryId)
+                .ToList()
                 .OrderBy(e => e.Timestamp)
                 .ToList();
         }
@@ -360,6 +361,7 @@ namespace OWLServer.Services
             using var db = _dbFactory.CreateDbContext();
             var events = db.GameHistoryEvents
                 .Where(e => e.GameHistoryId == gameHistoryId && e.EventType == (int)GameEventType.PointsAwarded)
+                .ToList()
                 .OrderBy(e => e.Timestamp)
                 .ToList();
 
