@@ -46,7 +46,7 @@ else
                 TeamColor.RED => "background: linear-gradient(135deg, #fc1911, #cc1400); color: white;",
                 _ => "background: var(--rz-base-300); color: var(--rz-text-color);"
             };
-                    var modeName = ((GameMode)game.GameMode).ToString();
+                    var modeName = GetGameModeDisplayName(game.GameMode);
                     var badgeStyle = $"background: {Util.HTMLColorForTeam(winnerColor)}; color: white;";
 
             <RadzenColumn Size="12" SizeMD="6" SizeLG="4">

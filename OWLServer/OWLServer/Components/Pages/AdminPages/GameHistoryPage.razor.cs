@@ -97,6 +97,15 @@ public partial class GameHistoryPage : IDisposable
         return (double)team.FinalScore / max * 100;
     }
 
+    private string GetGameModeDisplayName(int gameMode) => ((GameMode)gameMode) switch
+    {
+        GameMode.Conquest => "Eroberung",
+        GameMode.TeamDeathMatch => "Team Deathmatch",
+        GameMode.Timer => "Timer",
+        GameMode.ChainBreak => "Kettenbruch",
+        _ => ((GameMode)gameMode).ToString()
+    };
+
     private async Task OpenDetail(int gameId)
     {
         var game = GameHistoryService.GetGame(gameId);

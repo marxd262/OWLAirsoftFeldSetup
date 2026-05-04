@@ -9,7 +9,7 @@
 else
 {
     var winnerColor = (TeamColor)Game.Winner;
-    var modeName = ((GameMode)Game.GameMode).ToString();
+    var modeName = GetGameModeDisplayName(Game.GameMode);
     var winnerBadgeStyle = $"background: {Util.HTMLColorForTeam(winnerColor)}; color: white; font-size: 1.1em;";
 
     <div class="rz-p-3">
@@ -105,4 +105,13 @@ else
     [Parameter] public List<GameHistoryTeam> Teams { get; set; } = new();
     [Parameter] public List<GameHistoryTower> Towers { get; set; } = new();
     [Parameter] public GameHistorySnapshot? Snapshot { get; set; }
+
+    private string GetGameModeDisplayName(int gameMode) => ((GameMode)gameMode) switch
+    {
+        GameMode.Conquest => "Eroberung",
+        GameMode.TeamDeathMatch => "Team Deathmatch",
+        GameMode.Timer => "Timer",
+        GameMode.ChainBreak => "Kettenbruch",
+        _ => ((GameMode)gameMode).ToString()
+    };
 }
