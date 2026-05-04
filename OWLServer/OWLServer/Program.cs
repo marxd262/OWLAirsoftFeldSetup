@@ -20,6 +20,7 @@ builder.Services.AddSingleton<ITowerManagerService, TowerManagerService>();
 builder.Services.AddSingleton<IAudioService, AudioService>();
 builder.Services.AddSingleton<IMapService, MapService>();
 builder.Services.AddSingleton<IGameStateService, GameStateService>();
+builder.Services.AddSingleton<IGameHistoryService, GameHistoryService>();
 builder.Services.AddControllers();
 
 builder.Services.AddRadzenComponents();
