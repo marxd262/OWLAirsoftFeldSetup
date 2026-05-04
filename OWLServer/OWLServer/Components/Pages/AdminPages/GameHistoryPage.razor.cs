@@ -19,6 +19,13 @@ public class DropdownOption<T>
     }
 }
 
+public class PhaseStat
+{
+    public string Phase { get; set; } = string.Empty;
+    public int Captures { get; set; }
+    public int Deaths { get; set; }
+}
+
 public partial class GameHistoryPage : IDisposable
 {
     [Inject] private IExternalTriggerService ExternalTriggerService { get; set; } = null!;
@@ -128,6 +135,7 @@ public partial class GameHistoryPage : IDisposable
         var deathsPerMinute = GameHistoryService.GetDeathsPerMinute(gameId);
         var towerContest = GameHistoryService.GetTowerContestRanking(gameId);
         var scoreTimeline = GameHistoryService.GetScoreTimeline(gameId);
+        var sameDayGames = GameHistoryService.GetSameDayGames(gameId);
 
         var parameters = new Dictionary<string, object>
         {
@@ -138,7 +146,8 @@ public partial class GameHistoryPage : IDisposable
             { "EventData", events },
             { "DeathsPerMinute", deathsPerMinute },
             { "TowerContest", towerContest },
-            { "ScoreTimeline", scoreTimeline }
+            { "ScoreTimeline", scoreTimeline },
+            { "SameDayGames", sameDayGames }
         };
 
         await DialogService.OpenAsync<GameHistoryDetail>("Spieldetails", parameters,

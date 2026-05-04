@@ -486,6 +486,19 @@ namespace OWLServer.Services
                 .ToDictionary(g => g.Key, g => g.Count());
         }
 
+        public List<GameHistory> GetSameDayGames(int gameHistoryId)
+        {
+            using var db = _dbFactory.CreateDbContext();
+            var game = db.GameHistories.Find(gameHistoryId);
+            if (game == null) return new();
+
+            var day = game.StartTime.Date;
+            return db.GameHistories
+                .Where(g => g.StartTime.Date == day && g.Id != gameHistoryId)
+                .OrderBy(g => g.StartTime)
+                .ToList();
+        }
+
         public void Dispose()
         {
             _flushTimer?.Dispose();

@@ -28,5 +28,6 @@ namespace OWLServer.Services.Interfaces
         List<(DateTime Day, double AvgDuration)> GetAvgDurationByDay(DateTime from, DateTime to);
         List<(DateTime Day, int BlueDeaths, int RedDeaths)> GetDeathsByDay(DateTime from, DateTime to);
         Dictionary<string, int> GetGlobalTowerHotspots(DateTime? from, DateTime? to);
+        List<GameHistory> GetSameDayGames(int gameHistoryId);
     }
 }

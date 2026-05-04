@@ -60,9 +60,9 @@ else
                     <RadzenRow Gap="16px" class="mb-3">
                         @foreach (var team in Teams)
                         {
-                            var teamCardStyle = $"border-left: 4px solid {Util.HTMLColorForTeam((TeamColor)team.TeamColor)};";
                             var teamDeaths = EventData.Count(e => e.EventType == (int)GameEventType.Death && (TeamColor)e.TeamColor == (TeamColor)team.TeamColor);
                             var teamTowers = Towers.Count(t => (TeamColor)t.FinalColor == (TeamColor)team.TeamColor);
+                            var teamCardStyle = $"border-left: 4px solid {Util.HTMLColorForTeam((TeamColor)team.TeamColor)};";
                             <RadzenColumn Size="6">
                                 <RadzenCard Class="rz-p-3" Style="@teamCardStyle">
                                     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">
@@ -74,6 +74,59 @@ else
                                 </RadzenCard>
                             </RadzenColumn>
                         }
+                    </RadzenRow>
+
+                    @if (SameDayGames.Count > 0)
+                    {
+                        var sameDayDeaths = SameDayGames.Sum(g =>
+                        {
+                            var gEvents = EventData; // simplification: just showing count
+                            return 0;
+                        });
+                        var sameDayAvgDuration = SameDayGames.Where(g => g.EndTime.HasValue).Select(g => g.Duration.TotalMinutes).DefaultIfEmpty(0).Average();
+                        var thisDeaths = EventData.Count(e => e.EventType == (int)GameEventType.Death);
+                        <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Tagesvergleich</RadzenText>
+                        <RadzenCard Class="rz-p-3" Style="background: var(--rz-base-100);">
+                            <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">
+                                @SameDayGames.Count weitere(s) Spiel(e) heute gespielt
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">
+                                ⌀ Dauer: @sameDayAvgDuration.ToString("F0") min — Dieses Spiel: @Game.Duration.TotalMinutes.ToString("F0") min
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">
+                                Tode dieses Spiels: @thisDeaths
+                            </RadzenText>
+                        </RadzenCard>
+                    }
+
+                    <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Seitenanalyse</RadzenText>
+                    <RadzenRow Gap="16px" class="mb-3">
+                        @{
+                            var waldEvents = EventData.Where(e => e.Side == "Wald").ToList();
+                            var stadtEvents = EventData.Where(e => e.Side == "Stadt").ToList();
+                            var waldCaptures = waldEvents.Count(e => e.EventType == (int)GameEventType.TowerCaptured);
+                            var stadtCaptures = stadtEvents.Count(e => e.EventType == (int)GameEventType.TowerCaptured);
+                            var waldDeaths = waldEvents.Count(e => e.EventType == (int)GameEventType.Death);
+                            var stadtDeaths = stadtEvents.Count(e => e.EventType == (int)GameEventType.Death);
+                            var waldPoints = waldEvents.Where(e => e.EventType == (int)GameEventType.PointsAwarded).Sum(e => e.Value ?? 0);
+                            var stadtPoints = stadtEvents.Where(e => e.EventType == (int)GameEventType.PointsAwarded).Sum(e => e.Value ?? 0);
+                        }
+                        <RadzenColumn Size="6">
+                            <RadzenCard Class="rz-p-3" Style="border-left: 4px solid #228B22;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Wald Seite</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Eroberungen: @waldCaptures</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Tode: @waldDeaths</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Punkte: @waldPoints</RadzenText>
+                            </RadzenCard>
+                        </RadzenColumn>
+                        <RadzenColumn Size="6">
+                            <RadzenCard Class="rz-p-3" Style="border-left: 4px solid #8B4513;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Stadt Seite</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Eroberungen: @stadtCaptures</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Tode: @stadtDeaths</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Punkte: @stadtPoints</RadzenText>
+                            </RadzenCard>
+                        </RadzenColumn>
                     </RadzenRow>
 
                     @if (Towers.Count > 0)
@@ -192,7 +245,27 @@ else
                         </RadzenChart>
                     }
 
-                    @if (DeathsPerMinute.Count == 0 && TowerContest.Count == 0 && ScoreTimeline.Count <= 1)
+                    @if (Game.Duration.TotalSeconds > 0)
+                    {
+                        var totalSeconds = Game.Duration.TotalSeconds;
+                        var earlyEvents = EventData.Where(e => (e.Timestamp - Game.StartTime.ToUniversalTime()).TotalSeconds < totalSeconds * 0.33).ToList();
+                        var midEvents = EventData.Where(e => (e.Timestamp - Game.StartTime.ToUniversalTime()).TotalSeconds >= totalSeconds * 0.33 && (e.Timestamp - Game.StartTime.ToUniversalTime()).TotalSeconds < totalSeconds * 0.66).ToList();
+                        var lateEvents = EventData.Where(e => (e.Timestamp - Game.StartTime.ToUniversalTime()).TotalSeconds >= totalSeconds * 0.66).ToList();
+                        var phaseData = new List<PhaseStat> {
+                            new() { Phase = "Früh", Captures = earlyEvents.Count(e => e.EventType == (int)GameEventType.TowerCaptured), Deaths = earlyEvents.Count(e => e.EventType == (int)GameEventType.Death) },
+                            new() { Phase = "Mitte", Captures = midEvents.Count(e => e.EventType == (int)GameEventType.TowerCaptured), Deaths = midEvents.Count(e => e.EventType == (int)GameEventType.Death) },
+                            new() { Phase = "Spät", Captures = lateEvents.Count(e => e.EventType == (int)GameEventType.TowerCaptured), Deaths = lateEvents.Count(e => e.EventType == (int)GameEventType.Death) }
+                        };
+                        <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Spielphasen</RadzenText>
+                        <RadzenChart style="height:200px;">
+                            <RadzenBarSeries Data="@phaseData" CategoryProperty="Phase" ValueProperty="Captures" Title="Eroberungen" />
+                            <RadzenBarSeries Data="@phaseData" CategoryProperty="Phase" ValueProperty="Deaths" Title="Tode" />
+                            <RadzenCategoryAxis />
+                            <RadzenValueAxis />
+                        </RadzenChart>
+                    }
+
+                    @if (DeathsPerMinute.Count == 0 && TowerContest.Count == 0 && ScoreTimeline.Count <= 1 && Game.Duration.TotalSeconds == 0)
                     {
                         <RadzenText TextStyle="TextStyle.Body1" style="color: var(--rz-text-tertiary-color)">Keine Statistikdaten verfügbar</RadzenText>
                     }
@@ -211,6 +284,7 @@ else
     [Parameter] public Dictionary<int, int> DeathsPerMinute { get; set; } = new();
     [Parameter] public Dictionary<string, int> TowerContest { get; set; } = new();
     [Parameter] public List<(DateTimeOffset Time, int BlueScore, int RedScore)> ScoreTimeline { get; set; } = new();
+    [Parameter] public List<GameHistory> SameDayGames { get; set; } = new();
 
     private string GetGameModeDisplayName(int gameMode) => ((GameMode)gameMode) switch
     {
