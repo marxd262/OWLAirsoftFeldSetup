@@ -125,6 +125,9 @@ public partial class GameHistoryPage : IDisposable
         var towers = GameHistoryService.GetGameTowers(gameId);
         var snapshot = GameHistoryService.GetGameSnapshot(gameId);
         var events = GameHistoryService.GetGameEvents(gameId);
+        var deathsPerMinute = GameHistoryService.GetDeathsPerMinute(gameId);
+        var towerContest = GameHistoryService.GetTowerContestRanking(gameId);
+        var scoreTimeline = GameHistoryService.GetScoreTimeline(gameId);
 
         var parameters = new Dictionary<string, object>
         {
@@ -132,11 +135,14 @@ public partial class GameHistoryPage : IDisposable
             { "Teams", teams },
             { "Towers", towers },
             { "Snapshot", snapshot },
-            { "EventData", events }
+            { "EventData", events },
+            { "DeathsPerMinute", deathsPerMinute },
+            { "TowerContest", towerContest },
+            { "ScoreTimeline", scoreTimeline }
         };
 
         await DialogService.OpenAsync<GameHistoryDetail>("Spieldetails", parameters,
-            new DialogOptions { Width = "800px", Height = "90vh", ShowTitle = true, Draggable = true });
+            new DialogOptions { Width = "900px", Height = "95vh", ShowTitle = true, Draggable = true });
     }
 
     public void Dispose()

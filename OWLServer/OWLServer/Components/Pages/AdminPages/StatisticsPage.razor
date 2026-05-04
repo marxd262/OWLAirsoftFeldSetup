@@ -1,0 +1,117 @@
+@page "/Admin/Statistics"
+@implements IDisposable
+
+<RadzenText TextStyle="TextStyle.H4" TagName="TagName.H2" class="mb-3">Statistiken</RadzenText>
+
+<div class="mb-3">
+    <RadzenRow Gap="16px" AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenDatePicker @bind-Value="@_dateFrom" Placeholder="Von Datum" Style="width:100%" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenDatePicker @bind-Value="@_dateTo" Placeholder="Bis Datum" Style="width:100%" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="2">
+            <RadzenButton Text="Anwenden" Click="@LoadStats" ButtonStyle="ButtonStyle.Primary" Style="width:100%" />
+        </RadzenColumn>
+    </RadzenRow>
+</div>
+
+@if (_hasData)
+{
+    <RadzenRow Gap="16px" class="mb-3">
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenCard Class="rz-p-3 rz-text-align-center">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Spiele gesamt</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4" TagName="TagName.Div">@_totalGames</RadzenText>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenCard Class="rz-p-3 rz-text-align-center">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Siege Blau</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4" TagName="TagName.Div" style="color: #00b4f1;">@_blueWins</RadzenText>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenCard Class="rz-p-3 rz-text-align-center">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Siege Rot</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4" TagName="TagName.Div" style="color: #fc1911;">@_redWins</RadzenText>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenCard Class="rz-p-3 rz-text-align-center">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">⌀ Dauer</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4" TagName="TagName.Div">@_avgDuration.ToString("F0") min</RadzenText>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenRow Gap="16px" class="mb-3">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard Class="rz-p-3">
+                <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Siege nach Spielmodus</RadzenText>
+                <RadzenChart style="height:250px;">
+                    <RadzenBarSeries Data="@_winRateByMode" CategoryProperty="Mode" ValueProperty="Wins" Title="Siege" />
+                    <RadzenCategoryAxis />
+                    <RadzenValueAxis />
+                </RadzenChart>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard Class="rz-p-3">
+                <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Siege nach Seite</RadzenText>
+                <RadzenChart style="height:250px;">
+                    <RadzenPieSeries Data="@_winRateBySide" CategoryProperty="Side" ValueProperty="Wins" Title="Siege" />
+                </RadzenChart>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenRow Gap="16px" class="mb-3">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard Class="rz-p-3">
+                <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Tode pro Tag</RadzenText>
+                <RadzenChart style="height:250px;">
+                    <RadzenBarSeries Data="@_deathsByDay" CategoryProperty="Day" ValueProperty="BlueDeaths" Title="Blau" />
+                    <RadzenBarSeries Data="@_deathsByDay" CategoryProperty="Day" ValueProperty="RedDeaths" Title="Rot" />
+                    <RadzenCategoryAxis />
+                    <RadzenValueAxis />
+                </RadzenChart>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard Class="rz-p-3">
+                <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Dauer pro Tag</RadzenText>
+                <RadzenChart style="height:250px;">
+                    <RadzenBarSeries Data="@_avgDurationByDay" CategoryProperty="Day" ValueProperty="Duration" Title="Minuten" />
+                    <RadzenCategoryAxis />
+                    <RadzenValueAxis />
+                </RadzenChart>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @if (_towerHotspots.Count > 0)
+    {
+        <RadzenRow Gap="16px" class="mb-3">
+            <RadzenColumn Size="12">
+                <RadzenCard Class="rz-p-3">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Turm Hotspots</RadzenText>
+                    <RadzenChart style="@($"height:{_towerHotspots.Count * 40 + 40}px;")">
+                        <RadzenBarSeries Data="@_towerHotspots" CategoryProperty="Letter" ValueProperty="Captures" Title="Eroberungen" />
+                        <RadzenCategoryAxis />
+                        <RadzenValueAxis />
+                    </RadzenChart>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+}
+else
+{
+    <RadzenCard Class="rz-p-4 rz-text-align-center">
+        <RadzenText TextStyle="TextStyle.Body1" style="color: var(--rz-text-tertiary-color)">
+            Keine Spiele im ausgewählten Zeitraum
+        </RadzenText>
+    </RadzenCard>
+}
