@@ -11,8 +11,6 @@
 
 ## Allgemein
 - Sieger im Admin Dashboard visualisieren
-- Resetblocker nach Spielstart für Admins
-- Autoreset bei spielstart
 - Spielhistorie
 
 ## Fehler
@@ -34,6 +32,7 @@
 - Tower zurückerobern nach 50% und abbruch neutral
 - Ein bereits eingenommener Turm sollte nicht vom selben Team eingenommen werden können
 - Zeit bis Relock Visualisieren.
+- Autoreset bei spielstart
 
 
 # Done
@@ -50,3 +49,4 @@
 - Chainlink 1-2-3 Team Rot, 4-5 Team Blau, Blau Captured 1, 3 Locked.
 - Schatten hinter Türmen auf der Karte
 - Start-Sound zu Counter offset
+- Resetblocker nach Spielstart für Admins

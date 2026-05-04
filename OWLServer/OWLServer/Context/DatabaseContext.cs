@@ -17,6 +17,7 @@ namespace OWLServer.Context
         public DbSet<GameHistoryTeam> GameHistoryTeams { get; set; }
         public DbSet<GameHistoryTower> GameHistoryTowers { get; set; }
         public DbSet<GameHistorySnapshot> GameHistorySnapshots { get; set; }
+        public DbSet<GameHistoryEvent> GameHistoryEvents { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -76,6 +77,19 @@ namespace OWLServer.Context
                     "    \"GameHistoryId\" INTEGER NOT NULL," +
                     "    \"SnapshotJSON\" TEXT NOT NULL DEFAULT ''," +
                     "    CONSTRAINT \"FK_GameHistorySnapshots_GameHistories_GameHistoryId\" " +
+                    "        FOREIGN KEY (\"GameHistoryId\") REFERENCES \"GameHistories\" (\"Id\") ON DELETE CASCADE" +
+                    ");");
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE IF NOT EXISTS \"GameHistoryEvents\" (" +
+                    "    \"Id\" INTEGER NOT NULL CONSTRAINT \"PK_GameHistoryEvents\" PRIMARY KEY AUTOINCREMENT," +
+                    "    \"GameHistoryId\" INTEGER NOT NULL," +
+                    "    \"Timestamp\" TEXT NOT NULL," +
+                    "    \"EventType\" INTEGER NOT NULL," +
+                    "    \"TeamColor\" INTEGER NOT NULL," +
+                    "    \"Side\" TEXT NOT NULL DEFAULT ''," +
+                    "    \"TowerLetter\" TEXT NULL," +
+                    "    \"Value\" INTEGER NULL," +
+                    "    CONSTRAINT \"FK_GameHistoryEvents_GameHistories_GameHistoryId\" " +
                     "        FOREIGN KEY (\"GameHistoryId\") REFERENCES \"GameHistories\" (\"Id\") ON DELETE CASCADE" +
                     ");");
             }
@@ -159,6 +173,14 @@ namespace OWLServer.Context
             builder.Entity<GameHistorySnapshot>(e =>
             {
                 e.HasKey(gs => gs.Id);
+            });
+            builder.Entity<GameHistoryEvent>(e =>
+            {
+                e.HasKey(ge => ge.Id);
+                e.HasOne(ge => ge.GameHistory)
+                 .WithMany()
+                 .HasForeignKey(ge => ge.GameHistoryId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

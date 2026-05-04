@@ -65,8 +65,8 @@ else
                             @team.TeamName (@team.Side)
                         </RadzenText>
                         <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Punkte: @team.FinalScore</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Tode: @team.Deaths</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Türme: @team.TowersControlled</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Tode: @EventData.Count(e => e.EventType == (int)GameEventType.Death && (TeamColor)e.TeamColor == (TeamColor)team.TeamColor)</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Türme: @EventData.Count(e => e.EventType == (int)GameEventType.TowerCaptured && (TeamColor)e.TeamColor == (TeamColor)team.TeamColor)</RadzenText>
                     </RadzenCard>
                 </RadzenColumn>
             }
@@ -84,7 +84,11 @@ else
                             <span style="display:inline-block; width:16px; height:16px; border-radius:50%; background:@Util.HTMLColorForTeam((TeamColor)tower.FinalColor); vertical-align:middle;"></span>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="GameHistoryTower" Property="Captures" Title="Eroberungen" />
+                    <RadzenDataGridColumn TItem="GameHistoryTower" Title="Eroberungen" Context="tower">
+                        <Template>
+                            @EventData.Count(e => e.EventType == (int)GameEventType.TowerCaptured && e.TowerLetter == tower.DisplayLetter)
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
         }
@@ -105,6 +109,7 @@ else
     [Parameter] public List<GameHistoryTeam> Teams { get; set; } = new();
     [Parameter] public List<GameHistoryTower> Towers { get; set; } = new();
     [Parameter] public GameHistorySnapshot? Snapshot { get; set; }
+    [Parameter] public List<GameHistoryEvent> EventData { get; set; } = new();
 
     private string GetGameModeDisplayName(int gameMode) => ((GameMode)gameMode) switch
     {

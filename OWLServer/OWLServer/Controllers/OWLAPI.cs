@@ -29,35 +29,35 @@ namespace OWLServer.Controllers
         public ActionResult KlickerClicked(TeamColor color)
         {
             Console.WriteLine(color);
-            Task.Run(() => ExternalTriggerService.InvokeKlickerPressed(color));
+            ExternalTriggerService.InvokeKlickerPressed(color);
             return Ok();
         }
 
         [HttpPost("RegisterTower")]
         public ActionResult RegisterTower(string id, string ip)
         {
-            Task.Run(() => GameStateService.TowerManagerService.RegisterTower(id, ip));
+            GameStateService.TowerManagerService.RegisterTower(id, ip);
             return Ok();
         }
 
         [HttpPost("CaptureTower")]
         public ActionResult CaptureTower(string id, TeamColor color)
         {
-            Task.Run(() => GameStateService.TowerManagerService.TowerChangeColor(id, color));
+            GameStateService.TowerManagerService.TowerChangeColor(id, color);
             return Ok();
         }
 
         [HttpPost("TowerButtonPressed")]
         public ActionResult TowerButtonPressed(string id, TeamColor color)
         {
-            Task.Run(() => GameStateService.TowerManagerService.HandleTowerButtonPressed(id, color));
+            GameStateService.TowerManagerService.HandleTowerButtonPressed(id, color);
             return Ok();
         }
         
         [HttpPost("TowerButtonReleased")]
         public ActionResult TowerButtonReleased(string id)
         {
-            Task.Run(() => GameStateService.TowerManagerService.HandleTowerButtonReleased(id));
+            GameStateService.TowerManagerService.HandleTowerButtonReleased(id);
             return Ok();
         }
     }

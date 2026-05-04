@@ -124,13 +124,15 @@ public partial class GameHistoryPage : IDisposable
         var teams = GameHistoryService.GetGameTeams(gameId);
         var towers = GameHistoryService.GetGameTowers(gameId);
         var snapshot = GameHistoryService.GetGameSnapshot(gameId);
+        var events = GameHistoryService.GetGameEvents(gameId);
 
         var parameters = new Dictionary<string, object>
         {
             { "Game", game! },
             { "Teams", teams },
             { "Towers", towers },
-            { "Snapshot", snapshot }
+            { "Snapshot", snapshot },
+            { "EventData", events }
         };
 
         await DialogService.OpenAsync<GameHistoryDetail>("Spieldetails", parameters,
