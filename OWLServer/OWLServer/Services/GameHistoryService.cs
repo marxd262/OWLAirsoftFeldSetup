@@ -501,6 +501,16 @@ namespace OWLServer.Services
                 .ToList();
         }
 
+        public List<GameHistory> GetTodayGames()
+        {
+            using var db = _dbFactory.CreateDbContext();
+            var today = DateTime.Today;
+            return db.GameHistories
+                .Where(g => g.StartTime.Date == today)
+                .OrderByDescending(g => g.StartTime)
+                .ToList();
+        }
+
         public void Dispose()
         {
             _flushTimer?.Dispose();

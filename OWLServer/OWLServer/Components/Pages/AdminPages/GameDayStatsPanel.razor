@@ -1,0 +1,149 @@
+@using OWLServer.Models
+@using OWLServer.Services
+@inject IGameStateService GSS
+@inject IGameHistoryService GHS
+@inject IExternalTriggerService ETS
+@implements IDisposable
+
+<RadzenCard Variant="Variant.Flat" Style="max-height: 400px; overflow-y: auto;">
+    <RadzenStack Gap="0.5rem">
+        <RadzenText TextStyle="TextStyle.H6">Tagesstatistik</RadzenText>
+
+        @if (_todayGames.Count == 0 && !IsRunning)
+        {
+            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">
+                Noch keine Spiele heute
+            </RadzenText>
+        }
+        else
+        {
+            <RadzenRow Gap="0.5rem">
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100);">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">Spiele heute</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5">@_todayGames.Count</RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100);">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">⌀ Dauer</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5">@_avgDuration.ToString("F0") min</RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Gap="0.5rem">
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100); border-left: 3px solid #00b4f1;">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">Siege Blau</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: #00b4f1;">@_blueWins</RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100); border-left: 3px solid #fc1911;">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">Siege Rot</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: #fc1911;">@_redWins</RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+
+            @if (_todayGames.Count > 0)
+            {
+                var lastGame = _todayGames.First();
+                var lastWinner = (TeamColor)lastGame.Winner;
+                var lastMode = GetGameModeDisplayName(lastGame.GameMode);
+                var lastWinnerBadgeStyle = $"background: {Util.HTMLColorForTeam(lastWinner)}; color: white;";
+                <RadzenCard Variant="Variant.Flat" Style="padding: 0.5rem; background: var(--rz-base-100);">
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">Letztes Spiel — @lastMode</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Style="align-items: center;">
+                        <RadzenBadge BadgeStyle="@(lastGame.EndReason == "Stopped" ? BadgeStyle.Warning : BadgeStyle.Success)">
+                            @(lastGame.EndReason == "Stopped" ? "Abbruch" : "Beendet")
+                        </RadzenBadge>
+                        @if (lastWinner != TeamColor.NONE)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Primary" Style="@lastWinnerBadgeStyle">
+                                @lastWinner.ToString()
+                            </RadzenBadge>
+                        }
+                        else
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Light">Unentschieden</RadzenBadge>
+                        }
+                        <RadzenText TextStyle="TextStyle.Caption" style="margin-left: auto;">@lastGame.Duration.ToString(@"mm\:ss")</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            }
+        }
+
+        @if (IsRunning && GSS.CurrentGame != null)
+        {
+            <RadzenDivider Style="margin: 0.25rem 0;" />
+            <RadzenText TextStyle="TextStyle.Subtitle2">Live</RadzenText>
+            <RadzenRow Gap="0.5rem">
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100); border-left: 3px solid #00b4f1;">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">
+                            @(GSS.TeamInWald == TeamColor.BLUE ? "Blau / Wald" : "Blau / Stadt")
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: #00b4f1;">
+                            @GSS.CurrentGame.GetDisplayPoints(TeamColor.BLUE)
+                        </RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="6">
+                    <RadzenCard Variant="Variant.Flat" Style="text-align: center; padding: 0.5rem; background: var(--rz-base-100); border-left: 3px solid #fc1911;">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">
+                            @(GSS.TeamInStadt == TeamColor.RED ? "Rot / Stadt" : "Rot / Wald")
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: #fc1911;">
+                            @GSS.CurrentGame.GetDisplayPoints(TeamColor.RED)
+                        </RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+            @if (GSS.CurrentGame.IsPaused)
+            {
+                <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="PAUSED" Style="width: 100%; text-align: center;" />
+            }
+        }
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    private List<GameHistory> _todayGames = new();
+    private int _blueWins;
+    private int _redWins;
+    private double _avgDuration;
+    private Action _stateChangedHandler = null!;
+
+    private bool IsRunning => GSS.CurrentGame?.IsRunning ?? false;
+
+    protected override void OnInitialized()
+    {
+        _stateChangedHandler = () => InvokeAsync(() => { LoadStats(); StateHasChanged(); });
+        ETS.StateHasChangedAction += _stateChangedHandler;
+        LoadStats();
+    }
+
+    private void LoadStats()
+    {
+        _todayGames = GHS.GetTodayGames();
+        _blueWins = _todayGames.Count(g => (TeamColor)g.Winner == TeamColor.BLUE);
+        _redWins = _todayGames.Count(g => (TeamColor)g.Winner == TeamColor.RED);
+        _avgDuration = _todayGames.Where(g => g.EndTime.HasValue).Select(g => g.Duration.TotalMinutes).DefaultIfEmpty(0).Average();
+    }
+
+    private string GetGameModeDisplayName(int gameMode) => ((GameMode)gameMode) switch
+    {
+        GameMode.Conquest => "Eroberung",
+        GameMode.TeamDeathMatch => "Team Deathmatch",
+        GameMode.Timer => "Timer",
+        GameMode.ChainBreak => "Kettenbruch",
+        _ => ((GameMode)gameMode).ToString()
+    };
+
+    public void Dispose()
+    {
+        ETS.StateHasChangedAction -= _stateChangedHandler;
+    }
+}
