@@ -50,8 +50,8 @@ else
                     var badgeStyle = $"background: {Util.HTMLColorForTeam(winnerColor)}; color: white;";
 
             <RadzenColumn Size="12" SizeMD="6" SizeLG="4">
-                <RadzenCard Class="rz-p-0" Style="overflow:hidden; cursor:pointer;"
-                            Click="@(() => OpenDetail(game.Id))">
+                <div @onclick="@(() => OpenDetail(game.Id))" style="cursor:pointer;">
+                <RadzenCard Class="rz-p-0" Style="overflow:hidden;">
                     <div style="@headerStyle" class="rz-p-3">
                         <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.Span">@modeName</RadzenText>
                     </div>
@@ -93,6 +93,7 @@ else
                         </div>
                     </div>
                 </RadzenCard>
+                </div>
             </RadzenColumn>
         }
     </RadzenRow>
