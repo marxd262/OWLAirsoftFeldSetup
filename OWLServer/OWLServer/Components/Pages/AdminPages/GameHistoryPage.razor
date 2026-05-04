@@ -1,0 +1,99 @@
+@page "/Admin/GameHistory"
+@implements IDisposable
+
+<RadzenText TextStyle="TextStyle.H4" TagName="TagName.H2" class="mb-3">Spielverlauf</RadzenText>
+
+<div class="mb-3">
+    <RadzenRow Gap="16px" AlignItems="AlignItems.Center" class="mb-2">
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenDatePicker @bind-Value="@_dateFrom" Change="@OnFilterChanged" Placeholder="Von Datum" Style="width:100%" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenDatePicker @bind-Value="@_dateTo" Change="@OnFilterChanged" Placeholder="Bis Datum" Style="width:100%" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="2">
+            <RadzenDropDown TValue="int?" @bind-Value="@_filterGameMode" Change="@OnFilterChanged" Placeholder="Spielmodus" Style="width:100%"
+                Data="@_gameModeOptions" TextProperty="Text" ValueProperty="Value" AllowClear="true" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="2">
+            <RadzenDropDown TValue="int?" @bind-Value="@_filterWinner" Change="@OnFilterChanged" Placeholder="Gewinner" Style="width:100%"
+                Data="@_winnerOptions" TextProperty="Text" ValueProperty="Value" AllowClear="true" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="2">
+            <RadzenDropDown TValue="string" @bind-Value="@_sortOrder" Change="@OnFilterChanged" Placeholder="Sortierung" Style="width:100%"
+                Data="@_sortOptions" TextProperty="Text" ValueProperty="Value" />
+        </RadzenColumn>
+    </RadzenRow>
+</div>
+
+@if (_filteredGames.Count == 0)
+{
+    <RadzenCard Class="rz-p-4 rz-text-align-center">
+        <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.Span" style="color: var(--rz-text-tertiary-color)">
+            Keine Spiele aufgezeichnet
+        </RadzenText>
+    </RadzenCard>
+}
+else
+{
+    <RadzenRow Gap="16px">
+        @foreach (var game in _filteredGames)
+        {
+            var winnerColor = (TeamColor)game.Winner;
+            var headerStyle = winnerColor switch
+            {
+                TeamColor.BLUE => "background: linear-gradient(135deg, #00b4f1, #0088cc); color: white;",
+                TeamColor.RED => "background: linear-gradient(135deg, #fc1911, #cc1400); color: white;",
+                _ => "background: var(--rz-base-300); color: var(--rz-text-color);"
+            };
+                    var modeName = ((GameMode)game.GameMode).ToString();
+                    var badgeStyle = $"background: {Util.HTMLColorForTeam(winnerColor)}; color: white;";
+
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4">
+                <RadzenCard Class="rz-p-0" Style="overflow:hidden; cursor:pointer;"
+                            Click="@(() => OpenDetail(game.Id))">
+                    <div style="@headerStyle" class="rz-p-3">
+                        <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.Span">@modeName</RadzenText>
+                    </div>
+                    <div class="rz-p-3">
+                        <RadzenText TextStyle="TextStyle.Caption" TagName="TagName.Div" style="color: var(--rz-text-tertiary-color)">
+                            @game.StartTime.ToString("dd.MM.yyyy HH:mm") — @game.Duration.ToString(@"mm\:ss")
+                        </RadzenText>
+                        <div class="rz-d-flex rz-align-items-center rz-gap-2 rz-mt-2">
+                            @if (winnerColor != TeamColor.NONE)
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Primary" style="@badgeStyle">
+                                    @winnerColor.ToString()
+                                </RadzenBadge>
+                            }
+                            else
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light">Unentschieden</RadzenBadge>
+                            }
+                            <RadzenBadge BadgeStyle="@(game.EndReason == "Stopped" ? BadgeStyle.Warning : BadgeStyle.Success)">
+                                @(game.EndReason == "Stopped" ? "Abgebrochen" : "Abgeschlossen")
+                            </RadzenBadge>
+                        </div>
+                        <div class="rz-d-flex rz-gap-3 rz-mt-3">
+                            @foreach (var team in _gameTeamsByGame.GetValueOrDefault(game.Id, new()))
+                            {
+                                var barColor = Util.HTMLColorForTeam((TeamColor)team.TeamColor);
+                                <div style="flex:1;">
+                                    <RadzenText TextStyle="TextStyle.Caption" TagName="TagName.Div">
+                                        @team.TeamName (@team.Side)
+                                    </RadzenText>
+                                    <div style="background:var(--rz-base-200); border-radius:4px; overflow:hidden; height:8px;">
+                                        <div style="width:@(GetScorePercent(team))%; background:@barColor; height:100%;"></div>
+                                    </div>
+                                    <RadzenText TextStyle="TextStyle.Caption" TagName="TagName.Div" style="text-align:right;">
+                                        @team.FinalScore
+                                    </RadzenText>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+}

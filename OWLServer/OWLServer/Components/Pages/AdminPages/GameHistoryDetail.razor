@@ -1,0 +1,108 @@
+@using OWLServer.Models
+@using OWLServer.Services
+@using Radzen.Blazor
+
+@if (Game == null)
+{
+    <RadzenText>Keine Daten</RadzenText>
+}
+else
+{
+    var winnerColor = (TeamColor)Game.Winner;
+    var modeName = ((GameMode)Game.GameMode).ToString();
+    var winnerBadgeStyle = $"background: {Util.HTMLColorForTeam(winnerColor)}; color: white; font-size: 1.1em;";
+
+    <div class="rz-p-3">
+
+        <RadzenRow Gap="16px" class="mb-3">
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Spielmodus</RadzenText>
+                <RadzenText TagName="TagName.Div">@modeName</RadzenText>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Datum</RadzenText>
+                <RadzenText TagName="TagName.Div">@Game.StartTime.ToString("dd.MM.yyyy HH:mm")</RadzenText>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="16px" class="mb-3">
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Dauer</RadzenText>
+                <RadzenText TagName="TagName.Div">@Game.Duration.ToString(@"mm\:ss")</RadzenText>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Status</RadzenText>
+                <RadzenBadge BadgeStyle="@(Game.EndReason == "Stopped" ? BadgeStyle.Warning : BadgeStyle.Success)">
+                    @(Game.EndReason == "Stopped" ? "Abgebrochen" : "Abgeschlossen")
+                </RadzenBadge>
+            </RadzenColumn>
+        </RadzenRow>
+
+        @if (winnerColor != TeamColor.NONE)
+        {
+            <div class="mb-3">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Gewinner</RadzenText>
+                <RadzenBadge BadgeStyle="BadgeStyle.Primary" style="@winnerBadgeStyle">
+                    @winnerColor.ToString()
+                </RadzenBadge>
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">Gewinner</RadzenText>
+                <RadzenBadge BadgeStyle="BadgeStyle.Light" style="font-size: 1.1em;">Unentschieden</RadzenBadge>
+            </div>
+        }
+
+        <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Teams</RadzenText>
+        <RadzenRow Gap="16px" class="mb-3">
+            @foreach (var team in Teams)
+            {
+                var teamCardStyle = $"border-left: 4px solid {Util.HTMLColorForTeam((TeamColor)team.TeamColor)};";
+                <RadzenColumn Size="6">
+                    <RadzenCard Class="rz-p-3" Style="@teamCardStyle">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.Div">
+                            @team.TeamName (@team.Side)
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Punkte: @team.FinalScore</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Tode: @team.Deaths</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TagName="TagName.Div">Türme: @team.TowersControlled</RadzenText>
+                    </RadzenCard>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+
+        @if (Towers.Count > 0)
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Türme</RadzenText>
+            <RadzenDataGrid Data="@Towers" TItem="GameHistoryTower" AllowPaging="false" Density="Density.Compact">
+                <Columns>
+                    <RadzenDataGridColumn TItem="GameHistoryTower" Property="DisplayLetter" Title="Turm" />
+                    <RadzenDataGridColumn TItem="GameHistoryTower" Property="MacAddress" Title="MAC" />
+                    <RadzenDataGridColumn TItem="GameHistoryTower" Title="Farbe" Context="tower">
+                        <Template>
+                            <span style="display:inline-block; width:16px; height:16px; border-radius:50%; background:@Util.HTMLColorForTeam((TeamColor)tower.FinalColor); vertical-align:middle;"></span>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GameHistoryTower" Property="Captures" Title="Eroberungen" />
+                </Columns>
+            </RadzenDataGrid>
+        }
+
+        @if (Snapshot != null && !string.IsNullOrEmpty(Snapshot.SnapshotJSON))
+        {
+            <RadzenPanel AllowCollapse="true" Text="Konfiguration (Snapshot)" class="rz-mt-4">
+                <pre style="max-height:400px; overflow:auto; font-size:0.8em; background:var(--rz-base-100); padding:1em; border-radius:4px;">
+                    <code>@Snapshot.SnapshotJSON</code>
+                </pre>
+            </RadzenPanel>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public GameHistory Game { get; set; } = null!;
+    [Parameter] public List<GameHistoryTeam> Teams { get; set; } = new();
+    [Parameter] public List<GameHistoryTower> Towers { get; set; } = new();
+    [Parameter] public GameHistorySnapshot? Snapshot { get; set; }
+}
