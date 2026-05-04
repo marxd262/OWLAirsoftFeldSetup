@@ -54,7 +54,7 @@ namespace OWLServer.Services
 
         public async void StartGame()
         {
-            GameHistoryService.RecordGameStart();
+            GameHistoryService.RecordGameStart(CurrentGame?.GameMode ?? GameMode.None, TowerManagerService.Towers, Teams, TeamInWald);
             AudioService.PlaySound(Sounds.Start);
             var delay = AudioService.GetDelay(Sounds.Start);
             if (delay > 0) await Task.Delay(delay * 1000);
@@ -69,7 +69,7 @@ namespace OWLServer.Services
 
         public void HandleGameEnd()
         {
-            GameHistoryService.RecordGameEnd();
+            GameHistoryService.RecordGameEnd(CurrentGame, TowerManagerService.Towers);
             AudioService.PlaySound(Sounds.Stop);
             try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
             catch { }

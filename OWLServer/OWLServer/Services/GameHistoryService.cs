@@ -11,35 +11,39 @@ namespace OWLServer.Services
     {
         private readonly IDbContextFactory<DatabaseContext> _dbFactory;
         private readonly IExternalTriggerService _externalTriggerService;
-        private readonly IGameStateService _gameStateService;
 
         public int? CurrentGameId { get; private set; }
         public string EndReason { get; set; } = "Completed";
 
         private Dictionary<string, int> _towerCaptureCounts = new();
         private Dictionary<string, TeamColor> _lastKnownTowerColors = new();
+        private Dictionary<string, Tower>? _activeTowers;
+        private Dictionary<TeamColor, TeamBase>? _activeTeams;
+        private TeamColor _teamInWald;
 
         public GameHistoryService(
             IDbContextFactory<DatabaseContext> dbFactory,
-            IExternalTriggerService externalTriggerService,
-            IGameStateService gameStateService)
+            IExternalTriggerService externalTriggerService)
         {
             _dbFactory = dbFactory;
             _externalTriggerService = externalTriggerService;
-            _gameStateService = gameStateService;
         }
 
-        public void RecordGameStart()
+        public void RecordGameStart(GameMode gameMode, Dictionary<string, Tower> towers,
+            Dictionary<TeamColor, TeamBase> teams, TeamColor teamInWald)
         {
             EndReason = "Completed";
             _towerCaptureCounts = new();
             _lastKnownTowerColors = new();
+            _activeTowers = towers;
+            _activeTeams = teams;
+            _teamInWald = teamInWald;
 
             using var db = _dbFactory.CreateDbContext();
 
             var history = new GameHistory
             {
-                GameMode = (int)(_gameStateService.CurrentGame?.GameMode ?? GameMode.None),
+                GameMode = (int)gameMode,
                 StartTime = DateTime.Now,
                 Winner = (int)TeamColor.NONE
             };
@@ -48,7 +52,7 @@ namespace OWLServer.Services
             db.SaveChanges();
             CurrentGameId = history.Id;
 
-            foreach (var kvp in _gameStateService.TowerManagerService.Towers)
+            foreach (var kvp in towers)
             {
                 var tower = kvp.Value;
                 _towerCaptureCounts[kvp.Key] = 0;
@@ -63,10 +67,10 @@ namespace OWLServer.Services
                 });
             }
 
-            foreach (var kvp in _gameStateService.Teams)
+            foreach (var kvp in teams)
             {
                 var team = kvp.Value;
-                string side = kvp.Key == _gameStateService.TeamInWald ? "Wald" : "Stadt";
+                string side = kvp.Key == teamInWald ? "Wald" : "Stadt";
                 db.GameHistoryTeams.Add(new GameHistoryTeam
                 {
                     GameHistoryId = history.Id,
@@ -79,7 +83,7 @@ namespace OWLServer.Services
             var snapshot = new GameHistorySnapshot
             {
                 GameHistoryId = history.Id,
-                SnapshotJSON = BuildSnapshotJSON()
+                SnapshotJSON = BuildSnapshotJSON(gameMode, towers, teams)
             };
             db.GameHistorySnapshots.Add(snapshot);
 
@@ -90,9 +94,9 @@ namespace OWLServer.Services
 
         private void TrackCaptures()
         {
-            if (CurrentGameId == null) return;
+            if (CurrentGameId == null || _activeTowers == null) return;
 
-            foreach (var kvp in _gameStateService.TowerManagerService.Towers)
+            foreach (var kvp in _activeTowers)
             {
                 var tower = kvp.Value;
                 if (!_lastKnownTowerColors.TryGetValue(kvp.Key, out var lastColor))
@@ -115,7 +119,7 @@ namespace OWLServer.Services
             }
         }
 
-        public void RecordGameEnd()
+        public void RecordGameEnd(IGameModeBase? currentGame, Dictionary<string, Tower> towers)
         {
             _externalTriggerService.StateHasChangedAction -= TrackCaptures;
 
@@ -128,18 +132,17 @@ namespace OWLServer.Services
 
             history.EndTime = DateTime.Now;
             history.Duration = history.EndTime.Value - history.StartTime;
-            history.Winner = (int)(_gameStateService.CurrentGame?.GetWinner ?? TeamColor.NONE);
+            history.Winner = (int)(currentGame?.GetWinner ?? TeamColor.NONE);
             history.EndReason = EndReason;
 
             var teams = db.GameHistoryTeams.Where(t => t.GameHistoryId == CurrentGameId.Value).ToList();
             foreach (var team in teams)
             {
                 var teamColor = (TeamColor)team.TeamColor;
-                team.FinalScore = _gameStateService.CurrentGame?.GetDisplayPoints(teamColor) ?? 0;
-                team.TowersControlled = _gameStateService.TowerManagerService.Towers.Values
+                team.FinalScore = currentGame?.GetDisplayPoints(teamColor) ?? 0;
+                team.TowersControlled = towers.Values
                     .Count(t => t.CurrentColor == teamColor);
 
-                var currentGame = _gameStateService.CurrentGame;
                 if (currentGame is GameModeTeamDeathmatch tdm)
                 {
                     team.Deaths = tdm.TeamDeaths.GetValueOrDefault(teamColor, 0);
@@ -149,7 +152,7 @@ namespace OWLServer.Services
             var towerRecords = db.GameHistoryTowers.Where(t => t.GameHistoryId == CurrentGameId.Value).ToList();
             foreach (var tr in towerRecords)
             {
-                if (_gameStateService.TowerManagerService.Towers.TryGetValue(tr.MacAddress, out var tower))
+                if (towers.TryGetValue(tr.MacAddress, out var tower))
                 {
                     tr.FinalColor = (int)tower.CurrentColor;
                 }
@@ -162,17 +165,20 @@ namespace OWLServer.Services
             db.SaveChanges();
 
             CurrentGameId = null;
+            _activeTowers = null;
+            _activeTeams = null;
             _towerCaptureCounts = new();
             _lastKnownTowerColors = new();
         }
 
-        private string BuildSnapshotJSON()
+        private string BuildSnapshotJSON(GameMode gameMode, Dictionary<string, Tower> towers,
+            Dictionary<TeamColor, TeamBase> teams)
         {
             var snapshot = new
             {
                 Timestamp = DateTime.Now,
-                GameMode = _gameStateService.CurrentGame?.GameMode.ToString(),
-                Towers = _gameStateService.TowerManagerService.Towers.Values.Select(t => new
+                GameMode = gameMode.ToString(),
+                Towers = towers.Values.Select(t => new
                 {
                     t.MacAddress,
                     t.Name,
@@ -182,11 +188,11 @@ namespace OWLServer.Services
                     t.ResetsAfterInSeconds,
                     Location = t.Location != null ? new { t.Location.Top, t.Location.Left } : null
                 }).ToList(),
-                Teams = _gameStateService.Teams.Select(kvp => new
+                Teams = teams.Select(kvp => new
                 {
                     TeamColor = kvp.Key.ToString(),
                     kvp.Value.Name,
-                    Side = kvp.Key == _gameStateService.TeamInWald ? "Wald" : "Stadt"
+                    Side = kvp.Key == _teamInWald ? "Wald" : "Stadt"
                 }).ToList()
             };
 

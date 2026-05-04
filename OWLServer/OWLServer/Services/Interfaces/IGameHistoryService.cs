@@ -1,4 +1,5 @@
 using OWLServer.Models;
+using OWLServer.Models.GameModes;
 
 namespace OWLServer.Services.Interfaces
 {
@@ -6,8 +7,9 @@ namespace OWLServer.Services.Interfaces
     {
         int? CurrentGameId { get; }
         string EndReason { get; set; }
-        void RecordGameStart();
-        void RecordGameEnd();
+        void RecordGameStart(GameMode gameMode, Dictionary<string, Tower> towers,
+            Dictionary<TeamColor, TeamBase> teams, TeamColor teamInWald);
+        void RecordGameEnd(IGameModeBase? currentGame, Dictionary<string, Tower> towers);
         List<GameHistory> GetAllGames();
         GameHistory? GetGame(int id);
         List<GameHistoryTeam> GetGameTeams(int gameHistoryId);
