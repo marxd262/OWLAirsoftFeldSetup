@@ -47,29 +47,27 @@
                 </RadzenColumn>
             </RadzenRow>
 
-            @if (_todayGames.Count > 0)
+            @foreach (var game in _todayGames)
             {
-                var lastGame = _todayGames.First();
-                var lastWinner = (TeamColor)lastGame.Winner;
-                var lastMode = GetGameModeDisplayName(lastGame.GameMode);
-                var lastWinnerBadgeStyle = $"background: {Util.HTMLColorForTeam(lastWinner)}; color: white;";
+                var winner = (TeamColor)game.Winner;
+                var mode = GetGameModeDisplayName(game.GameMode);
+                var winnerBadgeStyle = $"background: {Util.HTMLColorForTeam(winner)}; color: white; font-size: 0.7rem;";
                 <RadzenCard Variant="Variant.Flat" Style="padding: 0.5rem; background: var(--rz-base-100);">
-                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">Letztes Spiel — @lastMode</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Style="align-items: center;">
-                        <RadzenBadge BadgeStyle="@(lastGame.EndReason == "Stopped" ? BadgeStyle.Warning : BadgeStyle.Success)">
-                            @(lastGame.EndReason == "Stopped" ? "Abbruch" : "Beendet")
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Style="align-items: center; flex-wrap: wrap;">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="min-width: 60px;">
+                            @game.StartTime.ToString("HH:mm")
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-tertiary-color);">@mode</RadzenText>
+                        <RadzenBadge BadgeStyle="@(game.EndReason == "Stopped" ? BadgeStyle.Warning : BadgeStyle.Success)" Style="font-size: 0.7rem;">
+                            @(game.EndReason == "Stopped" ? "Abbruch" : "Ende")
                         </RadzenBadge>
-                        @if (lastWinner != TeamColor.NONE)
+                        @if (winner != TeamColor.NONE)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Primary" Style="@lastWinnerBadgeStyle">
-                                @lastWinner.ToString()
+                            <RadzenBadge BadgeStyle="BadgeStyle.Primary" Style="@winnerBadgeStyle">
+                                @winner.ToString()
                             </RadzenBadge>
                         }
-                        else
-                        {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Light">Unentschieden</RadzenBadge>
-                        }
-                        <RadzenText TextStyle="TextStyle.Caption" style="margin-left: auto;">@lastGame.Duration.ToString(@"mm\:ss")</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Caption" style="margin-left: auto;">@game.Duration.ToString(@"mm\:ss")</RadzenText>
                     </RadzenStack>
                 </RadzenCard>
             }
