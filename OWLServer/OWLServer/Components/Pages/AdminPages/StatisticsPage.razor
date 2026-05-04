@@ -51,7 +51,7 @@
             <RadzenCard Class="rz-p-3">
                 <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Siege nach Spielmodus</RadzenText>
                 <RadzenChart style="height:250px;">
-                    <RadzenBarSeries Data="@_winRateByMode" CategoryProperty="Mode" ValueProperty="Wins" Title="Siege" />
+                    <RadzenBarSeries Data="@_winRateByMode" CategoryProperty="Category" ValueProperty="Value" Title="Siege" />
                     <RadzenCategoryAxis />
                     <RadzenValueAxis />
                 </RadzenChart>
@@ -61,7 +61,7 @@
             <RadzenCard Class="rz-p-3">
                 <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Siege nach Seite</RadzenText>
                 <RadzenChart style="height:250px;">
-                    <RadzenPieSeries Data="@_winRateBySide" CategoryProperty="Side" ValueProperty="Wins" Title="Siege" />
+                    <RadzenPieSeries Data="@_winRateBySide" CategoryProperty="Category" ValueProperty="Value" Title="Siege" />
                 </RadzenChart>
             </RadzenCard>
         </RadzenColumn>
@@ -98,7 +98,7 @@
                 <RadzenCard Class="rz-p-3">
                     <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Turm Hotspots</RadzenText>
                     <RadzenChart style="@($"height:{_towerHotspots.Count * 40 + 40}px;")">
-                        <RadzenBarSeries Data="@_towerHotspots" CategoryProperty="Letter" ValueProperty="Captures" Title="Eroberungen" />
+                        <RadzenBarSeries Data="@_towerHotspots" CategoryProperty="Category" ValueProperty="Value" Title="Eroberungen" />
                         <RadzenCategoryAxis />
                         <RadzenValueAxis />
                     </RadzenChart>

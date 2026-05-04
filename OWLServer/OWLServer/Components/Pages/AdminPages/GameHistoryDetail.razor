@@ -145,9 +145,10 @@ else
                             </Columns>
                         </RadzenDataGrid>
 
+                        var eventsPerMinute = EventData.GroupBy(e => (int)((e.Timestamp - Game.StartTime.ToUniversalTime()).TotalMinutes)).Select(g => new { Minute = g.Key, Count = g.Count() }).ToList();
                         <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Ereignisse pro Minute</RadzenText>
                         <RadzenChart style="height:200px;">
-                            <RadzenBarSeries Data="@GetEventsPerMinute()" CategoryProperty="Minute" ValueProperty="Count" Title="Ereignisse" />
+                            <RadzenBarSeries Data="@eventsPerMinute" CategoryProperty="Minute" ValueProperty="Count" Title="Ereignisse" />
                             <RadzenCategoryAxis />
                             <RadzenValueAxis />
                         </RadzenChart>
@@ -159,7 +160,7 @@ else
                 <div class="rz-p-3">
                     @if (DeathsPerMinute.Count > 0)
                     {
-                        var deathData = DeathsPerMinute.Select(kvp => (object)new { Minute = kvp.Key, Count = kvp.Value }).ToList();
+                        var deathData = DeathsPerMinute.Select(kvp => new { Minute = kvp.Key, Count = kvp.Value }).ToList();
                         <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4">Tode pro Minute</RadzenText>
                         <RadzenChart style="height:200px;">
                             <RadzenBarSeries Data="@deathData" CategoryProperty="Minute" ValueProperty="Count" Title="Tode" />
@@ -170,7 +171,7 @@ else
 
                     @if (TowerContest.Count > 0)
                     {
-                        var contestData = TowerContest.Select(kvp => (object)new { Letter = kvp.Key, Captures = kvp.Value }).ToList();
+                        var contestData = TowerContest.Select(kvp => new { Letter = kvp.Key, Captures = kvp.Value }).ToList();
                         <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H4" class="rz-mt-4">Turmeroberungen</RadzenText>
                         <RadzenChart style="@($"height:{TowerContest.Count * 40 + 40}px;")">
                             <RadzenBarSeries Data="@contestData" CategoryProperty="Letter" ValueProperty="Captures" Title="Eroberungen" />
@@ -241,13 +242,4 @@ else
         GameEventType.PointsAwarded => "Punkte vergeben",
         _ => "Unbekannt"
     };
-
-    private List<object> GetEventsPerMinute()
-    {
-        if (Game == null) return new();
-        return EventData
-            .GroupBy(e => (int)((e.Timestamp - Game.StartTime.ToUniversalTime()).TotalMinutes))
-            .Select(g => (object)new { Minute = g.Key, Count = g.Count() })
-            .ToList();
-    }
 }
