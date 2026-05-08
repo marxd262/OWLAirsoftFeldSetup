@@ -1,0 +1,21 @@
+@page "/admin"
+@inject LoadingStateService LoadingState
+
+<PageTitle>Admin</PageTitle>
+
+<h1>Admin</h1>
+
+<button
+    class="btn btn-primary btn-lg"
+    @onmousedown="StartLoad"
+    @onmouseup="StopLoad"
+    @onmouseleave="StopLoad"
+    @ontouchstart="StartLoad"
+    @ontouchend="StopLoad">
+    Load
+</button>
+
+@code {
+    void StartLoad() => LoadingState.StartLoading();
+    void StopLoad() => LoadingState.StopLoading();
+}

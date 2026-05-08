@@ -1,7 +1,24 @@
 ﻿@page "/"
 
 <PageTitle>Home</PageTitle>
+<div class="scanlines"/>
+<div class="intro-wrap">
+    <div class="noise" />
+    <div class="noise noise-moving" />
 
-<h1>Hello, world!</h1>
+    @switch (_bombState)
+    {
+        case BombState.Standby:
+            <h1 class="play">Standby<span class="cursor">_</span></h1>
+            break;
+        case BombState.Activating:
+            <Activating />
+            break;
+        case BombState.Active:
+            <Active />
+            break;
+    }
 
-Welcome to your new app.
+</div>
+
+

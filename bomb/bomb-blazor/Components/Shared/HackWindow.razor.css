@@ -1,0 +1,85 @@
+.hack-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 520px;
+    max-height: 360px;
+    background: #0a0a0a;
+    border: 2px solid #0f0;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.05);
+    z-index: 1000;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: windowAppear 0.3s ease-out;
+}
+
+.hack-window-header {
+    background: linear-gradient(90deg, #0a0a0a, #111);
+    border-bottom: 1px solid #0f0;
+    padding: 6px 12px;
+    color: #0f0;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.hack-window-body {
+    padding: 12px;
+    flex: 1;
+    overflow-y: auto;
+    color: #0f0;
+    line-height: 1.6;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+}
+
+.hack-window-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.hack-window-body::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+.hack-window-body::-webkit-scrollbar-thumb {
+    background: #0f0;
+    border-radius: 3px;
+}
+
+.hack-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.hack-line.typed {
+    opacity: 0.7;
+}
+
+.hack-line.typing {
+    opacity: 1;
+}
+
+.cursor {
+    animation: blink 0.6s step-end infinite;
+}
+
+@keyframes windowAppear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}

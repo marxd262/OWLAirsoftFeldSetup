@@ -1,0 +1,191 @@
+@implements IDisposable
+@inject LoadingStateService LoadingState
+
+@if (_showWindow)
+{
+    <div class="hack-window">
+        <div class="hack-window-header">
+            <span>EXPLOSIVE CHARGE - ARMING SEQUENCE</span>
+        </div>
+        <div class="hack-window-body">
+            @foreach (var line in _typedLines)
+            {
+                <div class="hack-line typed">@line</div>
+            }
+            @if (_currentLine.Length > 0)
+            {
+                <div class="hack-line typing">@_currentLine<span class="cursor">_</span></div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool _showWindow;
+    private decimal _progress;
+    private decimal _previousProgress;
+    private int _currentLineIndex;
+    private string _currentLine = "";
+    private int _charIndex;
+    private readonly List<string> _typedLines = [];
+    private Timer? _typeTimer;
+    private bool _isReversing;
+
+    private static readonly string[] _lines =
+    [
+        "> INITIALIZING ARMING PROTOCOL...",
+        "> CHECKING FUZE INTEGRITY.............. OK",
+        "> VERIFYING DETONATOR CIRCUIT........... OK",
+        "> CALIBRATING TIMER MODULE.............. OK",
+        $"> TARGET ACQUIRED: 47.6205\u00B0N, 122.3493\u00B0W",
+        "> BYPASSING SAFETY INTERLOCKS........... OK",
+        "> ESTABLISHING SECURE CHANNEL........... OK",
+        "> DECRYPTING ARMING CODES............... OK",
+        "> ARMING SEQUENCE 75% COMPLETE",
+        "> WARNING: MANUAL OVERRIDE DISABLED",
+        "> FINALIZING ARMING SEQUENCE..."
+    ];
+
+    private static readonly int TotalChars = _lines.Sum(l => l.Length);
+
+    protected override void OnInitialized()
+    {
+        LoadingState.OnChange += OnProgressChanged;
+        _progress = LoadingState.Progress;
+        _previousProgress = _progress;
+        if (_progress >= 30)
+        {
+            _showWindow = true;
+            _isReversing = false;
+            StartTyping();
+        }
+    }
+
+    private void OnProgressChanged()
+    {
+        _previousProgress = _progress;
+        _progress = LoadingState.Progress;
+
+        if (_progress >= 5 && !_showWindow)
+        {
+            _showWindow = true;
+            _isReversing = false;
+            StartTyping();
+            InvokeAsync(StateHasChanged);
+        }
+        else if (_progress > _previousProgress && _showWindow)
+        {
+            if (_isReversing)
+                _isReversing = false;
+            StartTyping();
+            InvokeAsync(StateHasChanged);
+        }
+        else if (_progress < _previousProgress && _showWindow)
+        {
+            if (!_isReversing)
+                _isReversing = true;
+            StartReversing();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void StartTyping()
+    {
+        var remainingMs = (100 - _progress) * 100m;
+        var charsToType = TotalChars - GetTypedCharCount();
+        if (charsToType <= 0)
+        {
+            _typeTimer?.Dispose();
+            return;
+        }
+        var interval = (int)(remainingMs / charsToType) - 1;
+        if (interval < 1) interval = 1;
+
+        _typeTimer?.Dispose();
+        _typeTimer = new Timer(async _ =>
+        {
+            if (_isReversing || _currentLineIndex >= _lines.Length)
+            {
+                _typeTimer?.Dispose();
+                return;
+            }
+
+            var line = _lines[_currentLineIndex];
+
+            if (_charIndex < line.Length)
+            {
+                _charIndex++;
+                _currentLine = line[.._charIndex];
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                _typedLines.Add(_currentLine);
+                _currentLine = "";
+                _charIndex = 0;
+                _currentLineIndex++;
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, 0, interval);
+    }
+
+    private void StartReversing()
+    {
+        var remainingMs = (_progress - 5) * 100m;
+        var charsToDelete = GetTypedCharCount();
+        if (charsToDelete <= 0)
+        {
+            _typeTimer?.Dispose();
+            return;
+        }
+        var interval = (int)(remainingMs / charsToDelete) - 1;
+        if (interval < 1) interval = 1;
+
+        _typeTimer?.Dispose();
+        _typeTimer = new Timer(async _ =>
+        {
+            if (!_isReversing)
+            {
+                _typeTimer?.Dispose();
+                return;
+            }
+
+            if (GetTypedCharCount() == 0)
+            {
+                _typeTimer?.Dispose();
+                return;
+            }
+
+            if (_charIndex > 0)
+            {
+                _charIndex--;
+                _currentLine = _lines[_currentLineIndex][.._charIndex];
+                await InvokeAsync(StateHasChanged);
+            }
+            else if (_typedLines.Count > 0)
+            {
+                var lastLine = _typedLines[^1];
+                _typedLines.RemoveAt(_typedLines.Count - 1);
+                _currentLineIndex--;
+                _charIndex = _lines[_currentLineIndex].Length;
+                _currentLine = _lines[_currentLineIndex];
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, 0, interval);
+    }
+
+    private int GetTypedCharCount()
+    {
+        var count = 0;
+        foreach (var line in _typedLines)
+            count += line.Length;
+        count += _currentLine.Length;
+        return count;
+    }
+
+    public void Dispose()
+    {
+        LoadingState.OnChange -= OnProgressChanged;
+        _typeTimer?.Dispose();
+    }
+}
