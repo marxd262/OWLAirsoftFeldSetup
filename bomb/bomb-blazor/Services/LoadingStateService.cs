@@ -14,8 +14,8 @@ public class LoadingStateService : IDisposable
 
     public void StartLoading()
     {
+        if (_isLoading) return;
         _isLoading = true;
-        _progress = 0;
         _timer?.Dispose();
         _timer = new Timer(_ =>
         {

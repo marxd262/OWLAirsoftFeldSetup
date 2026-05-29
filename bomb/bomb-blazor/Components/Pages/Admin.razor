@@ -7,11 +7,10 @@
 
 <button
     class="btn btn-primary btn-lg"
-    @onmousedown="StartLoad"
-    @onmouseup="StopLoad"
-    @onmouseleave="StopLoad"
-    @ontouchstart="StartLoad"
-    @ontouchend="StopLoad">
+    @onpointerdown="StartLoad"
+    @onpointerup="StopLoad"
+    @onpointerleave="StopLoad"
+    @onpointercancel="StopLoad">
     Load
 </button>
 
