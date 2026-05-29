@@ -4,6 +4,17 @@ public enum BombState
 {
     Standby,
     Activating,
-    Active
+    Active,
+    Defusing,
+    Defused,
+    Detonated
+}
+
+public enum DefuseState
+{
+    Idle,
+    Defusing,
+    Defused,
+    Detonated
 }
 

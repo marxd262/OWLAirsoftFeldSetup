@@ -1,5 +1,7 @@
 @page "/admin"
 @inject LoadingStateService LoadingState
+@inject DefuseService Defuse
+@implements IDisposable
 
 <PageTitle>Admin</PageTitle>
 
@@ -14,7 +16,51 @@
     Load
 </button>
 
+@if (LoadingState.Progress == 100)
+{
+    <button
+        class="btn btn-danger btn-lg defuse-btn"
+        @onmousedown="StartDefuse"
+        @onmouseup="StopDefuse"
+        @onmouseleave="StopDefuse"
+        disabled="@(Defuse.State != DefuseState.Idle)">
+        Hold to Defuse
+    </button>
+}
+
+@if (Defuse.State == DefuseState.Defusing)
+{
+    <div class="defuse-progress">
+        <div class="defuse-progress-fill" style="width: @(Defuse.DefuseProgress * 100)%"></div>
+    </div>
+}
+
 @code {
-    void StartLoad() => LoadingState.StartLoading();
-    void StopLoad() => LoadingState.StopLoading();
+    protected override void OnInitialized()
+    {
+        Defuse.OnChange += OnDefuseStateChanged;
+        LoadingState.OnChange += OnLoadingStateChanged;
+    }
+
+    private void StartLoad() => LoadingState.StartLoading();
+    private void StopLoad() => LoadingState.StopLoading();
+
+    private void StartDefuse() => Defuse.StartDefuse();
+    private void StopDefuse() => Defuse.StopDefuse();
+
+    private void OnDefuseStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnLoadingStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Defuse.OnChange -= OnDefuseStateChanged;
+        LoadingState.OnChange -= OnLoadingStateChanged;
+    }
 }

@@ -8,6 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<LoadingStateService>();
+builder.Services.AddSingleton<DefuseService>();
 
 var app = builder.Build();
 

@@ -46,6 +46,15 @@ public class LoadingStateService : IDisposable
         NotifyStateChanged();
     }
 
+    public void Reset()
+    {
+        _isLoading = false;
+        _timer?.Dispose();
+        _timer = null;
+        _progress = 0;
+        NotifyStateChanged();
+    }
+
     private void NotifyStateChanged() => OnChange?.Invoke();
 
     public void Dispose()

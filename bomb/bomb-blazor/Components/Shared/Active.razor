@@ -1,2 +1,88 @@
-<h1>ACTIVE</h1>
-<p>Time remaining</p>
+@implements IDisposable
+@inject DefuseService Defuse
+@using System.Diagnostics
+
+<h1 class="@_headingClass">@_headingText</h1>
+<p class="@_textClass">@_displayText</p>
+
+@code {
+    private const double TotalSeconds = 60;
+    private const int MsThreshold = 15;
+    private Stopwatch _stopwatch = new();
+    private PeriodicTimer? _timer;
+    private string _displayText = "";
+    private string _headingText = "ACTIVE";
+    private string _headingClass = "";
+    private string _textClass = "";
+
+    [Parameter]
+    public EventCallback OnDetonated { get; set; }
+
+    [Parameter]
+    public EventCallback OnDefused { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Defuse.OnChange += OnDefuseStateChanged;
+        _stopwatch.Start();
+        _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+        _ = RunCountdownAsync();
+    }
+
+    private async Task RunCountdownAsync()
+    {
+        while (_timer is not null && await _timer.WaitForNextTickAsync())
+        {
+            var remaining = TotalSeconds - _stopwatch.Elapsed.TotalSeconds;
+
+            if (remaining <= 0)
+            {
+                _displayText = "0.000 s";
+                _stopwatch.Stop();
+                Defuse.NotifyDetonation();
+                Dispose();
+                await OnDetonated.InvokeAsync();
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            var secs = (int)remaining;
+            _displayText = secs <= MsThreshold
+                ? $"{remaining:F3} s"
+                : $"{secs} s";
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnDefuseStateChanged()
+    {
+        switch (Defuse.State)
+        {
+            case DefuseState.Defusing:
+                break;
+            case DefuseState.Defused:
+                _stopwatch.Stop();
+                _timer?.Dispose();
+                _timer = null;
+                _headingText = "DEFUSED";
+                _displayText = "";
+                _headingClass = "text-defused";
+                _textClass = "text-defused";
+                InvokeAsync(StateHasChanged);
+                _ = OnDefused.InvokeAsync();
+                break;
+            case DefuseState.Detonated:
+                _headingClass = "";
+                _textClass = "";
+                break;
+        }
+    }
+
+    public void Dispose()
+    {
+        Defuse.OnChange -= OnDefuseStateChanged;
+        _timer?.Dispose();
+        _timer = null;
+    }
+}

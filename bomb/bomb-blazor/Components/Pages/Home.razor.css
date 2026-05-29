@@ -277,3 +277,7 @@ body::before {
         opacity: 1;
     }
 }
+
+.text-defused {
+    color: #00ff00;
+}

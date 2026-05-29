@@ -1,4 +1,5 @@
 ﻿@page "/"
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 <div class="scanlines"/>
@@ -15,10 +16,14 @@
             <Activating />
             break;
         case BombState.Active:
-            <Active />
+            <Active OnDetonated="HandleDetonation" OnDefused="HandleDefused" />
+            break;
+        case BombState.Defused:
+            <h1 class="text-defused">DEFUSED</h1>
+            break;
+        case BombState.Detonated:
+            <Boom />
             break;
     }
 
 </div>
-
-
