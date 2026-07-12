@@ -7,10 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.WebHost.UseStaticWebAssets();
+
 builder.Services.AddSingleton<LoadingStateService>();
 builder.Services.AddSingleton<DefuseService>();
 
 var app = builder.Build();
+
+app.UseStaticFiles(); 
+app.UseRouting();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -21,7 +26,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
