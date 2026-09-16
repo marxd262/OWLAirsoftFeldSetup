@@ -88,7 +88,10 @@ public class DefuseService : IDisposable
         }
     }
 
-    private void NotifyStateChanged() => OnChange?.Invoke();
+    private void NotifyStateChanged()
+    {
+        OnChange?.Invoke();
+    }
 
     public void Dispose()
     {

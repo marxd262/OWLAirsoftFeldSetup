@@ -7,21 +7,26 @@
 
 <h1>Admin</h1>
 
-<button
-    class="btn btn-primary btn-lg"
-    disabled="@_bombArmed"
-    @onpointerdown="StartLoad"
-    @onpointerup="StopLoad"
-    @onpointerleave="StopLoad"
-    @onpointercancel="StopLoad">
-    Load
-</button>
+@if (!_bombArmed && Defuse?.State == DefuseState.Idle)
+{
+    <button
+        class="btn btn-primary btn-lg"
+        @onpointerdown="StartLoad"
+        @onpointerup="StopLoad"
+        @onpointerleave="StopLoad"
+        @onpointercancel="StopLoad">
+        Load
+    </button>
+}
 
-@if (_bombArmed && Defuse?.State == DefuseState.Idle)
+@if (_bombArmed)
 {
     <button
         class="btn btn-danger btn-lg defuse-btn"
-        @onclick="StartDefuse">
+        @onpointerdown="StartDefuse"
+        @onpointerup="StopDefuse"
+        @onpointerleave="StopDefuse"
+        @onpointercancel="StopDefuse">
         Defuse
     </button>
 }
@@ -51,6 +56,8 @@
     }
 
     private void StartDefuse() => Defuse?.StartDefuse();
+
+    private void StopDefuse() => Defuse?.StopDefuse();
 
     private void OnDefuseStateChanged()
     {

@@ -73,7 +73,15 @@
                 _headingClass = "text-defused";
                 _textClass = "text-defused";
                 InvokeAsync(StateHasChanged);
-                _ = OnDefused.InvokeAsync();
+                try
+                {
+                    _ = OnDefused.InvokeAsync();
+                }
+                catch
+                {
+                    // ignored
+                }
+
                 break;
             case DefuseState.Detonated:
                 _headingClass = "";
