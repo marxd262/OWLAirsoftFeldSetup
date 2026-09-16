@@ -2,13 +2,16 @@
 @inject LoadingStateService LoadingState
 
 <div class="loading-bar">
-    <div class="loading-bar-fill" style="width: @(LoadingState.Progress)%"></div>
+    <div class="loading-bar-fill" style="width: @(LoadingState?.Progress ?? 0)%"></div>
 </div>
 
 @code {
     protected override void OnInitialized()
     {
-        LoadingState.OnChange += OnLoadingStateChanged;
+        if (LoadingState != null)
+        {
+            LoadingState.OnChange += OnLoadingStateChanged;
+        }
     }
 
     private void OnLoadingStateChanged()
@@ -18,6 +21,6 @@
 
     public void Dispose()
     {
-        LoadingState.OnChange -= OnLoadingStateChanged;
+        LoadingState?.OnChange -= OnLoadingStateChanged;
     }
 }

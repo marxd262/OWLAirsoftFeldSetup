@@ -17,7 +17,7 @@
     Load
 </button>
 
-@if (_bombArmed && Defuse.State == DefuseState.Idle)
+@if (_bombArmed && Defuse?.State == DefuseState.Idle)
 {
     <button
         class="btn btn-danger btn-lg defuse-btn"
@@ -26,7 +26,7 @@
     </button>
 }
 
-@if (Defuse.State == DefuseState.Defusing)
+@if (Defuse?.State == DefuseState.Defusing)
 {
     <div class="defuse-progress">
         <div class="defuse-progress-fill" style="width: @(Defuse.DefuseProgress * 100)%"></div>
@@ -38,37 +38,37 @@
 
     protected override void OnInitialized()
     {
-        Defuse.OnChange += OnDefuseStateChanged;
-        LoadingState.OnChange += OnLoadingStateChanged;
+        Defuse?.OnChange += OnDefuseStateChanged;
+        LoadingState?.OnChange += OnLoadingStateChanged;
     }
 
-    private void StartLoad() => LoadingState.StartLoading();
+    private void StartLoad() => LoadingState?.StartLoading();
 
     private void StopLoad()
     {
         if (_bombArmed) return;
-        LoadingState.StopLoading();
+        LoadingState?.StopLoading();
     }
 
-    private void StartDefuse() => Defuse.StartDefuse();
+    private void StartDefuse() => Defuse?.StartDefuse();
 
     private void OnDefuseStateChanged()
     {
-        if (Defuse.State is DefuseState.Defused or DefuseState.Detonated)
+        if (Defuse?.State is DefuseState.Defused or DefuseState.Detonated)
             _bombArmed = false;
         InvokeAsync(StateHasChanged);
     }
 
     private void OnLoadingStateChanged()
     {
-        if (LoadingState.Progress == 100 && !_bombArmed)
+        if (LoadingState?.Progress == 100 && !_bombArmed)
             _bombArmed = true;
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        Defuse.OnChange -= OnDefuseStateChanged;
-        LoadingState.OnChange -= OnLoadingStateChanged;
+        Defuse?.OnChange -= OnDefuseStateChanged;
+        LoadingState?.OnChange -= OnLoadingStateChanged;
     }
 }

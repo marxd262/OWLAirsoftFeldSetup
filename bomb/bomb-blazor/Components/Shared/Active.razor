@@ -23,7 +23,10 @@
 
     protected override void OnInitialized()
     {
-        Defuse.OnChange += OnDefuseStateChanged;
+        if (Defuse != null)
+        {
+            Defuse.OnChange += OnDefuseStateChanged;
+        }
         _stopwatch.Start();
         _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
         _ = RunCountdownAsync();
@@ -39,7 +42,7 @@
             {
                 _displayText = "0.000 s";
                 _stopwatch.Stop();
-                Defuse.NotifyDetonation();
+                Defuse?.NotifyDetonation();
                 Dispose();
                 await OnDetonated.InvokeAsync();
                 await InvokeAsync(StateHasChanged);
@@ -57,7 +60,7 @@
 
     private void OnDefuseStateChanged()
     {
-        switch (Defuse.State)
+        switch (Defuse?.State)
         {
             case DefuseState.Defusing:
                 break;
@@ -81,7 +84,7 @@
 
     public void Dispose()
     {
-        Defuse.OnChange -= OnDefuseStateChanged;
+        Defuse?.OnChange -= OnDefuseStateChanged;
         _timer?.Dispose();
         _timer = null;
     }

@@ -17,8 +17,8 @@ public partial class Home : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        LoadingState.OnChange += UpdateBombState;
-        Defuse.OnChange += OnDefuseStateChanged;
+        LoadingState?.OnChange += UpdateBombState;
+        Defuse?.OnChange += OnDefuseStateChanged;
         UpdateBombState();
     }
 
@@ -27,17 +27,17 @@ public partial class Home : ComponentBase, IDisposable
         if (_bombActivated)
             return;
 
-        _bombState = LoadingState.Progress switch
+        _bombState = LoadingState?.Progress switch
         {
             0 => BombState.Standby,
             100 => BombState.Active,
             _ => BombState.Activating
         };
 
-        if (LoadingState.Progress == 100)
+        if (LoadingState?.Progress == 100)
         {
             _bombActivated = true;
-            LoadingState.OnChange -= UpdateBombState;
+            LoadingState?.OnChange -= UpdateBombState;
         }
 
         InvokeAsync(StateHasChanged);
@@ -45,7 +45,7 @@ public partial class Home : ComponentBase, IDisposable
 
     private void OnDefuseStateChanged()
     {
-        if (Defuse.State == DefuseState.Defused && _bombState == BombState.Active)
+        if (Defuse?.State == DefuseState.Defused && _bombState == BombState.Active)
         {
             _bombState = BombState.Defused;
             InvokeAsync(StateHasChanged);
@@ -66,7 +66,7 @@ public partial class Home : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        LoadingState.OnChange -= UpdateBombState;
-        Defuse.OnChange -= OnDefuseStateChanged;
+        LoadingState?.OnChange -= UpdateBombState;
+        Defuse?.OnChange -= OnDefuseStateChanged;
     }
 }
