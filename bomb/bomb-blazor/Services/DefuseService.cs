@@ -6,7 +6,9 @@ namespace Bomb.Services;
 public class DefuseService : IDisposable
 {
     private const double DefuseDurationSeconds = 10;
+    private const double EmptyDurationSeconds = 10;
     private Timer? _timer;
+    private Timer? _emptyTimer;
     private DateTime _defuseStart;
     private DefuseState _state = DefuseState.Idle;
     private readonly object _lock = new();
@@ -50,17 +52,43 @@ public class DefuseService : IDisposable
         }
     }
 
+    public void StartEmptying()
+    {
+        lock (_lock)
+        {
+            if (_state != DefuseState.Defusing) return;
+
+            _emptyTimer?.Dispose();
+            _emptyTimer = new Timer(_ =>
+            {
+                lock (_lock)
+                {
+                    var elapsed = (DateTime.UtcNow - _defuseStart).TotalSeconds;
+                    DefuseProgress = Math.Max(1.0 - (elapsed / EmptyDurationSeconds), 0.0);
+
+                    if (DefuseProgress <= 0)
+                    {
+                        _state = DefuseState.Idle;
+                        DefuseProgress = 0;
+                        _emptyTimer?.Dispose();
+                        _emptyTimer = null;
+                    }
+
+                    NotifyStateChanged();
+                }
+            }, null, 0, 50);
+
+            NotifyStateChanged();
+        }
+    }
+
     public void StopDefuse()
     {
         lock (_lock)
         {
             if (_state != DefuseState.Defusing) return;
 
-            _state = DefuseState.Idle;
-            DefuseProgress = 0;
-            _timer?.Dispose();
-            _timer = null;
-            NotifyStateChanged();
+            StartEmptying();
         }
     }
 
@@ -98,6 +126,7 @@ public class DefuseService : IDisposable
         lock (_lock)
         {
             _timer?.Dispose();
+            _emptyTimer?.Dispose();
         }
     }
 }

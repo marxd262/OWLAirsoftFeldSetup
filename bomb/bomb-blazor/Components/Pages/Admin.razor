@@ -31,7 +31,7 @@
     </button>
 }
 
-@if (Defuse?.State == DefuseState.Defusing)
+@if (Defuse?.State == DefuseState.Defusing || Defuse?.State == DefuseState.Idle)
 {
     <div class="defuse-progress">
         <div class="defuse-progress-fill" style="width: @(Defuse.DefuseProgress * 100)%"></div>
