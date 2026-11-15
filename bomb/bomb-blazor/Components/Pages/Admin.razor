@@ -7,26 +7,31 @@
 
 <h1>Admin</h1>
 
-<button
-    class="btn btn-primary btn-lg"
-    disabled="@Armed"
-    @onpointerdown="StartLoad"
-    @onpointerup="StopLoad"
-    @onpointerleave="StopLoad"
-    @onpointercancel="StopLoad">
-    Load
-</button>
+@if (!Armed && Defuse.State == DefuseState.Idle)
+{
+    <button
+        class="btn btn-primary btn-lg"
+        @onpointerdown="StartLoad"
+        @onpointerup="StopLoad"
+        @onpointerleave="StopLoad"
+        @onpointercancel="StopLoad">
+        Load
+    </button>
+}
 
-@if (Armed && Defuse.State == DefuseState.Idle)
+@if (Armed && Defuse.State is DefuseState.Idle or DefuseState.Defusing)
 {
     <button
         class="btn btn-danger btn-lg defuse-btn"
-        @onclick="StartDefuse">
+        @onpointerdown="StartDefuse"
+        @onpointerup="StopDefuse"
+        @onpointerleave="StopDefuse"
+        @onpointercancel="StopDefuse">
         Defuse
     </button>
 }
 
-@if (Defuse.State == DefuseState.Defusing)
+@if (Defuse.State == DefuseState.Defusing || Defuse.State == DefuseState.Idle)
 {
     <div class="defuse-progress">
         <div class="defuse-progress-fill" style="width: @(Defuse.DefuseProgress * 100)%"></div>
@@ -56,6 +61,8 @@
     }
 
     private void StartDefuse() => Defuse.StartDefuse();
+
+    private void StopDefuse() => Defuse.StopDefuse();
 
     private void ResetRound()
     {

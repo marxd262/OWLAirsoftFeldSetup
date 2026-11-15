@@ -50,8 +50,11 @@
 
     protected override void OnInitialized()
     {
-        LoadingState.OnChange += OnProgressChanged;
-        _progress = LoadingState.Progress;
+        if (LoadingState != null)
+        {
+            LoadingState.OnChange += OnProgressChanged;
+        }
+        _progress = LoadingState?.Progress ?? 0;
         _previousProgress = _progress;
         if (_progress >= 30)
         {
@@ -64,7 +67,7 @@
     private void OnProgressChanged()
     {
         _previousProgress = _progress;
-        _progress = LoadingState.Progress;
+        _progress = LoadingState?.Progress ?? 0;
 
         if (_progress >= 5 && !_showWindow)
         {
@@ -185,7 +188,7 @@
 
     public void Dispose()
     {
-        LoadingState.OnChange -= OnProgressChanged;
+        LoadingState?.OnChange -= OnProgressChanged;
         _typeTimer?.Dispose();
     }
 }
