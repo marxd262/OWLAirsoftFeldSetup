@@ -605,7 +605,7 @@ public class ChainGraphEngineTests
         var layout = Layout(Link("A", "B"));
         var engine = new ChainGraphEngine(layout, towers);
 
-        int points = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
+        double points = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
 
         Assert.Equal(2, points);
     }
@@ -620,7 +620,7 @@ public class ChainGraphEngineTests
         var layout = Layout(Link("A", "B"), Link("B", "C"));
         var engine = new ChainGraphEngine(layout, towers);
 
-        int points = engine.GetChainPoints(TeamColor.RED, chainFactor: 2.0);
+        double points = engine.GetChainPoints(TeamColor.RED, chainFactor: 2.0);
 
         Assert.Equal(7, points); // 2^0*1 + 2^1*1 + 2^2*1 = 1+2+4 = 7
     }
@@ -634,8 +634,8 @@ public class ChainGraphEngineTests
         var layout = Layout(Link("A", "B"));
         var engine = new ChainGraphEngine(layout, towers);
 
-        int pointsChainFactor1 = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
-        int pointsChainFactor3 = engine.GetChainPoints(TeamColor.RED, chainFactor: 3.0);
+        double pointsChainFactor1 = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
+        double pointsChainFactor3 = engine.GetChainPoints(TeamColor.RED, chainFactor: 3.0);
 
         Assert.Equal(2, pointsChainFactor1);  // 1^0*1 + 1^1*1 = 2
         Assert.Equal(4, pointsChainFactor3);  // 3^0*1 + 3^1*1 = 4
@@ -662,8 +662,8 @@ public class ChainGraphEngineTests
         var layout = Layout(Link("A", "B"));
         var engine = new ChainGraphEngine(layout, towers);
 
-        int redPoints = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
-        int bluePoints = engine.GetChainPoints(TeamColor.BLUE, chainFactor: 1.0);
+        double redPoints = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
+        double bluePoints = engine.GetChainPoints(TeamColor.BLUE, chainFactor: 1.0);
 
         Assert.Equal(1, redPoints);
         Assert.Equal(1, bluePoints);
@@ -678,7 +678,7 @@ public class ChainGraphEngineTests
         var layout = Layout(Link("T2", "T3"));
         var engine = new ChainGraphEngine(layout, towers);
 
-        int points = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
+        double points = engine.GetChainPoints(TeamColor.RED, chainFactor: 1.0);
         Assert.Equal(3, points);
     }
 

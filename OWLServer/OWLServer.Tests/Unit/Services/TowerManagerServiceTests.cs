@@ -1,4 +1,7 @@
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using OWLServer.Context;
 using OWLServer.Models;
 using OWLServer.Services;
 using OWLServer.Services.Interfaces;
@@ -7,9 +10,12 @@ using Xunit;
 
 namespace OWLServer.Tests.Unit.Services;
 
-public class TowerManagerServiceTests
+public class TowerManagerServiceTests : IDisposable
 {
     private readonly Mock<IExternalTriggerService> _mockEts = new();
+    private readonly Mock<ITowerHttpClientFactory> _mockFactory = new();
+    private readonly SqliteConnection _connection = TestDbHelper.CreateConnection();
+    private readonly IDbContextFactory<DatabaseContext> _dbFactory;
     private readonly TowerManagerService _service;
 
     public TowerManagerServiceTests()
@@ -18,11 +24,13 @@ public class TowerManagerServiceTests
         _mockEts.Object.StateHasChangedAction = () => { };
 
         var mockHttpClient = new MockTowerHttpClient();
-        var mockFactory = new Mock<ITowerHttpClientFactory>();
-        mockFactory.Setup(f => f.Create(It.IsAny<string>())).Returns(mockHttpClient);
+        _mockFactory.Setup(f => f.Create(It.IsAny<string>())).Returns(mockHttpClient);
 
-        _service = new TowerManagerService(_mockEts.Object, mockFactory.Object);
+        _dbFactory = TestDbHelper.CreateContextFactory(_connection);
+        _service = new TowerManagerService(_mockEts.Object, _mockFactory.Object, _dbFactory);
     }
+
+    public void Dispose() => _connection.Dispose();
 
     [Fact]
     public void RegisterTower_FirstTowerGetsLetterA()
@@ -41,11 +49,31 @@ public class TowerManagerServiceTests
     }
 
     [Fact]
+    public void RegisterTower_KeepsLetterAfterRestartInOtherBootOrder()
+    {
+        _service.RegisterTower("T1", "http://192.168.1.50");
+        _service.RegisterTower("T2", "http://192.168.1.51");
+
+        var restarted = new TowerManagerService(_mockEts.Object, _mockFactory.Object, _dbFactory);
+        restarted.RegisterTower("T2", "http://192.168.1.51"); // boots first this time
+
+        Assert.Equal("B", restarted.Towers["T2"].DisplayLetter);
+    }
+
+    [Fact]
     public void RegisterTower_DuplicateIdIgnored()
     {
         _service.RegisterTower("T1", "http://192.168.1.50");
         _service.RegisterTower("T1", "http://192.168.1.50");
         Assert.Single(_service.Towers);
+    }
+
+    [Fact]
+    public void RegisterTower_KnownTowerWithNewIp_UpdatesIp()
+    {
+        _service.RegisterTower("T1", "http://192.168.1.50");
+        _service.RegisterTower("T1", "http://192.168.1.77");
+        Assert.Equal("http://192.168.1.77", _service.Towers["T1"].IP);
     }
 
     [Fact]
@@ -90,7 +118,7 @@ public class TowerManagerServiceTests
     }
 
     [Fact]
-    public void GetPoints_SumsMultipliersCorrectly()
+    public void GetPoints_SumsMultipliersWithoutRounding()
     {
         _service.RegisterTower("T1", "http://192.168.1.50");
         _service.RegisterTower("T2", "http://192.168.1.51");
@@ -100,7 +128,7 @@ public class TowerManagerServiceTests
         _service.Towers["T2"].CurrentColor = TeamColor.RED;
 
         var points = _service.GetPoints(TeamColor.RED);
-        Assert.Equal(4, points);
+        Assert.Equal(3.5, points);
     }
 
     [Fact]

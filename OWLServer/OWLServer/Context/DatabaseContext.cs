@@ -6,7 +6,6 @@ namespace OWLServer.Context
     public class DatabaseContext : DbContext
     {
         public DbSet<Tower> Towers { get; set; }
-        public DbSet<TeamBase> Teams { get; set; }
         public DbSet<ChainLayout> ChainLayouts { get; set; }
         public DbSet<ChainLink> ChainLinks { get; set; }
         public DbSet<TowerControlLayout> TowerControlLayouts { get; set; }
@@ -20,6 +19,12 @@ namespace OWLServer.Context
         public DbSet<GameHistoryEvent> GameHistoryEvents { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+        {
+        }
+
+        // Called once at startup (Program.cs), not per context: it costs 8 SQL statements.
+        // The CREATE TABLE IF NOT EXISTS lines add tables that databases created by older versions lack.
+        public void EnsureSchema()
         {
             if (!Database.EnsureCreated())
             {
@@ -103,10 +108,6 @@ namespace OWLServer.Context
                 e.HasOne(t => t.Location);
             });
             builder.Entity<ElementLocation>(e =>
-            {
-                e.HasKey(el => el.Id);
-            });
-            builder.Entity<TeamBase>(e =>
             {
                 e.HasKey(el => el.Id);
             });

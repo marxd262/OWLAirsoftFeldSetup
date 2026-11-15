@@ -20,12 +20,14 @@
 const char *ssid = "Marx";          // Change this to your WiFi SSID
 const char *password = "WlanMarx111";  // Change this to your WiFi password
 
-const char* host = "http://owlairsoft.local/api/KlickerClicked?color=1";        // This should not be changed
+// The spawn this clicker is mounted in: "Wald" or "Stadt". The server maps it to the team
+// currently in that spawn, so swapping sides needs no reflash.
+#define SPAWN "Wald"
+const char* host = "http://owlairsoft.local/api/KlickerClicked?spawn=" SPAWN;
 const int httpPort = 80;                        // This should not be changed
 
 
 #define clickerPin 14
-#define color 0
 
 WiFiClient client;
 HTTPClient http;

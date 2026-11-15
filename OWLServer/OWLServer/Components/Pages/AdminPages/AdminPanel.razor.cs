@@ -96,7 +96,8 @@ public partial class AdminPanel : ComponentBase, IDisposable
         if (newValue)
         {
             GameStateService.AutoStartProcessStarted = null;
-            GameStateService.AutoStartCancellationTokenSrc.TryReset();
+            // a cancelled source can't be reused (TryReset fails), so the loop would never start
+            GameStateService.AutoStartCancellationTokenSrc = new CancellationTokenSource();
             Task.Run(GameStateService.AutoStartGame, GameStateService.AutoStartCancellationTokenSrc.Token);
             try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
         }
@@ -129,7 +130,6 @@ public partial class AdminPanel : ComponentBase, IDisposable
     {
         if (GetButtonStyle == ButtonStyle.Success)
         {
-            GameStateService.Reset();
             GameStateService.StartGame();
         }
         else

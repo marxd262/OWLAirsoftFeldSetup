@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using OWLServer.Context;
 using OWLServer.Models;
 using OWLServer.Services.Interfaces;
 
@@ -7,32 +9,47 @@ public class TowerManagerService : ITowerManagerService
 {
     private IExternalTriggerService ExternalTriggerService { get; }
     private readonly ITowerHttpClientFactory _httpFactory;
+    private readonly IDbContextFactory<DatabaseContext> _dbFactory;
 
     public Dictionary<string, Tower> Towers { get; } = new();
+    private readonly object _registerLock = new(); // towers boot together; two new ones must not get the same letter
 
-    public TowerManagerService(IExternalTriggerService externalTriggerService, ITowerHttpClientFactory httpFactory)
+    public TowerManagerService(IExternalTriggerService externalTriggerService, ITowerHttpClientFactory httpFactory,
+                               IDbContextFactory<DatabaseContext> dbFactory)
     {
         _httpFactory = httpFactory;
+        _dbFactory = dbFactory;
         ExternalTriggerService = externalTriggerService;
-
-        ExternalTriggerService.TowerPressedAction += HandleTowerClicked;
     }
 
     public void RegisterTower(string id, string ip)
     {
-        if (Towers.ContainsKey(id)) return;
-
-        var maxChar = Towers.Max(e => e.Value.DisplayLetter);
-        if (maxChar != null) {
-            maxChar = ((char)(maxChar[0] + 1)).ToString();
-        }
-        else
+        lock (_registerLock)
         {
-            maxChar = "A";
-        }
+            if (Towers.TryGetValue(id, out var known))
+            {
+                // towers re-register regularly; after a reboot the router may have given it a new IP
+                if (known.IP != ip) known.SetAddress(ip, _httpFactory.Create(ip));
+                return;
+            }
 
-        Towers.Add(id, new Tower(id, ip, _httpFactory.Create(ip)) { CurrentColor = TeamColor.NONE, DisplayLetter = maxChar });
+            Towers.Add(id, new Tower(id, ip, _httpFactory.Create(ip)) { CurrentColor = TeamColor.NONE, DisplayLetter = LetterFor(id, ip) });
+        }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
+    }
+
+    // A tower keeps its letter across restarts and boot orders: history and stats group by letter.
+    private string LetterFor(string mac, string ip)
+    {
+        using var db = _dbFactory.CreateDbContext();
+        var saved = db.Towers.FirstOrDefault(t => t.MacAddress == mac);
+        if (saved != null) return saved.DisplayLetter;
+
+        var maxLetter = db.Towers.Max(t => (string?)t.DisplayLetter);
+        var letter = maxLetter == null ? "A" : ((char)(maxLetter[0] + 1)).ToString();
+        db.Towers.Add(new Tower { MacAddress = mac, IP = ip, Name = string.Empty, DisplayLetter = letter });
+        db.SaveChanges();
+        return letter;
     }
 
     public void TowerChangeColor(string towerId, TeamColor newColor)
@@ -44,22 +61,9 @@ public class TowerManagerService : ITowerManagerService
         }
     }
 
-    public int GetPoints(TeamColor teamColor)
+    public double GetPoints(TeamColor teamColor)
     {
-        double points = 0;
-        foreach (var tower in Towers.Values.Where(t => t.CurrentColor == teamColor))
-        {
-            points += tower.Multiplier;
-        }
-
-        return (int)double.Round(points);
-    }
-
-    private void HandleTowerClicked(object? sender, TowerEventArgs args)
-    {
-        if (!Towers.ContainsKey(args.TowerId)) return;
-
-        TowerChangeColor(args.TowerId, args.TeamColor);
+        return Towers.Values.Where(t => t.CurrentColor == teamColor).Sum(t => t.Multiplier);
     }
 
     public void HandleTowerButtonPressed(string towerId, TeamColor color)
@@ -88,15 +92,6 @@ public class TowerManagerService : ITowerManagerService
         foreach (var tower in Towers)
         {
             tower.Value.SetTowerColor(teamColor);
-        }
-        ExternalTriggerService.StateHasChangedAction?.Invoke();
-    }
-
-    public void SetAllTowerToStartColor()
-    {
-        foreach (var tower in Towers)
-        {
-            tower.Value.SetToStartColor();
         }
         ExternalTriggerService.StateHasChangedAction?.Invoke();
     }

@@ -29,6 +29,9 @@ builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 
+using (var db = app.Services.GetRequiredService<IDbContextFactory<DatabaseContext>>().CreateDbContext())
+    db.EnsureSchema();
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

@@ -137,21 +137,24 @@ public class AudioService : IAudioService
 
     private void PlaySoundLinux(string file)
     {
-        var psi = new ProcessStartInfo
+        // no shell: the file name is uploaded by a browser and must never be read as a command
+        var psi = new ProcessStartInfo("play") { UseShellExecute = false, CreateNoWindow = true };
+        psi.ArgumentList.Add("-q");
+        psi.ArgumentList.Add(file);
+
+        try
         {
-            FileName = "/bin/bash",
-            Arguments = $"-c \"play -q {file}\"",
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            using var process = Process.Start(psi);
+            if (process == null) return;
 
-        using var process = Process.Start(psi);
-        if (process == null) return;
-
-        lock (_playbackLock) { _currentSoxProcess = process; }
-        process.WaitForExit();
-        lock (_playbackLock) { if (_currentSoxProcess == process) _currentSoxProcess = null; }
+            lock (_playbackLock) { _currentSoxProcess = process; }
+            process.WaitForExit();
+            lock (_playbackLock) { if (_currentSoxProcess == process) _currentSoxProcess = null; }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AudioService] Linux playback error (is sox installed?): {ex.Message}");
+        }
     }
 
     public string GetAssignedFile(Sounds sound)
@@ -285,29 +288,5 @@ public class AudioService : IAudioService
         }
 
         File.Delete(path);
-    }
-
-    public string RunCommandWithBash(string command)
-    {
-        var arg = "-c \"" + command + "\"";
-
-        Console.WriteLine("arg: " + arg);
-
-        var psi = new ProcessStartInfo();
-        psi.FileName = "/bin/bash";
-        psi.Arguments = arg;
-        psi.RedirectStandardOutput = true;
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-
-        using var process = Process.Start(psi);
-
-        if (process == null) return "";
-
-        process?.WaitForExit();
-
-        var output = process?.StandardOutput.ReadToEnd();
-
-        return output ?? "output";
     }
 }

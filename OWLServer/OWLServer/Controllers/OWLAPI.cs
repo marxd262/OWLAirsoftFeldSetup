@@ -26,10 +26,14 @@ namespace OWLServer.Controllers
         }
 
         [HttpPost("KlickerClicked")]
-        public ActionResult KlickerClicked(TeamColor color)
+        public ActionResult KlickerClicked(TeamColor? color, string? spawn)
         {
-            Console.WriteLine(color);
-            ExternalTriggerService.InvokeKlickerPressed(color);
+            // a clicker is mounted in a spawn, so prefer its spawn: the team there changes when sides are swapped
+            var team = spawn != null ? GameStateService.TeamAtSpawn(spawn) : color ?? TeamColor.NONE;
+            if (team is not (TeamColor.RED or TeamColor.BLUE)) return BadRequest();
+
+            Console.WriteLine(team);
+            ExternalTriggerService.InvokeKlickerPressed(team);
             return Ok();
         }
 

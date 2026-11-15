@@ -13,6 +13,7 @@ public interface IGameStateService
     Dictionary<TeamColor, TeamBase> Teams { get; }
     TeamColor TeamInWald { get; set; }
     TeamColor TeamInStadt { get; set; }
+    TeamColor TeamAtSpawn(string spawn);
     bool WaldSpawnReady { get; set; }
     bool StadtSpawnReady { get; set; }
     bool TeamSetReady { get; set; }

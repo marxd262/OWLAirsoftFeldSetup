@@ -75,11 +75,8 @@ public partial class GameHistoryPage : IDisposable
 
     private void LoadGames()
     {
-        _allGames = GameHistoryService.GetAllGames();
-        foreach (var game in _allGames)
-        {
-            _gameTeamsByGame[game.Id] = GameHistoryService.GetGameTeams(game.Id);
-        }
+        _allGames = GameHistoryService.GetAllGames(); // teams come with the games, one query instead of one per game
+        _gameTeamsByGame = _allGames.ToDictionary(g => g.Id, g => g.Teams);
         ApplyFilters();
     }
 

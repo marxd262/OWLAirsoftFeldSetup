@@ -58,4 +58,45 @@ public class GameModeConquestTests
         conquest.FillTeams(new List<TeamBase> { new(TeamColor.BLUE), new(TeamColor.RED) });
         Assert.Equal(TeamColor.NONE, conquest.GetWinner);
     }
+
+    [Fact]
+    public void HoldingPastCaptureTime_CapturesTower()
+    {
+        var tower = new Tower
+        {
+            MacAddress = "A", CurrentColor = TeamColor.RED, TimeToCaptureInSeconds = 5,
+            IsPressed = true, PressedByColor = TeamColor.BLUE, LastPressed = DateTime.Now.AddSeconds(-6)
+        };
+        var conquest = CreateWithTowers(tower);
+
+        conquest.ProcessConquestStateMachine();
+
+        Assert.Equal(TeamColor.BLUE, tower.CurrentColor);
+        Assert.False(tower.IsPressed);
+        Assert.NotNull(tower.CapturedAt);
+    }
+
+    [Fact]
+    public void ResumeGame_PauseDoesNotRunDownTowerTimers()
+    {
+        var capturedAt = DateTime.Now.AddSeconds(-30);
+        var tower = new Tower { MacAddress = "A", CapturedAt = capturedAt };
+        var conquest = CreateWithTowers(tower);
+        conquest.IsRunning = true;
+        conquest.PauseGame();
+        conquest.PauseStartedAt = DateTime.Now.AddSeconds(-60); // paused for one minute
+
+        conquest.ResumeGame();
+
+        Assert.False(conquest.IsPaused);
+        Assert.InRange((tower.CapturedAt!.Value - capturedAt).TotalSeconds, 59, 61);
+    }
+
+    private GameModeConquest CreateWithTowers(params Tower[] towers)
+    {
+        var tms = new Mock<ITowerManagerService>();
+        tms.Setup(t => t.Towers).Returns(towers.ToDictionary(t => t.MacAddress));
+        _mockGss.Setup(g => g.TowerManagerService).Returns(tms.Object);
+        return new GameModeConquest(_mockEts.Object, _mockGss.Object);
+    }
 }

@@ -134,17 +134,14 @@
 </MapCanvas>
 
 <script>
-    function GetElementLocation(elementId) {
-        var element = $(elementId);
-        var position = element.position();
-        var offset   = element.offset();
+    // page coordinates, like the click's PageX/PageY (same values jQuery's offset()/outerWidth() gave)
+    function GetElementLocation(selector) {
+        var rect = document.querySelector(selector).getBoundingClientRect();
         return {
-            Width:      element.outerWidth(),
-            Height:     element.outerHeight(),
-            offsetTop:  offset.top,
-            offsetLeft: offset.left,
-            Top:        position.top,
-            Left:       position.left,
+            Width:      rect.width,
+            Height:     rect.height,
+            offsetTop:  rect.top + window.scrollY,
+            offsetLeft: rect.left + window.scrollX,
         };
     }
 </script>

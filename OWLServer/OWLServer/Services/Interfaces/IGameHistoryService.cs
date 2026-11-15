@@ -7,7 +7,7 @@ namespace OWLServer.Services.Interfaces
     {
         int? CurrentGameId { get; }
         string EndReason { get; set; }
-        void RecordGameStart(GameMode gameMode, Dictionary<string, Tower> towers,
+        void RecordGameStart(IGameModeBase game, Dictionary<string, Tower> towers,
             Dictionary<TeamColor, TeamBase> teams, TeamColor teamInWald);
         void RecordGameEnd(IGameModeBase? currentGame, Dictionary<string, Tower> towers);
 

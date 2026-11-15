@@ -46,6 +46,52 @@ public class GameStateServiceTests
     }
 
     [Fact]
+    public async Task StopGame_DuringStartDelay_DoesNotRunGame()
+    {
+        var service = CreateService();
+        var mockGame = new Mock<IGameModeBase>();
+        service.CurrentGame = mockGame.Object;
+        _mockAudio.Setup(a => a.GetDelay(Sounds.Start)).Returns(1);
+
+        service.StartGame();
+        service.StopGame();
+        await Task.Delay(1300);
+
+        mockGame.Verify(g => g.RunGame(), Times.Never);
+        _mockGhs.Verify(h => h.RecordGameStart(It.IsAny<IGameModeBase>(), It.IsAny<Dictionary<string, Tower>>(),
+            It.IsAny<Dictionary<TeamColor, TeamBase>>(), It.IsAny<TeamColor>()), Times.Never);
+    }
+
+    [Fact]
+    public void StartGame_WithoutGameMode_DoesNothing()
+    {
+        var service = CreateService();
+
+        service.StartGame();
+
+        _mockAudio.Verify(a => a.PlaySound(Sounds.Start), Times.Never);
+        _mockGhs.Verify(h => h.RecordGameStart(It.IsAny<IGameModeBase>(), It.IsAny<Dictionary<string, Tower>>(),
+            It.IsAny<Dictionary<TeamColor, TeamBase>>(), It.IsAny<TeamColor>()), Times.Never);
+    }
+
+    [Fact]
+    public void StartGame_AfterFinishedGame_RunsAndEndsAgain()
+    {
+        var service = CreateService();
+        var game = new GameModeTimer(_mockEts.Object, service);
+        service.CurrentGame = game;
+
+        service.StartGame();
+        service.StopGame();
+        service.StartGame(); // auto-start path: no manual Reset in between
+        Assert.True(game.IsRunning);
+        Assert.False(game.IsFinished);
+        service.StopGame();
+
+        _mockGhs.Verify(h => h.RecordGameEnd(It.IsAny<IGameModeBase?>(), It.IsAny<Dictionary<string, Tower>>()), Times.Exactly(2));
+    }
+
+    [Fact]
     public void StopGame_EndsGame()
     {
         var service = CreateService();

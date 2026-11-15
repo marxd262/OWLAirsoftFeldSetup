@@ -156,7 +156,7 @@
         else
         {
             <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Spiel Starten"
-                          Click="@StartGame" />
+                          Click="@StartGame" Disabled="@(GSS.CurrentGame == null)" />
         }
     </RadzenRow>
 
@@ -201,19 +201,12 @@
 
     private void StartGame()
     {
-        GSS.Reset();
         GSS.StartGame();
     }
 
     private void EndGame()
     {
         GSS.StopGame();
-    }
-
-    private void ResetGame()
-    {
-        if (IsRunning) return;
-        GSS.Reset();
     }
 
     private void TogglePause()

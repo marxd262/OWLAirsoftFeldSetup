@@ -58,9 +58,6 @@ namespace OWLServer.Models
         [NotMapped]
         public TeamColor CurrentColor { get; set; }
 
-        [NotMapped]
-        public String GetHTMLColor => ColorTranslator.ToHtml(Util.TeamColorToColorTranslator(CurrentColor));
-
         private ITowerHttpClient? _httpClient;
 
 
@@ -79,6 +76,12 @@ namespace OWLServer.Models
             MacAddress = id;
             IP = ip;
             Name = string.Empty;
+        }
+
+        public void SetAddress(string ip, ITowerHttpClient client)
+        {
+            IP = ip;
+            _httpClient = client;
         }
 
         public string DisplaycolorAsHTML()
@@ -111,11 +114,6 @@ namespace OWLServer.Models
         public void SetToStartColor()
         {
             SetTowerColor(TeamColor.NONE);
-        }
-
-        public Color MapColor()
-        {
-            return ColorTranslator.FromHtml(CurrentColor.ToString());
         }
 
         public async Task SendColorToTower(Color color)

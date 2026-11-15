@@ -216,7 +216,6 @@
 @code {
     private Action _stateHandler = null!;
     private EventHandler<KlickerEventArgs> _klickerHandler = null!;
-    private EventHandler<TowerEventArgs> _towerHandler = null!;
 
     private readonly List<(DateTime Time, string Message)> _log = new();
     private Tower? _selectedTower;
@@ -242,17 +241,8 @@
             InvokeAsync(StateHasChanged);
         };
 
-        _towerHandler = (_, e) =>
-        {
-            var letter = GameStateService.TowerManagerService.Towers.TryGetValue(e.TowerId, out var t)
-                ? t.DisplayLetter : e.TowerId;
-            AddLog($"Tower {letter} – ButtonPressed ({e.TeamColor})");
-            InvokeAsync(StateHasChanged);
-        };
-
         ExternalTriggerService.StateHasChangedAction += _stateHandler;
         ExternalTriggerService.KlickerPressedAction += _klickerHandler;
-        ExternalTriggerService.TowerPressedAction += _towerHandler;
 
         base.OnInitialized();
     }
@@ -261,7 +251,6 @@
     {
         ExternalTriggerService.StateHasChangedAction -= _stateHandler;
         ExternalTriggerService.KlickerPressedAction -= _klickerHandler;
-        ExternalTriggerService.TowerPressedAction -= _towerHandler;
         _client.Dispose();
     }
 

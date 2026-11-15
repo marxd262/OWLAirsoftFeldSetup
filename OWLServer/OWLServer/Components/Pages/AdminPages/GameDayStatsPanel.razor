@@ -75,7 +75,7 @@
 
         @if (IsRunning && GSS.CurrentGame != null)
         {
-            <RadzenDivider Style="margin: 0.25rem 0;" />
+            <hr style="margin: 0.25rem 0;" />
             <RadzenText TextStyle="TextStyle.Subtitle2">Live</RadzenText>
             <RadzenRow Gap="0.5rem">
                 <RadzenColumn Size="6">
@@ -113,18 +113,25 @@
     private int _redWins;
     private double _avgDuration;
     private Action _stateChangedHandler = null!;
+    private int? _statsForGameId;
 
     private bool IsRunning => GSS.CurrentGame?.IsRunning ?? false;
 
     protected override void OnInitialized()
     {
-        _stateChangedHandler = () => InvokeAsync(() => { LoadStats(); StateHasChanged(); });
+        // refreshes come 5–10 times a second; the stats only change when a game starts or ends
+        _stateChangedHandler = () => InvokeAsync(() =>
+        {
+            if (GHS.CurrentGameId != _statsForGameId) LoadStats();
+            StateHasChanged();
+        });
         ETS.StateHasChangedAction += _stateChangedHandler;
         LoadStats();
     }
 
     private void LoadStats()
     {
+        _statsForGameId = GHS.CurrentGameId;
         _todayGames = GHS.GetTodayGames();
         _blueWins = _todayGames.Count(g => (TeamColor)g.Winner == TeamColor.BLUE);
         _redWins = _todayGames.Count(g => (TeamColor)g.Winner == TeamColor.RED);

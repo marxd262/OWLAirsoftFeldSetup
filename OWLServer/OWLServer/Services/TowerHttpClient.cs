@@ -9,7 +9,8 @@ public class TowerHttpClient : ITowerHttpClient
 
     public TowerHttpClient(Uri baseAddress)
     {
-        _client = new HttpClient { BaseAddress = baseAddress };
+        // towers sit on the local WiFi: fail fast instead of piling up 100 s requests to an offline tower
+        _client = new HttpClient { BaseAddress = baseAddress, Timeout = TimeSpan.FromSeconds(5) };
         _client.DefaultRequestHeaders.Accept.Clear();
         _client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));

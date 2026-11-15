@@ -10,6 +10,9 @@ public class LoadingStateService : IDisposable
     public decimal Progress => _progress;
     public bool IsLoading => _isLoading;
 
+    // When loading reached 100%. Every screen counts down from here, so a reload doesn't restart the countdown.
+    public DateTime? ArmedAt { get; private set; }
+
     public event Action? OnChange;
 
     public void StartLoading()
@@ -21,6 +24,12 @@ public class LoadingStateService : IDisposable
         {
             if (_progress < 100)
                 _progress++;
+            if (_progress == 100)
+            {
+                ArmedAt ??= DateTime.UtcNow;
+                _timer?.Dispose(); // armed: stop ticking (and re-rendering every screen) until Reset
+                _timer = null;
+            }
             NotifyStateChanged();
         }, null, 100, 100);
         NotifyStateChanged();
@@ -52,6 +61,7 @@ public class LoadingStateService : IDisposable
         _timer?.Dispose();
         _timer = null;
         _progress = 0;
+        ArmedAt = null;
         NotifyStateChanged();
     }
 

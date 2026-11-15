@@ -59,6 +59,11 @@ enum LedColor{
 bool buttonBluePressed = false;
 bool buttonRedPressed = false;
 
+// The server keeps towers only in memory and needs the current IP: re-register regularly,
+// so a server restart or a tower that booted before the server heals by itself.
+const unsigned long registerIntervalMs = 30000;
+unsigned long lastRegisterMs = 0;
+
 void SetLedColor(int r, int g, int b){
   
   leds[0].setRGB(r,g,b) ;
@@ -167,9 +172,16 @@ void setup() {
   server.on("/api/ping", HandlePing);
 
   sendMessage(Register);
+  lastRegisterMs = millis();
 }
 
 void loop() {
+  if (millis() - lastRegisterMs >= registerIntervalMs)
+  {
+    lastRegisterMs = millis();
+    sendMessage(Register);
+  }
+
   if(digitalRead(buttonRed) == LOW && !buttonRedPressed)
   {
     Serial.println("Red klicked");

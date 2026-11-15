@@ -296,3 +296,6 @@ __pycache__/
 OWLServer/.claude/settings.local.json
 OWLServer/CLAUDE.md
 AGENTS.md
+
+# Live SQLite database (game history, layouts): lives on the server, never in git
+OWLAirsoft.db*

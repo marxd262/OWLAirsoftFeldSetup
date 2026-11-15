@@ -1,157 +1,83 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices.JavaScript;
-using Microsoft.AspNetCore.Components;
-using OWLServer.Models;
-using OWLServer.Services;
 using OWLServer.Services.Interfaces;
 
 namespace OWLServer.Models.GameModes;
 
-public class GameModeConquest : IGameModeBase, IDisposable
+public class GameModeConquest : GameModeBase
 {
-    private IExternalTriggerService ExternalTriggerService { get; set; }
-    private IGameStateService GameStateService { get; set; }
-    public string Name { get; set; } = "Conquest";
-    public GameMode GameMode => GameMode.Conquest;
-    public int GameDurationInMinutes { get; set; } = 20;
-    public int MaxTickets { get; set; } = 15;
-    public bool ShowRespawnButton => false;
-    public bool IsPaused { get; set; }
-    public TimeSpan PausedDuration { get; set; }
-    public DateTime? PauseStartedAt { get; set; }
+    public override string Name { get; set; } = "Conquest";
+    public override GameMode GameMode => GameMode.Conquest;
 
     // Zwei Mögliche Spielmode sind implementiert. Ticket basiert (zählt runter) oder Punkte basiert (Zählt hoch)
     public bool IsTicket = true;
     public int PointDistributionFrequencyInSeconds { get; set; } = 5;
     public bool NeutralAtThresholdEnabled { get; set; } = true;
     public int CaptureNeutralThresholdPercent { get; set; } = 50;
-    public bool IsRunning { get; set; } = false;
-    public bool IsFinished { get; set; } = false;
-    public DateTime? StartTime { get; set; }
-
-    private CancellationTokenSource _abort = new();
 
     public TowerControlLayout? ActiveControlLayout { get; set; }
 
     // Runtime control graph — built at RunGame()
     private Dictionary<string, List<string>> _controlledChildren = new();
     private Dictionary<string, string> _controllerByChild = new();
+    private DateTime _lastPointDistributed;
 
     public bool IsControllerTower(string macAddress) => _controlledChildren.ContainsKey(macAddress);
 
-    public Dictionary<TeamColor, int> TeamPoints = new();
+    // double, so fractional multipliers add up across ticks instead of being rounded away each tick
+    public Dictionary<TeamColor, double> TeamPoints = new();
 
     public GameModeConquest(IExternalTriggerService externalTriggerService, IGameStateService gameStateService)
+        : base(externalTriggerService, gameStateService)
     {
-        ExternalTriggerService = externalTriggerService;
-        GameStateService = gameStateService;
     }
 
-    [NotMapped]
-    public TimeSpan? GetTimer 
+    public override void FillTeams(List<TeamBase> teams)
     {
-        get
-        {
-            if (StartTime == null)
-                return new TimeSpan(0, GameDurationInMinutes, 0);
-            else if (IsFinished)
-                return new TimeSpan(0, 0, 0);
-            else if (IsPaused && PauseStartedAt != null)
-                return StartTime.Value.AddMinutes(GameDurationInMinutes) - PauseStartedAt.Value + PausedDuration;
-            else
-                return StartTime.Value.AddMinutes(GameDurationInMinutes) - DateTime.Now + PausedDuration;
-        }
+        foreach (var team in teams)
+            TeamPoints[team.TeamColor] = 0;
     }
-
-    public void FillTeams(List<TeamBase> teams)
-    {
-        foreach (var teamColor in teams)    
-        {
-            TeamPoints[teamColor.TeamColor] = 0;
-        }
-    }
-
 
     /// <summary>
     /// Returns the number of Points or Tickets based on <see cref="IsTicket"/>
     /// </summary>
-    /// <param name="color"></param>
-    /// <returns></returns>
-    public int GetDisplayPoints(TeamColor color)
+    public override int GetDisplayPoints(TeamColor color)
     {
         int points = 0;
 
         if (IsTicket)
         {
-            if(color == TeamColor.BLUE)
-                points = MaxTickets - TeamPoints[TeamColor.RED];
+            if (color == TeamColor.BLUE)
+                points = MaxTickets - (int)TeamPoints[TeamColor.RED];
             else if (color == TeamColor.RED)
-                points = MaxTickets - TeamPoints[TeamColor.BLUE];
+                points = MaxTickets - (int)TeamPoints[TeamColor.BLUE];
         }
         else
         {
-            points = TeamPoints[color];
+            points = (int)TeamPoints[color];
         }
-        
-        return points < 0  ? 0 : points;
+
+        return points < 0 ? 0 : points;
     }
-    
-    public void RunGame()
+
+    public override void RunGame()
     {
         BuildControlMaps();
         InitializeControlTowerStates();
-        StartTime = DateTime.Now;
-        IsRunning = true;
-        IsPaused = false;
-        PauseStartedAt = null;
-        PausedDuration = TimeSpan.Zero;
-        Task.Run(Runner, _abort.Token);
+        _lastPointDistributed = DateTime.Now;
+        base.RunGame();
     }
 
-    private async void Runner()
+    protected override bool Tick()
     {
-        DateTime lastPointDistributed = DateTime.Now;
-        while (true)
+        ProcessConquestStateMachine();
+
+        if (_lastPointDistributed.AddSeconds(PointDistributionFrequencyInSeconds) <= DateTime.Now)
         {
-            await Task.Delay(200);
-
-            if (_abort.IsCancellationRequested)
-            {
-                EndGame();
-                break;
-            }
-
-            if (IsPaused) continue;
-
-            if (StartTime?.AddMinutes(GameDurationInMinutes) + PausedDuration <= DateTime.Now)
-            {
-                EndGame();
-                break;
-            }
-
-            ProcessConquestStateMachine();
-
-            if (lastPointDistributed.AddSeconds(PointDistributionFrequencyInSeconds) <= DateTime.Now)
-            {
-                DistributePoints();
-                lastPointDistributed = DateTime.Now;
-            }
-
-            if (TeamPoints.Any(e => e.Value >= MaxTickets))
-            {
-                EndGame();
-                break;
-            }
+            foreach (var teamColor in TeamPoints.Keys)
+                TeamPoints[teamColor] += GameStateService.TowerManagerService.GetPoints(teamColor);
+            _lastPointDistributed = DateTime.Now;
         }
-    }
 
-    private void DistributePoints()
-    {
-        foreach (var teamColor in TeamPoints.Keys)
-        {
-            TeamPoints[teamColor] += GameStateService.TowerManagerService.GetPoints(teamColor);
-        }
+        return TeamPoints.Any(e => e.Value >= MaxTickets);
     }
 
     private void BuildControlMaps()
@@ -185,7 +111,7 @@ public class GameModeConquest : IGameModeBase, IDisposable
         }
     }
 
-    private void ProcessConquestStateMachine()
+    internal void ProcessConquestStateMachine()
     {
         var towers = GameStateService.TowerManagerService.Towers;
 
@@ -255,56 +181,17 @@ public class GameModeConquest : IGameModeBase, IDisposable
                 }
             }
         }
-
-        ExternalTriggerService.StateHasChangedAction?.Invoke();
     }
 
-    public void EndGame()
+    public override void ResetGame()
     {
-        if (IsFinished) return;
-        _abort.Cancel();
-        IsRunning = false;
-        IsFinished = true;
-        StartTime = null;
-        GameStateService.HandleGameEnd();
-    }
-
-    public void ResetGame()
-    {
-        if (IsRunning) EndGame();
-        IsFinished = false;
-        StartTime = null;
+        base.ResetGame();
         foreach (var key in TeamPoints.Keys.ToList())
             TeamPoints[key] = 0;
-        _abort.Dispose();
-        _abort = new CancellationTokenSource();
-        IsPaused = false;
-        PauseStartedAt = null;
-        PausedDuration = TimeSpan.Zero;
     }
 
-    [NotMapped]
-    public TeamColor GetWinner
-    {
-        get
-        {
-            if (TeamPoints.Values.Distinct().Count() == 1)
-            {
-                return TeamColor.NONE;
-            }
-
-            return TeamPoints.First(e => e.Value == TeamPoints.Values.Max()).Key;
-        }
-    }
-    
-    public override string ToString()
-    {
-        return Name;
-    }
-
-    public void Dispose()
-    {
-        StartTime = null;
-        _abort.Dispose();
-    }
+    public override TeamColor GetWinner =>
+        TeamPoints.Values.Distinct().Count() == 1
+            ? TeamColor.NONE
+            : TeamPoints.First(e => e.Value == TeamPoints.Values.Max()).Key;
 }

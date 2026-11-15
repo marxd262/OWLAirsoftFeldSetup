@@ -295,7 +295,7 @@ public class ChainGraphEngine
         return updates;
     }
 
-    public int GetChainPoints(TeamColor team, double chainFactor)
+    public double GetChainPoints(TeamColor team, double chainFactor)
     {
         double points = 0;
         foreach (var tower in _towers.Values.Where(t => t.CurrentColor == team))
@@ -303,7 +303,7 @@ public class ChainGraphEngine
             int depth = _depthMap.GetValueOrDefault(tower.MacAddress, 0);
             points += Math.Pow(chainFactor, depth) * tower.Multiplier;
         }
-        return (int)Math.Round(points);
+        return points;
     }
 
     /// <summary>

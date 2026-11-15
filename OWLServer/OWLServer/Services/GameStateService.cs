@@ -52,24 +52,43 @@ namespace OWLServer.Services
             Teams.Add(TeamColor.RED, new TeamBase(TeamColor.RED));
         }
 
+        private CancellationTokenSource? _startDelayCts;
+
         public async void StartGame()
         {
-            GameHistoryService.RecordGameStart(CurrentGame?.GameMode ?? GameMode.None, TowerManagerService.Towers, Teams, TeamInWald);
+            if (CurrentGame == null) return; // no mode selected: no horn, no ghost history entry
+            Reset(); // every start path, auto-start included, begins with a fresh game
+
+            _startDelayCts?.Cancel();
+            var cts = _startDelayCts = new CancellationTokenSource();
+
             AudioService.PlaySound(Sounds.Start);
             var delay = AudioService.GetDelay(Sounds.Start);
-            if (delay > 0) await Task.Delay(delay * 1000);
-            CurrentGame?.RunGame();
+            if (delay > 0)
+            {
+                try { await Task.Delay(delay * 1000, cts.Token); }
+                catch (TaskCanceledException) { return; } // Stop (or a second Start) during the start sound
+            }
+
+            if (CurrentGame is not { } game) return;
+            // recorded after the delay so history duration and events match the actual game
+            try { GameHistoryService.RecordGameStart(game, TowerManagerService.Towers, Teams, TeamInWald); }
+            catch (Exception ex) { Console.Error.WriteLine($"GameHistory: game start not recorded: {ex.Message}"); } // history must not stop the game
+            game.RunGame();
         }
 
         public void StopGame()
         {
+            _startDelayCts?.Cancel();
             GameHistoryService.EndReason = "Stopped";
             CurrentGame?.EndGame();
         }
 
         public void HandleGameEnd()
         {
-            GameHistoryService.RecordGameEnd(CurrentGame, TowerManagerService.Towers);
+            // runs on the game loop thread; a database error must not take the server down
+            try { GameHistoryService.RecordGameEnd(CurrentGame, TowerManagerService.Towers); }
+            catch (Exception ex) { Console.Error.WriteLine($"GameHistory: game end not recorded: {ex.Message}"); }
             AudioService.PlaySound(Sounds.Stop);
             try { ExternalTriggerService.StateHasChangedAction?.Invoke(); }
             catch { }
@@ -77,6 +96,7 @@ namespace OWLServer.Services
 
         public async void AutoStartGame()
         {
+            var cancel = AutoStartCancellationTokenSrc.Token; // toggling swaps the source; this loop must keep seeing its own cancel
             while (AutoStartAfterReady)
             {
                 AutoStartProcessStarted = null;
@@ -87,7 +107,7 @@ namespace OWLServer.Services
                     await Task.Delay(100);
                     try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
 
-                    if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                    if (cancel.IsCancellationRequested) return;
                 }
 
                 AutoStartProcessStarted = DateTime.Now;
@@ -95,12 +115,12 @@ namespace OWLServer.Services
 
                 while ((DateTime.Now - AutoStartProcessStarted).Value.TotalSeconds < SecondsTillAutoStartAfterReady && StadtSpawnReady && WaldSpawnReady)
                 {
-                    if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                    if (cancel.IsCancellationRequested) return;
                     await Task.Delay(100);
                     try { ExternalTriggerService.StateHasChangedAction?.Invoke(); } catch { }
                 }
 
-                if (AutoStartCancellationTokenSrc.IsCancellationRequested) return;
+                if (cancel.IsCancellationRequested) return;
 
                 if (!StadtSpawnReady || !WaldSpawnReady)
                     continue;
@@ -113,6 +133,14 @@ namespace OWLServer.Services
             }
         }
 
+
+        // Devices and spawn tablets sit in a spawn; which team is there changes when sides are swapped.
+        public TeamColor TeamAtSpawn(string spawn) => spawn switch
+        {
+            "Wald" => TeamInWald,
+            "Stadt" => TeamInStadt,
+            _ => TeamColor.NONE
+        };
 
         public void Reset()
         {

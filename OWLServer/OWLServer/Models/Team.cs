@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing;
 using OWLServer.Services;
 
 namespace OWLServer.Models
@@ -13,16 +12,11 @@ namespace OWLServer.Models
         public string Name { get; set; }
 
         [NotMapped]
-        public string ColorBackground => $"background-color: {Util.HTMLColorForTeam(TeamColor)}";
-
-        [NotMapped]
         public string ColorCss => Util.HTMLColorForTeam(TeamColor);
 
         [NotMapped]
         public string ColorCssImportant => $"{Util.HTMLColorForTeam(TeamColor)}!Important";
 
-        private Color _displayColor = Color.Transparent;
-        
         public TeamBase(TeamColor teamColor)
         {
             TeamColor = teamColor;

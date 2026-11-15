@@ -9,7 +9,7 @@
 
 <button
     class="btn btn-primary btn-lg"
-    disabled="@_bombArmed"
+    disabled="@Armed"
     @onpointerdown="StartLoad"
     @onpointerup="StopLoad"
     @onpointerleave="StopLoad"
@@ -17,7 +17,7 @@
     Load
 </button>
 
-@if (_bombArmed && Defuse.State == DefuseState.Idle)
+@if (Armed && Defuse.State == DefuseState.Idle)
 {
     <button
         class="btn btn-danger btn-lg defuse-btn"
@@ -33,42 +33,41 @@
     </div>
 }
 
+<button class="btn btn-secondary btn-lg" @onclick="ResetRound">
+    Reset
+</button>
+
 @code {
-    private bool _bombArmed;
+    // armed once loading reached 100%; stays armed until Reset, also across page reloads
+    private bool Armed => LoadingState.Progress == 100;
 
     protected override void OnInitialized()
     {
-        Defuse.OnChange += OnDefuseStateChanged;
-        LoadingState.OnChange += OnLoadingStateChanged;
+        Defuse.OnChange += OnStateChanged;
+        LoadingState.OnChange += OnStateChanged;
     }
 
     private void StartLoad() => LoadingState.StartLoading();
 
     private void StopLoad()
     {
-        if (_bombArmed) return;
+        if (Armed) return;
         LoadingState.StopLoading();
     }
 
     private void StartDefuse() => Defuse.StartDefuse();
 
-    private void OnDefuseStateChanged()
+    private void ResetRound()
     {
-        if (Defuse.State is DefuseState.Defused or DefuseState.Detonated)
-            _bombArmed = false;
-        InvokeAsync(StateHasChanged);
+        LoadingState.Reset();
+        Defuse.Reset();
     }
 
-    private void OnLoadingStateChanged()
-    {
-        if (LoadingState.Progress == 100 && !_bombArmed)
-            _bombArmed = true;
-        InvokeAsync(StateHasChanged);
-    }
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
-        Defuse.OnChange -= OnDefuseStateChanged;
-        LoadingState.OnChange -= OnLoadingStateChanged;
+        Defuse.OnChange -= OnStateChanged;
+        LoadingState.OnChange -= OnStateChanged;
     }
 }

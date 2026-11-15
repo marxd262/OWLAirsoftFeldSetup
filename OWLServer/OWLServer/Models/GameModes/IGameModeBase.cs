@@ -25,19 +25,6 @@ public interface IGameModeBase
     public TimeSpan PausedDuration { get; set; }
     public DateTime? PauseStartedAt { get; set; }
 
-    public void PauseGame()
-    {
-        if (!IsRunning || IsPaused) return;
-        IsPaused = true;
-        PauseStartedAt = DateTime.Now;
-    }
-
-    public void ResumeGame()
-    {
-        if (!IsRunning || !IsPaused) return;
-        IsPaused = false;
-        if (PauseStartedAt != null)
-            PausedDuration += DateTime.Now - PauseStartedAt.Value;
-        PauseStartedAt = null;
-    }
+    public void PauseGame();
+    public void ResumeGame();
 }

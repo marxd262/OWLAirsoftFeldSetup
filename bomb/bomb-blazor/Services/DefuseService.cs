@@ -56,6 +56,7 @@ public class DefuseService : IDisposable
 
     public void NotifyDetonation()
     {
+        if (_state == DefuseState.Defused) return; // a countdown tick racing the finished defuse must not blow it up
         _state = DefuseState.Detonated;
         DefuseProgress = 0;
         _timer?.Dispose();

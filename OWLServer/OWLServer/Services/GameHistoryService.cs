@@ -15,11 +15,12 @@ namespace OWLServer.Services
         public int? CurrentGameId { get; private set; }
         public string EndReason { get; set; } = "Completed";
 
+        private readonly object _eventLock = new();
         private List<GameHistoryEvent> _pendingEvents = new();
         private Timer? _flushTimer;
         private Dictionary<string, TeamColor> _lastKnownTowerColors = new();
         private Dictionary<TeamColor, int> _lastKnownScores = new();
-        private Dictionary<string, bool> _lastKnownButtonState = new();
+        private Dictionary<string, TeamColor> _lastKnownPressedBy = new();
         private Dictionary<string, Tower>? _activeTowers;
         private Dictionary<TeamColor, TeamBase>? _activeTeams;
         private TeamColor _teamInWald;
@@ -33,23 +34,23 @@ namespace OWLServer.Services
             _externalTriggerService = externalTriggerService;
         }
 
-        public void RecordGameStart(GameMode gameMode, Dictionary<string, Tower> towers,
+        public void RecordGameStart(IGameModeBase game, Dictionary<string, Tower> towers,
             Dictionary<TeamColor, TeamBase> teams, TeamColor teamInWald)
         {
+            StopListening(); // a previous game that never ended must not leave a second subscription behind
+            var gameMode = game.GameMode;
             EndReason = "Completed";
             _pendingEvents = new();
             _lastKnownTowerColors = new();
-            _lastKnownScores = new();
-            _lastKnownButtonState = new();
+            _lastKnownPressedBy = new();
             _activeTowers = towers;
             _activeTeams = teams;
+            _activeGame = game;
             _teamInWald = teamInWald;
+            _lastKnownScores = teams.Keys.ToDictionary(team => team, game.GetDisplayPoints);
 
             foreach (var kvp in towers)
-            {
                 _lastKnownTowerColors[kvp.Key] = kvp.Value.CurrentColor;
-                _lastKnownButtonState[kvp.Key] = kvp.Value.IsPressed;
-            }
 
             using var db = _dbFactory.CreateDbContext();
 
@@ -100,19 +101,22 @@ namespace OWLServer.Services
 
             _externalTriggerService.StateHasChangedAction += OnStateChanged;
             _externalTriggerService.KlickerPressedAction += OnKlickerPressed;
-            _externalTriggerService.TowerPressedAction += OnTowerPressed;
 
             _flushTimer = new Timer(_ => FlushEvents(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
-        public void RecordGameEnd(IGameModeBase? currentGame, Dictionary<string, Tower> towers)
+        private void StopListening()
         {
-            _activeGame = currentGame;
             _externalTriggerService.StateHasChangedAction -= OnStateChanged;
             _externalTriggerService.KlickerPressedAction -= OnKlickerPressed;
-            _externalTriggerService.TowerPressedAction -= OnTowerPressed;
             _flushTimer?.Dispose();
             _flushTimer = null;
+        }
+
+        public void RecordGameEnd(IGameModeBase? currentGame, Dictionary<string, Tower> towers)
+        {
+            OnStateChanged(); // the tick that ended the game is not followed by another refresh
+            StopListening();
 
             FlushEvents();
 
@@ -153,63 +157,44 @@ namespace OWLServer.Services
             _pendingEvents = new();
             _lastKnownTowerColors = new();
             _lastKnownScores = new();
-            _lastKnownButtonState = new();
+            _lastKnownPressedBy = new();
         }
 
         private void OnStateChanged()
         {
             if (CurrentGameId == null || _activeTowers == null) return;
 
-            foreach (var kvp in _activeTowers)
+            foreach (var (mac, tower) in _activeTowers)
             {
-                var tower = kvp.Value;
-                var mac = kvp.Key;
+                var lastColor = _lastKnownTowerColors.GetValueOrDefault(mac, tower.CurrentColor);
+                if (lastColor != tower.CurrentColor)
+                {
+                    if (tower.CurrentColor is TeamColor.BLUE or TeamColor.RED)
+                        AddEvent(GameEventType.TowerCaptured, tower.CurrentColor, tower.DisplayLetter);
+                    else if (tower.CurrentColor == TeamColor.NONE && lastColor is TeamColor.BLUE or TeamColor.RED)
+                        AddEvent(GameEventType.TowerNeutralized, lastColor, tower.DisplayLetter); // an unlock (LOCKED → NONE) is not a neutralization
+                }
+                _lastKnownTowerColors[mac] = tower.CurrentColor;
 
-                if (_lastKnownTowerColors.TryGetValue(mac, out var lastColor))
+                // remember who pressed: on release PressedByColor is already cleared
+                var pressedBy = tower.IsPressed ? tower.PressedByColor : TeamColor.NONE;
+                var lastPressedBy = _lastKnownPressedBy.GetValueOrDefault(mac, TeamColor.NONE);
+                if (pressedBy != lastPressedBy)
                 {
-                    if (lastColor != tower.CurrentColor)
-                    {
-                        if (tower.CurrentColor == TeamColor.BLUE || tower.CurrentColor == TeamColor.RED)
-                        {
-                            AddEvent(GameEventType.TowerCaptured, tower.CurrentColor, tower.DisplayLetter);
-                        }
-                        else if (tower.CurrentColor == TeamColor.NONE)
-                        {
-                            var prevTeam = lastColor == TeamColor.BLUE || lastColor == TeamColor.RED ? lastColor : TeamColor.NONE;
-                            AddEvent(GameEventType.TowerNeutralized, prevTeam, tower.DisplayLetter);
-                        }
-                        _lastKnownTowerColors[mac] = tower.CurrentColor;
-                    }
+                    if (lastPressedBy != TeamColor.NONE) AddEvent(GameEventType.ButtonReleased, lastPressedBy, tower.DisplayLetter);
+                    if (pressedBy != TeamColor.NONE) AddEvent(GameEventType.ButtonPressed, pressedBy, tower.DisplayLetter);
+                    _lastKnownPressedBy[mac] = pressedBy;
                 }
-                else
-                {
-                    _lastKnownTowerColors[mac] = tower.CurrentColor;
-                }
-
-                if (_lastKnownButtonState.TryGetValue(mac, out var wasPressed))
-                {
-                    if (wasPressed && !tower.IsPressed)
-                    {
-                        AddEvent(GameEventType.ButtonReleased, tower.PressedByColor, tower.DisplayLetter);
-                    }
-                }
-                _lastKnownButtonState[mac] = tower.IsPressed;
             }
 
             if (_activeGame != null)
             {
-                foreach (var kvp in _lastKnownScores.Keys.ToList())
+                foreach (var team in _lastKnownScores.Keys.ToList())
                 {
-                    int currentScore = _activeGame.GetDisplayPoints(kvp);
-                    if (_lastKnownScores.TryGetValue(kvp, out var lastScore))
-                    {
-                        if (currentScore != lastScore)
-                        {
-                            int delta = currentScore - lastScore;
-                            AddEvent(GameEventType.PointsAwarded, kvp, null, delta);
-                        }
-                    }
-                    _lastKnownScores[kvp] = currentScore;
+                    int score = _activeGame.GetDisplayPoints(team);
+                    if (score != _lastKnownScores[team])
+                        AddEvent(GameEventType.PointsAwarded, team, null, score - _lastKnownScores[team]);
+                    _lastKnownScores[team] = score;
                 }
             }
         }
@@ -220,38 +205,48 @@ namespace OWLServer.Services
             AddEvent(GameEventType.Death, args.TeamColor, null);
         }
 
-        private void OnTowerPressed(object? sender, TowerEventArgs args)
-        {
-            if (CurrentGameId == null || _activeTowers == null) return;
-            string? letter = null;
-            if (_activeTowers.TryGetValue(args.TowerId, out var tower))
-                letter = tower.DisplayLetter;
-            AddEvent(GameEventType.ButtonPressed, args.TeamColor, letter);
-        }
-
         private void AddEvent(GameEventType type, TeamColor teamColor, string? towerLetter, int? value = null)
         {
             string side = teamColor == _teamInWald ? "Wald" : "Stadt";
-            _pendingEvents.Add(new GameHistoryEvent
+            lock (_eventLock)
             {
-                GameHistoryId = CurrentGameId!.Value,
-                Timestamp = DateTimeOffset.Now,
-                EventType = (int)type,
-                TeamColor = (int)teamColor,
-                Side = side,
-                TowerLetter = towerLetter,
-                Value = value
-            });
+                // game may have ended between the caller's check and here
+                if (CurrentGameId is not int gameId) return;
+                _pendingEvents.Add(new GameHistoryEvent
+                {
+                    GameHistoryId = gameId,
+                    Timestamp = DateTimeOffset.Now,
+                    EventType = (int)type,
+                    TeamColor = (int)teamColor,
+                    Side = side,
+                    TowerLetter = towerLetter,
+                    Value = value
+                });
+            }
         }
 
         private void FlushEvents()
         {
-            if (_pendingEvents.Count == 0) return;
+            List<GameHistoryEvent> batch;
+            lock (_eventLock)
+            {
+                if (_pendingEvents.Count == 0) return;
+                batch = _pendingEvents;
+                _pendingEvents = new();
+            }
 
-            using var db = _dbFactory.CreateDbContext();
-            db.GameHistoryEvents.AddRange(_pendingEvents);
-            db.SaveChanges();
-            _pendingEvents.Clear();
+            try
+            {
+                using var db = _dbFactory.CreateDbContext();
+                db.GameHistoryEvents.AddRange(batch);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                // runs on a timer thread: an unhandled exception would kill the server; requeue for next flush
+                Console.Error.WriteLine($"GameHistory: event flush failed, retrying later: {ex.Message}");
+                lock (_eventLock) _pendingEvents.InsertRange(0, batch);
+            }
         }
 
         private string BuildSnapshotJSON(GameMode gameMode, Dictionary<string, Tower> towers,
@@ -289,6 +284,7 @@ namespace OWLServer.Services
         {
             using var db = _dbFactory.CreateDbContext();
             return db.GameHistories
+                .Include(gh => gh.Teams)
                 .OrderByDescending(gh => gh.StartTime)
                 .ToList();
         }
@@ -390,7 +386,7 @@ namespace OWLServer.Services
         public Dictionary<string, int> GetWinRateByMode(DateTime? from, DateTime? to)
         {
             using var db = _dbFactory.CreateDbContext();
-            var query = db.GameHistories.AsQueryable();
+            var query = db.GameHistories.Where(g => g.Winner != (int)TeamColor.NONE); // draws and stopped games are no wins
             if (from.HasValue) query = query.Where(g => g.StartTime >= from.Value);
             if (to.HasValue) query = query.Where(g => g.StartTime <= to.Value);
 
@@ -511,12 +507,6 @@ namespace OWLServer.Services
                 .ToList();
         }
 
-        public void Dispose()
-        {
-            _flushTimer?.Dispose();
-            _externalTriggerService.StateHasChangedAction -= OnStateChanged;
-            _externalTriggerService.KlickerPressedAction -= OnKlickerPressed;
-            _externalTriggerService.TowerPressedAction -= OnTowerPressed;
-        }
+        public void Dispose() => StopListening();
     }
 }

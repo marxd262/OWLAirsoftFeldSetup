@@ -46,4 +46,35 @@ public class KlickerClickedTests : IClassFixture<CustomWebApplicationFactory>
             ets.KlickerPressedAction -= Handler;
         }
     }
+
+    [Fact]
+    public async Task KlickerClicked_Spawn_CountsForTheTeamInThatSpawn()
+    {
+        var gss = _factory.Services.GetRequiredService<IGameStateService>();
+        var ets = _factory.Services.GetRequiredService<IExternalTriggerService>();
+        var stadtBefore = gss.TeamInStadt;
+        gss.TeamInStadt = TeamColor.BLUE; // teams swapped sides (BLUE also differs from the enum default RED)
+
+        TeamColor received = TeamColor.NONE;
+        void Handler(object? s, KlickerEventArgs a) => received = a.TeamColor;
+        ets.KlickerPressedAction += Handler;
+
+        try
+        {
+            await _client.PostAsync("/api/KlickerClicked?spawn=Stadt", null);
+            Assert.Equal(TeamColor.BLUE, received);
+        }
+        finally
+        {
+            ets.KlickerPressedAction -= Handler;
+            gss.TeamInStadt = stadtBefore;
+        }
+    }
+
+    [Fact]
+    public async Task KlickerClicked_NoTeam_IsRejected()
+    {
+        var response = await _client.PostAsync("/api/KlickerClicked?color=OFF", null);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

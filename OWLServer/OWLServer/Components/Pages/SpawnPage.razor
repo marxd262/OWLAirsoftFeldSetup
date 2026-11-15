@@ -83,14 +83,7 @@
         }
     }
     
-    public TeamColor GetSpawnColor() 
-    {
-        if (WaldSpawn)
-            return GameStateService.TeamInWald;
-        if(StadtSpawn)
-            return GameStateService.TeamInStadt;
-        return TeamColor.NONE;
-    }
+    public TeamColor GetSpawnColor() => GameStateService.TeamAtSpawn(SpawnPlace);
     
     protected override void OnInitialized()
     {
